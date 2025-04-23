@@ -1,8 +1,5 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 import {
   Form,
   FormControl,
@@ -11,15 +8,19 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Session } from "@/lib/auth/types";
-import { updateEmailSchema } from "@/schema/user";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { LoadingButton } from "@/components/ui/loading-button";
-import { changeEmail } from "@/lib/auth/client";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { LoadingButton } from '@/components/ui/loading-button';
+import { changeEmail } from '@/lib/auth/client';
+import { authLogger } from '@/lib/logger';
+import { updateEmailSchema } from '@/schema/user';
+import type { Session } from '@/types/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
 interface UserEmailFormProps {
   session: Session | null;
@@ -32,7 +33,7 @@ export function UserEmailForm({ session }: UserEmailFormProps) {
   const form = useForm<z.infer<typeof updateEmailSchema>>({
     resolver: zodResolver(updateEmailSchema),
     defaultValues: {
-      email: session?.user?.email ?? "",
+      email: session?.user?.email ?? '',
     },
   });
   const { isDirty } = form.formState;
@@ -45,22 +46,22 @@ export function UserEmailForm({ session }: UserEmailFormProps) {
         },
         {
           onRequest: () => {
-            toast.loading("Updating email...", { id: "updateEmailToast" });
+            toast.loading('Updating email...', { id: 'updateEmailToast' });
           },
           onSuccess: () => {
-            toast.success("Email updated successfully", {
-              id: "updateEmailToast",
+            toast.success('Email updated successfully', {
+              id: 'updateEmailToast',
             });
             form.reset({ email: values.email });
             router.refresh();
           },
-          onError: (ctx) => {
-            toast.error(ctx.error.message ?? "Something went wrong.", {
-              id: "updateEmailToast",
+          onError: ctx => {
+            toast.error(ctx.error.message ?? 'Something went wrong.', {
+              id: 'updateEmailToast',
             });
-            console.log("error", ctx);
+            authLogger.error('error', ctx);
           },
-        },
+        }
       );
     });
   }

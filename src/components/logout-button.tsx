@@ -1,8 +1,10 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import { signOut } from "@/lib/auth/client";
-import { toast } from "sonner";
+import { signOut } from '@/lib/auth/client';
+import { authLogger } from '@/lib/logger';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 export default function LogoutButton({
   children,
@@ -16,16 +18,24 @@ export default function LogoutButton({
       await signOut({
         fetchOptions: {
           onSuccess: () => {
-            router.push("/");
+            router.push('/');
             router.refresh();
           },
         },
       });
     } catch (error) {
-      toast.error("Something went wrong.");
-      console.log(error);
+      toast.error('Something went wrong.');
+      authLogger.error('Logout failed', { error });
     }
   };
 
-  return <div onClick={handleSignOut}>{children}</div>;
+  return (
+    <Button 
+      onClick={handleSignOut}
+      variant="ghost" 
+      className="w-full justify-start"
+    >
+      {children}
+    </Button>
+  );
 }

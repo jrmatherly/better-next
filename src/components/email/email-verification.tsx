@@ -1,3 +1,5 @@
+import { env } from '@/env';
+import { APP_NAME } from '@/lib/settings';
 import {
   Body,
   Button,
@@ -9,9 +11,7 @@ import {
   Preview,
   Section,
   Text,
-} from "jsx-email";
-import { APP_NAME } from "@/constant";
-import env from "@/env";
+} from 'jsx-email';
 
 interface EmailVerificationProps {
   name: string;
@@ -19,27 +19,27 @@ interface EmailVerificationProps {
 }
 
 const main = {
-  backgroundColor: "#ffffff",
+  backgroundColor: '#ffffff',
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
 };
 
 const container = {
-  margin: "0 auto",
-  padding: "20px 0 48px",
+  margin: '0 auto',
+  padding: '20px 0 48px',
 };
 
 const logo = {
-  margin: "0 auto",
+  margin: '0 auto',
 };
 
 const paragraph = {
-  fontSize: "16px",
-  lineHeight: "26px",
+  fontSize: '16px',
+  lineHeight: '26px',
 };
 
 const btnContainer = {
-  textAlign: "center" as const,
+  textAlign: 'center' as const,
 };
 
 export const EmailVerification = ({ name, url }: EmailVerificationProps) => (

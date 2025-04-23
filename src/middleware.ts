@@ -1,27 +1,28 @@
-import { betterFetch } from "@better-fetch/fetch";
-import { type NextRequest, NextResponse } from "next/server";
-import type { Session } from "@/lib/auth/types";
-import env from "@/env";
-import { AUTHENTICATED_URL } from "@/constant";
+import { env } from '@/env';
+import { authLogger } from '@/lib/logger';
+import { AUTHENTICATED_URL } from '@/lib/settings';
+import type { Session } from '@/types/auth';
+import { betterFetch } from '@better-fetch/fetch';
+import { type NextRequest, NextResponse } from 'next/server';
 
-const authRoutes = ["/login", "/sign-up"];
-const protectedRoutesPrefix = "/app";
+const authRoutes = ['/login', '/sign-up'];
+const protectedRoutesPrefix = '/app';
 
 export default async function authMiddleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathName = request.nextUrl.pathname;
   const isAuthRoute = authRoutes.includes(pathName);
   const isProtectedRoute = pathName.startsWith(protectedRoutesPrefix);
-  const cookies = request.headers.get("cookie");
+  const cookies = request.headers.get('cookie');
 
   const startTime = Date.now();
 
   const { data: session } = await betterFetch<Session>(
-    "/api/auth/get-session",
+    '/api/auth/get-session',
     {
       baseURL: env.NEXT_PUBLIC_APP_URL,
       headers: {
-        cookie: cookies || "",
+        cookie: cookies || '',
       },
     }
   );
@@ -29,8 +30,8 @@ export default async function authMiddleware(request: NextRequest) {
   const endTime = Date.now();
   const duration = endTime - startTime;
 
-  console.log(`____Get Session Time: ${duration}ms`);
-  console.log(cookies);
+  authLogger.info(`____Get Session Time: ${duration}ms`);
+  authLogger.info(cookies ?? 'No cookies present');
 
   if (isAuthRoute) {
     if (session) {
@@ -47,7 +48,7 @@ export default async function authMiddleware(request: NextRequest) {
     const encodedCallbackUrl = encodeURIComponent(callbackUrl);
 
     return Response.redirect(
-      new URL(`/login?callbackUrl=${encodedCallbackUrl}`, nextUrl),
+      new URL(`/login?callbackUrl=${encodedCallbackUrl}`, nextUrl)
     );
   }
 
@@ -55,5 +56,5 @@ export default async function authMiddleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
+  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$).*)'],
 };

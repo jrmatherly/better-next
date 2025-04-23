@@ -1,5 +1,5 @@
-import Plunk from "@plunk/node";
-import env from "@/env";
+/* import { env } from '@/env'; */
+/* import Plunk from '@plunk/node'; */
 
 type EmailProps = {
   name?: string;
@@ -10,13 +10,13 @@ type EmailProps = {
   subscribed?: boolean;
 };
 export const sendEmail = async ({
-  name = "Better Next",
+  name = 'Better Next',
   from,
   to,
   subject,
   body,
   subscribed = false,
 }: EmailProps) => {
-  const mailer = new Plunk(env.PLUNK_API_KEY);
-  await mailer.emails.send({ name, from, to, subject, body, subscribed });
+  /* const mailer = new Plunk(env.PLUNK_API_KEY); */
+  /* await mailer.emails.send({ name, from, to, subject, body, subscribed }); */
 };

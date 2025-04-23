@@ -1,15 +1,15 @@
-import { AppSidebar } from "@/app/app/_components/sidebar";
+import BreadcrumbDasboard from '@/app/app/_components/breadcrumb';
+import { AppSidebar } from '@/app/app/_components/sidebar';
+import { ModeToggle } from '@/components/theme-toggle';
+import { Separator } from '@/components/ui/separator';
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { auth } from "@/lib/auth/server";
-import { headers } from "next/headers";
-import BreadcrumbDasboard from "@/app/app/_components/breadcrumb";
-import { ModeToggle } from "@/components/theme-toggle";
-import { Separator } from "@/components/ui/separator";
-import React from "react";
+} from '@/components/ui/sidebar';
+import { auth } from '@/lib/auth/server';
+import { headers } from 'next/headers';
+import React from 'react';
 
 export default async function DashboardLayout({
   children,

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   ChevronsUpDown,
@@ -6,9 +6,10 @@ import {
   LockIcon,
   LogOut,
   UserIcon,
-} from "lucide-react";
+} from 'lucide-react';
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import LogoutButton from '@/components/logout-button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,17 +18,17 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar";
-import { Session } from "@/lib/auth/types";
-import * as React from "react";
-import LogoutButton from "@/components/logout-button";
-import Link from "next/link";
+} from '@/components/ui/sidebar';
+import type { Session } from '@/types/auth';
+import Link from 'next/link';
+// biome-ignore lint/correctness/noUnusedImports: not used directly
+import * as React from 'react';
 
 interface NavUserProps {
   session: Session | null;
@@ -46,7 +47,7 @@ export function NavUser({ session }: NavUserProps) {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={session.user.image!}
+                  src={session.user.image ?? ''}
                   alt={session.user.name}
                 />
                 <AvatarFallback className="rounded-lg">
@@ -64,7 +65,7 @@ export function NavUser({ session }: NavUserProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -72,7 +73,7 @@ export function NavUser({ session }: NavUserProps) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={session.user.image!}
+                    src={session.user.image ?? ''}
                     alt={session.user.name}
                   />
                   <AvatarFallback className="rounded-lg">

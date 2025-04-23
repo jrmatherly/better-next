@@ -1,11 +1,11 @@
-import { Suspense } from "react";
-import SignUpForm from "@/app/(auth-api)/sign-up/sign-up-form";
-import { Metadata } from "next";
-import { Spinner } from "@/components/ui/spinner";
+import SignUpForm from '@/app/(auth-api)/sign-up/sign-up-form';
+import { Spinner } from '@/components/ui/spinner';
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: "Sign Up",
-  description: "Create an account",
+  title: 'Sign Up',
+  description: 'Create an account',
 };
 
 export default function SignUpPage() {

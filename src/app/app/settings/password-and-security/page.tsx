@@ -1,10 +1,11 @@
-import React, { Suspense } from "react";
-import { UserPasswordForm } from "@/app/app/settings/password-and-security/_components/user-password-form";
-import { UserDeleteForm } from "@/app/app/settings/password-and-security/_components/user-delete-form";
-import { auth } from "@/lib/auth/server";
-import { headers } from "next/headers";
-import { Session } from "@/lib/auth/types";
-import { Spinner } from "@/components/ui/spinner";
+import { UserDeleteForm } from '@/app/app/settings/password-and-security/_components/user-delete-form';
+import { UserPasswordForm } from '@/app/app/settings/password-and-security/_components/user-password-form';
+import { Spinner } from '@/components/ui/spinner';
+import { auth } from '@/lib/auth/server';
+import type { Session } from '@/types/auth';
+import { headers } from 'next/headers';
+// biome-ignore lint/correctness/noUnusedImports: not used directly
+import React, { Suspense } from 'react';
 
 export default async function PasswordAndSecurityPage() {
   const session = await auth.api.getSession({

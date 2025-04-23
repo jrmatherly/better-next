@@ -1,9 +1,9 @@
-import { prismaAdapter } from "better-auth/adapters/prisma";
-import { PrismaClient } from "@prisma/client";
-import { openAPI } from "better-auth/plugins";
-import { APP_NAME } from "@/constant";
-import env from "@/env";
-import { BetterAuthOptions } from "better-auth";
+import { env } from '@/env';
+import { APP_NAME } from '@/lib/settings';
+import { PrismaClient } from '@prisma/client';
+import type { BetterAuthOptions } from 'better-auth';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { openAPI } from 'better-auth/plugins';
 
 const prisma = new PrismaClient();
 
@@ -12,11 +12,11 @@ export const authConfig = {
   baseURL: env.NEXT_PUBLIC_APP_URL,
   trustedOrigins: [env.NEXT_PUBLIC_APP_URL],
   logger: {
-    disabled: process.env.NODE_ENV === "production",
-    level: "debug",
+    disabled: process.env.NODE_ENV === 'production',
+    level: 'debug',
   },
   database: prismaAdapter(prisma, {
-    provider: "postgresql",
+    provider: 'postgresql',
   }),
   session: {
     freshAge: 0,

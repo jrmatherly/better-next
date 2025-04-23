@@ -1,11 +1,11 @@
-import { Suspense } from "react";
-import LoginForm from "@/app/(auth-api)/login/login-form";
-import { Metadata } from "next";
-import { Spinner } from "@/components/ui/spinner";
+import LoginForm from '@/app/(auth-api)/login/login-form';
+import { Spinner } from '@/components/ui/spinner';
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
-  title: "Login",
-  description: "Login into your account",
+  title: 'Login',
+  description: 'Login into your account',
 };
 
 export default function LoginPage() {

@@ -1,8 +1,6 @@
-"use client";
+'use client';
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -11,15 +9,18 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { updatePasswordSchema } from "@/schema/user";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
-import { LoadingButton } from "@/components/ui/loading-button";
-import { PasswordInput } from "@/components/ui/password-input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { changePassword } from "@/lib/auth/client";
+} from '@/components/ui/form';
+import { LoadingButton } from '@/components/ui/loading-button';
+import { PasswordInput } from '@/components/ui/password-input';
+import { changePassword } from '@/lib/auth/client';
+import { authLogger } from '@/lib/logger';
+import { updatePasswordSchema } from '@/schema/user';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import * as z from 'zod';
 
 export function UserPasswordForm() {
   const [isPending, startTransition] = useTransition();
@@ -28,9 +29,9 @@ export function UserPasswordForm() {
   const form = useForm<z.infer<typeof updatePasswordSchema>>({
     resolver: zodResolver(updatePasswordSchema),
     defaultValues: {
-      currentPassword: "",
-      password: "",
-      confirmPassword: "",
+      currentPassword: '',
+      password: '',
+      confirmPassword: '',
       revokeOtherSessions: false,
     },
   });
@@ -46,24 +47,24 @@ export function UserPasswordForm() {
         },
         {
           onRequest: () => {
-            toast.loading("Updating password...", {
-              id: "updatePasswordToast",
+            toast.loading('Updating password...', {
+              id: 'updatePasswordToast',
             });
           },
           onSuccess: () => {
-            toast.success("Password updated successfully", {
-              id: "updatePasswordToast",
+            toast.success('Password updated successfully', {
+              id: 'updatePasswordToast',
             });
             form.reset();
             router.refresh();
           },
-          onError: (ctx) => {
-            toast.error(ctx.error.message ?? "Something went wrong.", {
-              id: "updatePasswordToast",
+          onError: ctx => {
+            toast.error(ctx.error.message ?? 'Something went wrong.', {
+              id: 'updatePasswordToast',
             });
-            console.log("error", ctx);
+            authLogger.error('error', ctx);
           },
-        },
+        }
       );
     });
   }

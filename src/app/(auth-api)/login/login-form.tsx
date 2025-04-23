@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Form,
@@ -7,28 +7,29 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { LoadingButton } from "@/components/ui/loading-button";
-import { signInSchema } from "@/schema/auth";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { LoadingButton } from '@/components/ui/loading-button';
+import { signInSchema } from '@/schema/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 
-import { useTransition } from "react";
-import { signIn } from "@/lib/auth/client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from '@/lib/auth/client';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useTransition } from 'react';
 
-import { ErrorContext } from "@better-fetch/fetch";
-import { toast } from "sonner";
-import { PasswordInput } from "@/components/ui/password-input";
-import { AUTHENTICATED_URL } from "@/constant";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { PasswordInput } from '@/components/ui/password-input';
+import { authLogger } from '@/lib/logger';
+import { AUTHENTICATED_URL } from '@/lib/settings';
+import type { ErrorContext } from '@better-fetch/fetch';
+import { toast } from 'sonner';
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl");
-  const encodedCallbackUrl = encodeURIComponent(callbackUrl ?? "");
+  const callbackUrl = searchParams.get('callbackUrl');
+  const encodedCallbackUrl = encodeURIComponent(callbackUrl ?? '');
 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -36,21 +37,21 @@ export default function LoginForm() {
   const form = useForm<z.infer<typeof signInSchema>>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
   });
 
   const openSignUpPage = () => {
     if (!callbackUrl) {
-      router.push("/sign-up");
+      router.push('/sign-up');
     } else {
       router.push(`/sign-up?callbackUrl=${encodedCallbackUrl}`);
     }
   };
 
   const handleCredentialsSignIn = async (
-    values: z.infer<typeof signInSchema>,
+    values: z.infer<typeof signInSchema>
   ) => {
     startTransition(async () => {
       await signIn.email(
@@ -60,20 +61,20 @@ export default function LoginForm() {
         },
         {
           onRequest: () => {
-            toast.loading("Signing in...", { id: "signInToast" });
+            toast.loading('Signing in...', { id: 'signInToast' });
           },
           onSuccess: async () => {
-            toast.success("Signed in successfully", { id: "signInToast" });
+            toast.success('Signed in successfully', { id: 'signInToast' });
             router.push(callbackUrl ?? AUTHENTICATED_URL);
             router.refresh();
           },
           onError: (ctx: ErrorContext) => {
-            toast.error(ctx.error.message ?? "Something went wrong.", {
-              id: "signInToast",
+            toast.error(ctx.error.message ?? 'Something went wrong.', {
+              id: 'signInToast',
             });
-            console.log("error", ctx);
+            authLogger.error('error', ctx);
           },
-        },
+        }
       );
     });
   };

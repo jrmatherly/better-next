@@ -1,15 +1,15 @@
-"use client";
-import React from "react";
+'use client';
+import Logo from '@/components/logo';
+import { Button } from '@/components/ui/button';
 import {
   Sheet,
   SheetContent,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { MenuIcon } from "lucide-react";
-import Logo from "@/components/logo";
-import Link from "next/link";
+} from '@/components/ui/sheet';
+import { MenuIcon } from 'lucide-react';
+import Link from 'next/link';
+import React from 'react';
 
 function MobileNav({ menus }: { menus: { name: string; href: string }[] }) {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -29,7 +29,7 @@ function MobileNav({ menus }: { menus: { name: string; href: string }[] }) {
             </div>
           </SheetTitle>
           <nav className="mt-4 flex flex-col gap-4">
-            {menus.map((item) => (
+            {menus.map(item => (
               <Link
                 key={item.name}
                 href={item.href}

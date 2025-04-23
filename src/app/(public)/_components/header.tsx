@@ -1,11 +1,10 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ModeToggle } from "@/components/theme-toggle";
-import Logo from "@/components/logo";
-import { auth } from "@/lib/auth/server";
-import { headers } from "next/headers";
-import MobileNav from "@/app/(public)/_components/mobile-nav";
+import MobileNav from '@/app/(public)/_components/mobile-nav';
+import Logo from '@/components/logo';
+import LogoutButton from '@/components/logout-button';
+import { ModeToggle } from '@/components/theme-toggle';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,11 +13,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CogIcon, HomeIcon, LockIcon, LogOut, UserIcon } from "lucide-react";
-import LogoutButton from "@/components/logout-button";
-import * as React from "react";
+} from '@/components/ui/dropdown-menu';
+import { auth } from '@/lib/auth/server';
+import { CogIcon, HomeIcon, LockIcon, LogOut, UserIcon } from 'lucide-react';
+import { headers } from 'next/headers';
+import Link from 'next/link';
+// biome-ignore lint/correctness/noUnusedImports: not used directly
+import * as React from 'react';
 
 export default async function Header() {
   const session = await auth.api.getSession({
@@ -26,16 +27,16 @@ export default async function Header() {
   });
   const menus = [
     {
-      name: "Home",
-      href: "#hero",
+      name: 'Home',
+      href: '#hero',
     },
     {
-      name: "About",
-      href: "#about",
+      name: 'About',
+      href: '#about',
     },
     {
-      name: "Features",
-      href: "#features",
+      name: 'Features',
+      href: '#features',
     },
     // currenly disabled for faster development
     // {
@@ -51,7 +52,7 @@ export default async function Header() {
           <Logo />
         </div>
         <nav className="hidden items-center gap-6 md:flex">
-          {menus.map((item) => (
+          {menus.map(item => (
             <a key={item.name} href={item.href}>
               {item.name}
             </a>
@@ -71,7 +72,7 @@ export default async function Header() {
                 <DropdownMenuTrigger asChild>
                   <Avatar className="h-10 w-10 cursor-pointer rounded-full">
                     <AvatarImage
-                      src={session.user.image!}
+                      src={session.user.image ?? ''}
                       alt={session.user.name}
                     />
                     <AvatarFallback className="rounded-full">
@@ -89,7 +90,7 @@ export default async function Header() {
                     <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                       <Avatar className="h-8 w-8 rounded-lg">
                         <AvatarImage
-                          src={session.user.image!}
+                          src={session.user.image ?? ''}
                           alt={session.user.name}
                         />
                         <AvatarFallback className="rounded-lg">

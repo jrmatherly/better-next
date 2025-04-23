@@ -1,5 +1,5 @@
-import { betterAuth } from "better-auth";
-import { authConfig } from "@/lib/auth/config";
-import { authActions } from "@/lib/auth/actions";
+import { authActions } from '@/lib/auth/actions';
+import { authConfig } from '@/lib/auth/config';
+import { betterAuth } from 'better-auth';
 
 export const auth = betterAuth({ ...authConfig, ...authActions });

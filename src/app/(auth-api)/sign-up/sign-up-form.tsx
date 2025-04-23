@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Form,
@@ -7,33 +7,34 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { LoadingButton } from "@/components/ui/loading-button";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { LoadingButton } from '@/components/ui/loading-button';
 
-import { signUpSchema } from "@/schema/auth";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { signUp } from "@/lib/auth/client";
-import { useTransition } from "react";
-import { toast } from "sonner";
-import { useRouter, useSearchParams } from "next/navigation";
-import { PasswordInput } from "@/components/ui/password-input";
-import { AUTHENTICATED_URL } from "@/constant";
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
+import { PasswordInput } from '@/components/ui/password-input';
+import { signUp } from '@/lib/auth/client';
+import { authLogger } from '@/lib/logger';
+import { AUTHENTICATED_URL } from '@/lib/settings';
+import { signUpSchema } from '@/schema/auth';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 export default function SignUpForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl");
-  const encodedCallbackUrl = encodeURIComponent(callbackUrl ?? "");
+  const callbackUrl = searchParams.get('callbackUrl');
+  const encodedCallbackUrl = encodeURIComponent(callbackUrl ?? '');
 
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const openLoginPage = () => {
     if (!callbackUrl) {
-      router.push("/login");
+      router.push('/login');
     } else {
       router.push(`/login?callbackUrl=${encodedCallbackUrl}`);
     }
@@ -42,10 +43,10 @@ export default function SignUpForm() {
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -59,23 +60,23 @@ export default function SignUpForm() {
         },
         {
           onRequest: () => {
-            toast.loading("Creating account...", { id: "signUpToast" });
+            toast.loading('Creating account...', { id: 'signUpToast' });
           },
           onSuccess: () => {
-            toast.success("Email verification sent.", {
-              id: "signUpToast",
-              description: "Please check your email to verify your account.",
-              duration: Infinity,
+            toast.success('Email verification sent.', {
+              id: 'signUpToast',
+              description: 'Please check your email to verify your account.',
+              duration: Number.POSITIVE_INFINITY,
             });
             router.push(callbackUrl ?? AUTHENTICATED_URL);
           },
-          onError: (ctx) => {
-            toast.error(ctx.error.message ?? "Something went wrong.", {
-              id: "signUpToast",
+          onError: ctx => {
+            toast.error(ctx.error.message ?? 'Something went wrong.', {
+              id: 'signUpToast',
             });
-            console.log("error", ctx);
+            authLogger.error('error', ctx);
           },
-        },
+        }
       );
     });
   };

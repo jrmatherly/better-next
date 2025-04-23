@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import Image from "next/image";
-import HeroLight from "./hero-light.jpg";
-import HeroDark from "./hero-dark.jpg";
-import { GithubIcon } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { GithubIcon } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import HeroDark from './hero-dark.jpg';
+import HeroLight from './hero-light.jpg';
 
 export default function Hero() {
   return (

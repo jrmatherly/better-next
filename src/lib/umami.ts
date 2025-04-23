@@ -1,4 +1,4 @@
-import env from "@/env";
+import { env } from '@/env';
 
 export const trackEvent = (event: string) => {
   const analytics = !!(

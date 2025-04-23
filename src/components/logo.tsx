@@ -1,5 +1,6 @@
-import React from "react";
-import Link from "next/link";
+import Link from 'next/link';
+// biome-ignore lint/correctness/noUnusedImports: not used directly
+import React from 'react';
 
 const Logo = () => {
   return (

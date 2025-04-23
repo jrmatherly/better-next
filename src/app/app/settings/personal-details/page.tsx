@@ -1,10 +1,11 @@
-import React, { Suspense } from "react";
-import { UserProfileForm } from "@/app/app/settings/personal-details/_components/user-profile-form";
-import { auth } from "@/lib/auth/server";
-import { headers } from "next/headers";
-import { UserEmailForm } from "@/app/app/settings/personal-details/_components/user-email-form";
-import { Session } from "@/lib/auth/types";
-import { Spinner } from "@/components/ui/spinner";
+import { UserEmailForm } from '@/app/app/settings/personal-details/_components/user-email-form';
+import { UserProfileForm } from '@/app/app/settings/personal-details/_components/user-profile-form';
+import { Spinner } from '@/components/ui/spinner';
+import { auth } from '@/lib/auth/server';
+import type { Session } from '@/types/auth';
+import { headers } from 'next/headers';
+// biome-ignore lint/correctness/noUnusedImports: not used directly
+import React, { Suspense } from 'react';
 
 export default async function PersonalDetailsPage() {
   const session = await auth.api.getSession({

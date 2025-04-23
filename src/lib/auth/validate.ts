@@ -1,7 +1,7 @@
-import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { auth } from "@/lib/auth/server";
-import { UNAUTHENTICATED_URL } from "@/constant";
+import { auth } from '@/lib/auth/server';
+import { UNAUTHENTICATED_URL } from '@/lib/settings';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export async function authValidator() {
   const res = await auth.api.getSession({

@@ -1,5 +1,5 @@
-import React from "react";
-import Logo from "@/components/logo";
+import Logo from '@/components/logo';
+import React from 'react';
 
 export default function AuthLayout({
   children,
@@ -17,7 +17,7 @@ export default function AuthLayout({
       <div className="relative hidden bg-muted lg:block">
         <img
           src="/placeholder.svg"
-          alt="Image"
+          alt="Placeholder"
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>

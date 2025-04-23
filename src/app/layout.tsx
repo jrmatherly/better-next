@@ -1,17 +1,16 @@
-import "./globals.css";
-import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import { createMetadata } from "@/lib/metadata";
-import { APP_NAME } from "@/constant";
-import BuyMeACoffee from "@/script/buymeacoffe";
-import Analytics from "@/script/analytics";
+import '../styles/globals.css';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from '@/components/ui/sonner';
+import { createMetadata } from '@/lib/metadata';
+import { APP_NAME } from '@/lib/settings';
+import Analytics from '@/script/analytics';
 
 export const metadata = createMetadata({
   title: {
     template: `%s | ${APP_NAME}`,
     default: APP_NAME,
   },
-  description: "The easiest way to get started with your next project",
+  description: 'The easiest way to get started with your next project',
 });
 
 export default function RootLayout({
@@ -23,9 +22,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning={true}>
       <head>
         <Analytics />
-        <BuyMeACoffee />
       </head>
-      <body className={`antialiased`}>
+      <body className={'antialiased'}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

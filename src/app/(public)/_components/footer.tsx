@@ -1,56 +1,56 @@
-import Logo from "@/components/logo";
-import { FaInstagram, FaSquareGithub, FaXTwitter } from "react-icons/fa6";
+import Logo from '@/components/logo';
+import { FaInstagram, FaSquareGithub, FaXTwitter } from 'react-icons/fa6';
 
 const socialIcons = [
-  { icon: FaXTwitter, href: "https://x.com/laduniestu", ariaLabel: "Twitter" },
+  { icon: FaXTwitter, href: 'https://x.com/jrmatherly', ariaLabel: 'Twitter' },
   {
     icon: FaInstagram,
-    href: "https://instagram.com/laduniestu",
-    ariaLabel: "Instagram",
+    href: 'https://instagram.com/jrmatherly',
+    ariaLabel: 'Instagram',
   },
   {
     icon: FaSquareGithub,
-    href: "https://github.com/laduniestu",
-    ariaLabel: "Github",
+    href: 'https://github.com/jrmatherly',
+    ariaLabel: 'Github',
   },
 ];
 
 const footerData = [
   {
-    title: "Services",
+    title: 'Services',
     links: [
-      { name: "Web Development", href: "#web-development" },
-      { name: "Mobile Applications", href: "#mobile-applications" },
-      { name: "UI/UX Design", href: "#ui-ux-design" },
-      { name: "Cloud Services", href: "#cloud-services" },
-      { name: "SEO Optimization", href: "#seo-optimization" },
+      { name: 'Web Development', href: '#web-development' },
+      { name: 'Mobile Applications', href: '#mobile-applications' },
+      { name: 'UI/UX Design', href: '#ui-ux-design' },
+      { name: 'Cloud Services', href: '#cloud-services' },
+      { name: 'SEO Optimization', href: '#seo-optimization' },
     ],
   },
   {
-    title: "About",
+    title: 'About',
     links: [
-      { name: "Our Story", href: "#our-story" },
-      { name: "Leadership", href: "#leadership" },
-      { name: "Partners", href: "#partners" },
-      { name: "Newsroom", href: "#newsroom" },
+      { name: 'Our Story', href: '#our-story' },
+      { name: 'Leadership', href: '#leadership' },
+      { name: 'Partners', href: '#partners' },
+      { name: 'Newsroom', href: '#newsroom' },
     ],
   },
   {
-    title: "Support",
+    title: 'Support',
     links: [
-      { name: "Help Center", href: "#help-center" },
-      { name: "FAQs", href: "#faqs" },
-      { name: "Contact Support", href: "#contact-support" },
-      { name: "Status Page", href: "#status-page" },
+      { name: 'Help Center', href: '#help-center' },
+      { name: 'FAQs', href: '#faqs' },
+      { name: 'Contact Support', href: '#contact-support' },
+      { name: 'Status Page', href: '#status-page' },
     ],
   },
   {
-    title: "Legal",
+    title: 'Legal',
     links: [
-      { name: "Privacy Policy", href: "#privacy-policy" },
-      { name: "Terms of Use", href: "#terms-of-use" },
-      { name: "Cookie Policy", href: "#cookie-policy" },
-      { name: "Compliance", href: "#compliance" },
+      { name: 'Privacy Policy', href: '#privacy-policy' },
+      { name: 'Terms of Use', href: '#terms-of-use' },
+      { name: 'Cookie Policy', href: '#cookie-policy' },
+      { name: 'Compliance', href: '#compliance' },
     ],
   },
 ];
@@ -60,12 +60,12 @@ export default function Footer() {
     <footer>
       <div className="relative mx-auto mt-10 max-w-6xl px-2 md:px-5">
         <div className="grid grid-cols-2 justify-between gap-12 py-8 sm:grid-rows-[auto_auto] md:grid-cols-4 md:grid-rows-[auto_auto] md:py-12 lg:grid-cols-[repeat(4,minmax(0,140px))_1fr] lg:grid-rows-1 xl:gap-20">
-          {footerData.map((block, index) => (
-            <div key={index} className="space-y-2">
+          {footerData.map((block) => (
+            <div key={block.title} className="space-y-2">
               <h3 className="text-sm font-bold">{block.title}</h3>
               <ul className="space-y-2 text-sm">
-                {block.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
+                {block.links.map((link) => (
+                  <li key={link.name}>
                     <a
                       className="text-secondary-foreground transition hover:text-primary"
                       href={link.href}
@@ -84,18 +84,18 @@ export default function Footer() {
             </div>
             <div className="text-sm">
               <p className="mb-3 text-secondary-foreground">
-                © Better Next
+                &copy; Better Next
                 <span> · </span>
                 <a
                   className="text-primary transition hover:text-primary/80"
-                  href="https://dun.gg"
+                  href="https://matherly.net"
                 >
-                  Dun.gg
+                  Matherly.net
                 </a>
               </p>
               <ul className="inline-flex gap-4">
-                {socialIcons.map((social, index) => (
-                  <li key={index}>
+                {socialIcons.map((social) => (
+                  <li key={social.ariaLabel}>
                     <a
                       className="flex items-center justify-center text-primary transition hover:text-primary/80"
                       href={social.href}

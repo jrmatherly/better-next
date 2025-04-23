@@ -1,15 +1,20 @@
-"use client";
+'use client';
 
-import * as React from "react";
 import {
   ChevronRight,
   Command,
   LifeBuoy,
   Settings2,
   SquareTerminal,
-} from "lucide-react";
+} from 'lucide-react';
+import * as React from 'react';
 
-import { NavUser } from "@/app/app/_components/sidebar/nav-user";
+import { NavUser } from '@/app/app/_components/sidebar/nav-user';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   Sidebar,
   SidebarContent,
@@ -25,44 +30,39 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from "@/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Session } from "@/lib/auth/types";
-import { APP_NAME } from "@/constant";
+} from '@/components/ui/sidebar';
+import { APP_NAME } from '@/lib/settings';
+import type { Session } from '@/types/auth';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/app",
+      title: 'Dashboard',
+      url: '/app',
       icon: SquareTerminal,
     },
     {
-      title: "Settings",
-      url: "/app/settings",
+      title: 'Settings',
+      url: '/app/settings',
       icon: Settings2,
       items: [
         {
-          title: "Personal details",
-          url: "/app/settings/personal-details",
+          title: 'Personal details',
+          url: '/app/settings/personal-details',
         },
         {
-          title: "Password and security",
-          url: "/app/settings/password-and-security",
+          title: 'Password and security',
+          url: '/app/settings/password-and-security',
         },
       ],
     },
   ],
   navSecondary: [
     {
-      title: "Support",
-      url: "#",
+      title: 'Support',
+      url: '#',
       icon: LifeBuoy,
     },
   ],
@@ -96,13 +96,13 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
         <SidebarGroup>
           <SidebarGroupLabel>Platform</SidebarGroupLabel>
           <SidebarMenu>
-            {data.navMain.map((item) => (
+            {data.navMain.map(item => (
               <Collapsible
                 asChild
                 key={item.title}
                 open={
                   path === item.url ||
-                  item.items?.some((subItem) => path === subItem.url)
+                  item.items?.some(subItem => path === subItem.url)
                 }
               >
                 <SidebarMenuItem>
@@ -126,7 +126,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {item.items?.map((subItem) => (
+                          {item.items?.map(subItem => (
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
                                 asChild
@@ -150,7 +150,7 @@ export function AppSidebar({ session, ...props }: AppSidebarProps) {
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.navSecondary.map((item) => (
+              {data.navSecondary.map(item => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild

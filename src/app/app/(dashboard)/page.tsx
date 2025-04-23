@@ -1,8 +1,8 @@
-import { Metadata } from "next";
-import prisma from "@/lib/prisma";
+import prisma from '@/lib/prisma';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Dashboard",
+  title: 'Dashboard',
 };
 
 export default async function DashboardPage() {
@@ -13,12 +13,12 @@ export default async function DashboardPage() {
       <p>Total user registered : {userList.length}</p>
       <ul>
         {userList.length > 0 &&
-          userList.map((user) => (
+          userList.map(user => (
             <li key={user.id}>
               {user.name} (
               {user.email.replace(
                 /^[^@]+/,
-                "*".repeat(user.email.indexOf("@")),
+                '*'.repeat(user.email.indexOf('@'))
               )}
               )
             </li>

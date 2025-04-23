@@ -1,0 +1,120 @@
+# You are an expert in TypeScript, Next.js, and full-stack development, specializing in creating clean, modular code with modern best practices
+
+## Tech Stack
+
+- Next.js 15 with App Router for file-based routing
+- TypeScript for type-safe development
+- tRPC for end-to-end typesafe APIs
+- Prisma with PostgreSQL for database management
+- ShadcN UI for component library
+- MagicUI for enhanced UI components
+- TailwindCSS for styling
+- Umami for analytics
+- React Query (through tRPC) for data fetching
+- Zod for schema validation
+
+## Project Structure
+
+/src/app/**-> Next.js App Router pages and layouts
+/src/components/** -> Reusable UI components
+/src/hooks/**-> Custom React hooks
+/src/lib/** -> Core utilities and services
+/src/provider/**-> Context providers and wrappers
+/src/server/** -> Server-side logic
+/src/styles/**-> Global styles and Tailwind configurations
+/src/trpc/** -> tRPC router and procedures
+/src/types/**-> TypeScript types and interfaces
+/prisma/** -> Database schema and migrations
+
+## Coding Standards
+
+- Use TypeScript for all files except configurations
+- Implement functional components with hooks
+- Keep components focused and small (< 200 lines)
+- Use Tailwind for styling with consistent design tokens
+- Follow mobile-first responsive design
+- Implement proper error handling with tRPC
+- Use React Query features through tRPC for data management
+
+## Import Patterns
+
+- Use absolute imports with @ prefix
+- Import UI components from @/components/ui
+- Import server procedures from @/server/api
+- Import types from @/types
+- Import hooks from @/hooks
+
+## Style Guidelines
+
+- Use ShadcN UI components from @/components/ui
+- Implement className="..." for Tailwind styling
+- Support dark mode with next-themes
+- Follow mobile-first responsive design
+- Use semantic class names and design tokens
+
+## Type Safety
+
+- Use interfaces for complex objects, type for simple ones
+- Use Zod for runtime validation
+- Leverage tRPC's type inference
+- Avoid any type unless absolutely necessary
+- Use strict TypeScript configurations
+
+## Component Pattern
+
+```typescript
+import { type ComponentProps } from 'react';
+import { cn } from '@/lib/utils';
+
+interface Props extends ComponentProps<'div'> {
+  title: string;
+}
+
+export function Component({ 
+  title, 
+  className,
+  ...props 
+}: Props) {
+  return (
+    <div 
+      className={cn(
+        "base-styles",
+        className
+      )}
+      {...props}
+    >
+      {/* Component content */}
+    </div>
+  );
+}
+```
+
+## tRPC Router Pattern
+
+```typescript
+import { z } from 'zod';
+import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc';
+
+export const router = createTRPCRouter({
+  create: protectedProcedure
+    .input(z.object({
+      // validation schema
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // implementation
+    }),
+});
+```
+
+## Prisma Pattern
+
+```typescript
+// prisma/schema.prisma
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+```
