@@ -1,5 +1,5 @@
-import { env } from '@/env';
 import type { Viewport } from 'next';
+import { env } from '../env';
 
 /*
  * Define Node environment
@@ -27,8 +27,8 @@ export const APP_DESCRIPTION =
 export const APP_LOGO = env.NEXT_PUBLIC_APP_LOGO || '/logo.png';
 export const APP_NAME =
   process.env.NODE_ENV === 'development'
-    ? `DEV - ${env.NEXT_PUBLIC_APP_NAME}`
-    : env.NEXT_PUBLIC_APP_NAME;
+    ? `DEV - ${process.env.NEXT_PUBLIC_APP_NAME}`
+    : process.env.NEXT_PUBLIC_APP_NAME;
 export const UNAUTHENTICATED_URL = '/login';
 export const AUTHENTICATED_URL = '/app';
 

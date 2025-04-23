@@ -1,16 +1,21 @@
-import { env } from '@/env';
-import { APP_NAME } from '@/lib/settings';
+/* import { APP_NAME } from '@/lib/settings'; */
 import { PrismaClient } from '@prisma/client';
 import type { BetterAuthOptions } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { openAPI } from 'better-auth/plugins';
+/* import { env } from '../../env'; */
+
+const APP_NAME =
+  process.env.NODE_ENV === 'development'
+    ? `DEV - ${process.env.NEXT_PUBLIC_APP_NAME}`
+    : process.env.NEXT_PUBLIC_APP_NAME;
 
 const prisma = new PrismaClient();
 
 export const authConfig = {
   appName: APP_NAME,
-  baseURL: env.NEXT_PUBLIC_APP_URL,
-  trustedOrigins: [env.NEXT_PUBLIC_APP_URL],
+  baseURL: process.env.NEXT_PUBLIC_APP_URL,
+  trustedOrigins: [process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'],
   logger: {
     disabled: process.env.NODE_ENV === 'production',
     level: 'debug',
