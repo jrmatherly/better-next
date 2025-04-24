@@ -1,19 +1,30 @@
 'use client';
 
-import { useAdmin as useAdminBase } from '@/lib/auth/client';
+import { authClient } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import type { UserFilterOptions, UserStats } from '@/types/admin';
 import type { User } from '@/types/auth';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-// Define the expected shape of the admin client
-interface AdminClient {
-  getUsers: () => Promise<User[]>;
-  getUserById: (id: string) => Promise<User | null>;
-  getUserStats: () => Promise<UserStats>;
-  deleteUser?: (id: string) => Promise<void>;
-  updateUser?: (id: string, data: Partial<User>) => Promise<User | null>;
+/**
+ * BetterAuth response type definitions
+ */
+interface BetterAuthListUsersResponse {
+  users: User[];
+  total: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Admin client interface to improve type safety
+ */
+interface BetterAuthAdminClient {
+  listUsers: (options: { query: Record<string, unknown> }) => Promise<unknown>;
+  getUser: (options: { userId: string }) => Promise<unknown>;
+  updateUser: (options: { userId: string; data: Partial<User> }) => Promise<unknown>;
+  removeUser: (options: { userId: string }) => Promise<unknown>;
 }
 
 /**
@@ -22,26 +33,37 @@ interface AdminClient {
  */
 export function useAdmin() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  
-  // Get the base admin client - do NOT use this directly in dependencies
-  const adminBase = useAdminBase() as AdminClient;
-  
-  // Use useMemo to create stable references to the underlying functions
-  // We do this once rather than recreating functions on each render
-  const stableAdminFunctions = useMemo(() => {
-    return {
-      getUsersBase: adminBase.getUsers,
-      getUserByIdBase: adminBase.getUserById,
-      getUserStatsBase: adminBase.getUserStats,
-      // Use optional chaining for functions that might not exist yet
-      deleteUserBase: adminBase.deleteUser ?? (async (id: string) => {
-        throw new Error('Delete user not implemented');
-      }),
-      updateUserBase: adminBase.updateUser ?? (async (id: string, data: Partial<User>) => {
-        throw new Error('Update user not implemented');
-      }),
-    };
-  }, [adminBase]); // We can safely use adminBase as a dependency since we're only capturing its methods once
+
+  // Access the admin client with proper type casting
+  const adminClient = useMemo<BetterAuthAdminClient>(() => {
+    // Cast to Record first to access properties more safely without 'any'
+    const client = authClient as Record<string, unknown>;
+    return client.admin as BetterAuthAdminClient;
+  }, []);
+
+  /**
+   * Handles unknown response type safely
+   */
+  const extractUserData = useCallback(<T,>(response: unknown): T | null => {
+    if (!response) return null;
+    
+    // Cast to a Record type for safer property access
+    const result = response as Record<string, unknown>;
+    
+    // Handle error responses using optional chaining
+    if (result?.error) {
+      console.error('Error in API response:', result.error);
+      return null;
+    }
+    
+    // Handle data property using optional chaining
+    if (result?.data) {
+      return result.data as T;
+    }
+    
+    // Return the result directly
+    return result as T;
+  }, []);
 
   /**
    * Fetch users with optional filtering
@@ -50,18 +72,53 @@ export function useAdmin() {
     async (options?: UserFilterOptions): Promise<User[] | null> => {
       setIsLoading(true);
       try {
-        // Using the stable reference to getUsers to prevent recreation on each render
-        const result = await stableAdminFunctions.getUsersBase();
-        return result;
+        // Check if admin client methods exist
+        if (!adminClient?.listUsers) {
+          console.error('Admin plugin not properly initialized');
+          return [];
+        }
+        
+        const result = await adminClient.listUsers({
+          query: {
+            limit: options?.limit || 100,
+            offset: options?.page
+              ? (options.page - 1) * (options?.limit || 20)
+              : 0,
+            ...(options?.search && { searchValue: options.search }),
+            ...(options?.role &&
+              options.role !== 'all' && {
+                filterField: 'role',
+                filterOperator: 'eq',
+                filterValue: options.role,
+              }),
+          },
+        });
+
+        // Extract response data safely
+        const responseData = extractUserData<BetterAuthListUsersResponse>(result);
+        
+        // If we have a valid response with users array, return it
+        if (responseData?.users && Array.isArray(responseData.users)) {
+          return responseData.users;
+        }
+        
+        // If we have a raw users array, return it
+        const resultObj = result as Record<string, unknown>;
+        if (resultObj?.users && Array.isArray(resultObj.users)) {
+          return resultObj.users as User[];
+        }
+        
+        // Default empty array if nothing was found
+        return [];
       } catch (error) {
         toast.error('Failed to fetch users');
         authLogger.error('Error fetching users:', error);
-        return null;
+        return [];
       } finally {
         setIsLoading(false);
       }
     },
-    [stableAdminFunctions]
+    [adminClient, extractUserData]
   );
 
   /**
@@ -71,8 +128,14 @@ export function useAdmin() {
     async (id: string): Promise<User | null> => {
       setIsLoading(true);
       try {
-        const result = await stableAdminFunctions.getUserByIdBase(id);
-        return result;
+        // Check if admin client methods exist
+        if (!adminClient?.getUser) {
+          console.error('Admin plugin not properly initialized');
+          return null;
+        }
+        
+        const result = await adminClient.getUser({ userId: id });
+        return extractUserData<User>(result);
       } catch (error) {
         toast.error('Failed to fetch user');
         authLogger.error(`Error fetching user ${id}:`, error);
@@ -81,19 +144,35 @@ export function useAdmin() {
         setIsLoading(false);
       }
     },
-    [stableAdminFunctions]
+    [adminClient, extractUserData]
   );
 
   /**
-   * Update a user
+   * Update a user's information
    */
   const updateUser = useCallback(
     async (id: string, data: Partial<User>): Promise<User | null> => {
       setIsLoading(true);
       try {
-        const result = await stableAdminFunctions.updateUserBase(id, data);
-        toast.success('User updated successfully');
-        return result;
+        // Check if admin client methods exist
+        if (!adminClient?.updateUser) {
+          console.error('Admin plugin not properly initialized');
+          return null;
+        }
+        
+        const result = await adminClient.updateUser({ 
+          userId: id, 
+          data
+        });
+        
+        const updatedUser = extractUserData<User>(result);
+        
+        if (updatedUser) {
+          toast.success('User updated successfully');
+          return updatedUser;
+        }
+        
+        return null;
       } catch (error) {
         toast.error('Failed to update user');
         authLogger.error(`Error updating user ${id}:`, error);
@@ -102,7 +181,7 @@ export function useAdmin() {
         setIsLoading(false);
       }
     },
-    [stableAdminFunctions]
+    [adminClient, extractUserData]
   );
 
   /**
@@ -112,8 +191,14 @@ export function useAdmin() {
     async (id: string): Promise<boolean> => {
       setIsLoading(true);
       try {
-        await stableAdminFunctions.deleteUserBase?.(id);
-        toast.success('User deleted');
+        // Check if admin client methods exist
+        if (!adminClient?.removeUser) {
+          console.error('Admin plugin not properly initialized');
+          return false;
+        }
+        
+        await adminClient.removeUser({ userId: id });
+        toast.success('User deleted successfully');
         return true;
       } catch (error) {
         toast.error('Failed to delete user');
@@ -123,28 +208,57 @@ export function useAdmin() {
         setIsLoading(false);
       }
     },
-    [stableAdminFunctions]
+    [adminClient]
   );
 
   /**
    * Get user statistics
    */
-  const getUserStats = useCallback(
-    async (): Promise<UserStats | null> => {
-      setIsLoading(true);
-      try {
-        const result = await stableAdminFunctions.getUserStatsBase();
-        return result;
-      } catch (error) {
-        toast.error('Failed to fetch user statistics');
-        authLogger.error('Error fetching user statistics:', error);
+  const getUserStats = useCallback(async (): Promise<UserStats | null> => {
+    setIsLoading(true);
+    try {
+      // Check if admin client methods exist
+      if (!adminClient?.listUsers) {
+        console.error('Admin plugin not properly initialized');
         return null;
-      } finally {
-        setIsLoading(false);
       }
-    },
-    [stableAdminFunctions]
-  );
+      
+      // Get user count from the list users API
+      const result = await adminClient.listUsers({
+        query: { limit: 1 }
+      });
+      
+      // Extract total count
+      let totalUsers = 0;
+      
+      const responseData = extractUserData<BetterAuthListUsersResponse>(result);
+      if (responseData?.total) {
+        totalUsers = responseData.total;
+      } else {
+        const resultObj = result as Record<string, unknown>;
+        if (typeof resultObj?.total === 'number') {
+          totalUsers = resultObj.total;
+        }
+      }
+      
+      // Create statistics
+      const stats: UserStats = {
+        totalUsers,
+        activeUsers: totalUsers, // We don't have exact active user info
+        newUsersToday: 0,        // Would need creation dates for this
+        newUsersThisWeek: 0,
+        newUsersThisMonth: 0,
+      };
+      
+      return stats;
+    } catch (error) {
+      toast.error('Failed to fetch user statistics');
+      authLogger.error('Error fetching user statistics:', error);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [adminClient, extractUserData]);
 
   return {
     getUsers,
