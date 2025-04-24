@@ -2,7 +2,7 @@ import { UserEmailForm } from '@/app/app/settings/personal-details/_components/u
 import { UserProfileForm } from '@/app/app/settings/personal-details/_components/user-profile-form';
 import { Spinner } from '@/components/ui/spinner';
 import { auth } from '@/lib/auth/server';
-import type { Session } from '@/types/auth';
+import type { Session } from '@/types/auth.d';
 import { headers } from 'next/headers';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import React, { Suspense } from 'react';

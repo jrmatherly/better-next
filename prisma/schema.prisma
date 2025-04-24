@@ -25,6 +25,11 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  roles           String[]
+  originalRoles   String[]
+  isImpersonating Boolean?
+  groups          String[]
+
   @@map("user")
 }
 

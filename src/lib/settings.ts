@@ -1,22 +1,5 @@
+import { env } from '@/env';
 import type { Viewport } from 'next';
-import { env } from '../env';
-
-/*
- * Define Node environment
- */
-/* export const isProd = process.env.NODE_ENV === 'production';
-export const isDev = process.env.NODE_ENV === 'development';
-export const isTest = process.env.NODE_ENV === 'test'; */
-
-/*
- * Show logger in local development or when explicitly enabled
- */
-/* export const loggerConfig = {
-  enabled: isDev ? true : env.NEXT_PUBLIC_SHOW_LOGGER,
-  level: env.NEXT_PUBLIC_LOG_LEVEL,
-} as const;
-
-export const showLogger = loggerConfig.enabled; */
 
 /*
  * Define Application settings

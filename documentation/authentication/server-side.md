@@ -1,469 +1,540 @@
 # Server-Side Authentication
 
-This document covers server-side authentication capabilities in BetterAuth, including how to access and validate user sessions, protect routes, and perform server-side authentication operations.
+This document covers server-side authentication with BetterAuth, including session access, protected routes, and server components integration.
 
 ## Server Session Access
 
-BetterAuth provides several methods to access the user's session on the server side.
+### Getting the Session in Server Components
 
-### In Next.js App Router
+Access the user's session in server components:
 
-#### In Server Components
-
-```tsx
+```typescript
 // In a server component
-import { getServerSession } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth/server';
+import type { ExtendedSession } from '@/types/auth.d';
 
-export default async function DashboardPage() {
-  const session = await getServerSession(authConfig);
+export default async function ProfilePage() {
+  // Get the session using the official BetterAuth approach
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  }) as ExtendedSession | null;
   
-  if (!session) {
-    // Handle unauthenticated state (redirect or display message)
-    return <div>Please sign in to access this page</div>;
+  if (!session?.user) {
+    // Handle unauthenticated state
+    return (
+      <div>
+        <h1>Profile</h1>
+        <p>Please sign in to view your profile</p>
+      </div>
+    );
   }
   
-  // Access user information
-  const { user } = session;
-  
+  // Use the user's data from the session
   return (
     <div>
-      <h1>Welcome, {user.name || user.email}</h1>
-      <p>Your role(s): {user.roles?.join(', ') || 'No roles assigned'}</p>
+      <h1>Profile</h1>
+      <p>Welcome, {session.user.name || session.user.email}</p>
       
-      {/* Render dashboard content */}
+      {/* Access roles from the session */}
+      {session.user.roles && (
+        <div>
+          <h2>Your Roles</h2>
+          <ul>
+            {session.user.roles.map(role => (
+              <li key={role}>{role}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
 ```
 
-#### In Route Handlers (API Routes)
+### Session Utility Function
+
+Create a reusable function to get the session with proper typing:
 
 ```typescript
-// In app/api/user-data/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+// src/lib/auth/session.ts
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth/server';
+import type { ExtendedSession } from '@/types/auth.d';
 
-export async function GET(req: NextRequest) {
-  const session = await getServerSession(authConfig);
-  
-  if (!session) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
+/**
+ * Get the server session with proper typing
+ */
+export async function getServerSession(): Promise<ExtendedSession | null> {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    // If no session, return null
+    if (!session) return null;
+    
+    // Cast to ExtendedSession type
+    return session as ExtendedSession;
+  } catch (error) {
+    console.error('Error getting server session:', error);
+    return null;
   }
-  
-  // Process authenticated request
-  return NextResponse.json({
-    user: session.user,
-    message: 'Authenticated successfully',
-  });
 }
 ```
 
-#### In Server Actions
+## Protected Server Components
+
+Create a higher-order component for role-based protection:
 
 ```typescript
-'use server'
+// src/lib/auth/protect.tsx
+import { redirect } from 'next/navigation';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/roles';
+import { checkRoleAccess } from '@/lib/auth/guards';
 
-import { getServerSession } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+interface ProtectOptions {
+  redirectTo?: string;
+  requireAll?: boolean;
+}
 
-export async function fetchUserData() {
-  const session = await getServerSession(authConfig);
+/**
+ * Higher-order function to protect server components with role-based access
+ * 
+ * @param Component The server component to protect
+ * @param allowedRoles Roles that are allowed to access this component
+ * @param options Configuration options
+ */
+export function withRoleProtection<T>(
+  Component: (props: T) => Promise<React.ReactNode> | React.ReactNode,
+  allowedRoles: Role[],
+  options: ProtectOptions = {}
+) {
+  const { redirectTo = '/unauthorized', requireAll = false } = options;
   
-  if (!session) {
-    throw new Error('Unauthorized');
-  }
-  
-  // Return user data or fetch from database
-  return {
-    user: session.user,
-    // Add additional user data
+  return async function ProtectedComponent(props: T) {
+    // Get the user's session
+    const session = await getServerSession();
+    
+    // Not authenticated, redirect to sign in
+    if (!session?.user) {
+      redirect('/api/auth/signin');
+    }
+    
+    // Check if user has the required roles
+    const hasAccess = checkRoleAccess(session, allowedRoles, requireAll);
+    
+    // If no access, redirect to unauthorized page
+    if (!hasAccess) {
+      redirect(redirectTo);
+    }
+    
+    // User has the required roles, render the component
+    return Component(props);
   };
 }
 ```
 
-## Role-Based Access Control
-
-### Checking User Roles
+### Example Usage
 
 ```typescript
-import { getServerSession } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+// src/app/admin/page.tsx
+import { withRoleProtection } from '@/lib/auth/protect';
+import { ROLES } from '@/types/roles';
 
-// Function to check if user has required roles
-export async function hasRequiredRoles(requiredRoles: string[] = []) {
-  const session = await getServerSession(authConfig);
-  
-  if (!session) {
-    return false;
-  }
-  
-  const userRoles = session.user.roles || [];
-  
-  // Check if user has any of the required roles
-  return requiredRoles.some(role => userRoles.includes(role));
+async function AdminPage() {
+  return (
+    <div>
+      <h1>Admin Dashboard</h1>
+      {/* Admin content */}
+    </div>
+  );
 }
 
-// Example usage in a server component
-export default async function AdminPage() {
-  const isAdmin = await hasRequiredRoles(['admin']);
-  
-  if (!isAdmin) {
-    return <div>Unauthorized: Admin access required</div>;
+// Protect the component, only allowing admins
+export default withRoleProtection(AdminPage, [ROLES.ADMIN]);
+```
+
+## Role-Based Server Actions
+
+Add role checks to server actions:
+
+```typescript
+// src/app/admin/user/actions.ts
+'use server'
+
+import { auth } from '@/lib/auth/server';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/roles';
+
+/**
+ * Update a user's roles
+ * Only administrators can perform this action
+ */
+export async function updateUserRoles(userId: string, roles: Role[]) {
+  try {
+    // Get the current user's session
+    const session = await getServerSession();
+    
+    // Check if the user is an admin
+    if (!session?.user?.roles?.includes(ROLES.ADMIN)) {
+      return { success: false, error: 'Unauthorized - Admin access required' };
+    }
+    
+    // Update the user's roles
+    await auth.api.updateUser({
+      id: userId,
+      data: { roles }
+    });
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Error updating user roles:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
-  
-  return <AdminDashboard />;
 }
 ```
 
-### Create Role-Based Middleware
+## Route Handlers (API Routes)
+
+Protect API routes with role-based middleware:
 
 ```typescript
-// In middleware.ts
+// src/app/api/admin-data/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createNextMiddleware } from 'better-auth/integrations/next';
-import { authConfig } from './lib/auth/config';
+import { withRoleGuard } from '@/lib/auth/guards';
+import { ROLES } from '@/types/roles';
 
-const betterAuthMiddleware = createNextMiddleware(authConfig);
+// Role guard middleware
+const adminGuard = withRoleGuard([ROLES.ADMIN]);
 
-export default async function middleware(req: NextRequest) {
-  // Run BetterAuth middleware first
-  const res = await betterAuthMiddleware(req);
-  if (res) return res;
-  
-  // Get session from request - BetterAuth attaches it
-  const session = (req as any).session;
-  
-  // Protect admin routes
-  if (req.nextUrl.pathname.startsWith('/admin')) {
-    if (!session) {
-      return NextResponse.redirect(new URL('/login', req.url));
-    }
-    
-    const userRoles = session.user.roles || [];
-    if (!userRoles.includes('admin')) {
-      return NextResponse.redirect(new URL('/unauthorized', req.url));
-    }
+export async function GET(req: NextRequest) {
+  // Check admin role first
+  const unauthorizedResponse = await adminGuard(req);
+  if (unauthorizedResponse) {
+    return unauthorizedResponse;
   }
   
-  // Continue with the request
-  return NextResponse.next();
+  // User is authenticated and has admin role, proceed with the request
+  return NextResponse.json({
+    data: 'Sensitive admin data',
+    timestamp: new Date().toISOString(),
+  });
 }
+```
 
-export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.png$).*)',
-  ],
+## The ExtendedSession Type
+
+The `ExtendedSession` type extends the default BetterAuth session with additional properties:
+
+```typescript
+// This is defined in src/types/auth.d.ts
+export type ExtendedSession = Session & {
+  user: Session['user'] & {
+    roles?: Role[];
+    // Additional claims from Azure AD
+    groups?: string[];
+    // Support for impersonation
+    originalRoles?: Role[];
+    isImpersonating?: boolean;
+  };
 };
 ```
 
-## Server-Side Authentication Operations
+## Session Enhancement
 
-### User Management
+During authentication, sessions are enhanced with roles from the token:
+
+```typescript
+// src/lib/auth/hooks.ts
+import { ROLES } from '@/types/roles';
+import { parseRoles } from '@/lib/auth/role-utils';
+import type { ExtendedSession } from '@/types/auth.d';
+
+export const enhanceSession = async ({ 
+  session, 
+  token 
+}: { 
+  session: ExtendedSession; 
+  token: Record<string, unknown>; 
+}): Promise<ExtendedSession> => {
+  if (!session?.user) {
+    return session;
+  }
+
+  // Extract roles from token
+  const userRoles = parseRoles(token?.roles);
+  
+  // If no valid roles were assigned, set default role
+  if (userRoles.length === 0) {
+    userRoles.push(ROLES.USER);
+  }
+  
+  // Extract groups if available
+  const userGroups = Array.isArray(token?.groups) 
+    ? token.groups.filter((group: unknown): group is string => typeof group === 'string')
+    : [];
+  
+  // Return enhanced session with roles
+  return {
+    ...session,
+    user: {
+      ...session.user,
+      roles: userRoles,
+      ...(userGroups.length > 0 && { groups: userGroups }),
+    },
+  };
+};
+```
+
+## Server-Side User Management
 
 ```typescript
 'use server'
 
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
+import { auth } from '@/lib/auth/server';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/roles';
 
-// Initialize BetterAuth instance
-const auth = new BetterAuth(authConfig);
-
-// Create a new user
+/**
+ * Create a new user with specified roles
+ * Only administrators can create users
+ */
 export async function createUser(data: {
   email: string;
   password: string;
   name?: string;
-  roles?: string[];
+  roles?: Role[];
 }) {
   try {
-    const user = await auth.user.create({
+    // Verify admin permission
+    const session = await getServerSession();
+    
+    if (!session?.user?.roles?.includes(ROLES.ADMIN)) {
+      return { success: false, error: 'Unauthorized - Admin access required' };
+    }
+    
+    // Create the user with specified roles
+    const user = await auth.api.createUser({
       email: data.email,
       password: data.password,
       name: data.name,
-      // Add custom fields
-      roles: data.roles || ['user'],
+      // Add roles (defaulting to basic user)
+      roles: data.roles || [ROLES.USER],
     });
     
     return { success: true, user };
   } catch (error) {
     console.error('Failed to create user:', error);
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 
-// Get user by ID
+/**
+ * Get user by ID with role-based permission check
+ */
 export async function getUserById(userId: string) {
   try {
-    const user = await auth.user.getById(userId);
-    return { success: true, user };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-// Update user roles
-export async function updateUserRoles(userId: string, roles: string[]) {
-  try {
-    const user = await auth.user.update(userId, {
-      roles,
-    });
+    const session = await getServerSession();
     
+    // Only admins or the user themselves can access user data
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized' };
+    }
+    
+    const isAdmin = session.user.roles?.includes(ROLES.ADMIN);
+    const isSelf = session.user.id === userId;
+    
+    if (!isAdmin && !isSelf) {
+      return { success: false, error: 'Forbidden - Insufficient permissions' };
+    }
+    
+    const user = await auth.api.getUser(userId);
     return { success: true, user };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 
-// Delete user
+/**
+ * Delete user by ID (admin only)
+ */
 export async function deleteUserById(userId: string) {
   try {
-    await auth.user.delete(userId);
+    const session = await getServerSession();
+    
+    // Only admins can delete users
+    if (!session?.user?.roles?.includes(ROLES.ADMIN)) {
+      return { success: false, error: 'Unauthorized - Admin access required' };
+    }
+    
+    await auth.api.deleteUser(userId);
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 ```
 
-### Session Management
+## Session Management Operations
 
 ```typescript
 'use server'
 
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
+import { auth } from '@/lib/auth/server';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES } from '@/types/roles';
 
-const auth = new BetterAuth(authConfig);
-
-// List sessions for a user
+/**
+ * List all sessions for a user
+ * Only admins or the user themselves can list sessions
+ */
 export async function listUserSessions(userId: string) {
   try {
-    const sessions = await auth.session.list(userId);
+    const session = await getServerSession();
+    
+    if (!session?.user) {
+      return { success: false, error: 'Unauthorized' };
+    }
+    
+    const isAdmin = session.user.roles?.includes(ROLES.ADMIN);
+    const isSelf = session.user.id === userId;
+    
+    if (!isAdmin && !isSelf) {
+      return { success: false, error: 'Forbidden - Insufficient permissions' };
+    }
+    
+    const sessions = await auth.api.getUserSessions(userId);
     return { success: true, sessions };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 
-// Revoke a specific session
+/**
+ * Revoke a specific session
+ * Only admins or the user themselves can revoke sessions
+ */
 export async function revokeSession(sessionId: string) {
   try {
-    await auth.session.revoke(sessionId);
+    const currentSession = await getServerSession();
+    
+    if (!currentSession?.user) {
+      return { success: false, error: 'Unauthorized' };
+    }
+    
+    // Get the session to be revoked to check ownership
+    const sessionToRevoke = await auth.api.getSession({ sessionId });
+    
+    if (!sessionToRevoke) {
+      return { success: false, error: 'Session not found' };
+    }
+    
+    const isAdmin = currentSession.user.roles?.includes(ROLES.ADMIN);
+    const isSelf = sessionToRevoke.user.id === currentSession.user.id;
+    
+    if (!isAdmin && !isSelf) {
+      return { success: false, error: 'Forbidden - Insufficient permissions' };
+    }
+    
+    await auth.api.revokeSession({ sessionId });
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 
-// Revoke all sessions for a user except current
-export async function revokeOtherSessions(userId: string, currentSessionId: string) {
+/**
+ * Revoke all sessions for a user except the current one
+ * Only admins or the user themselves can perform this action
+ */
+export async function revokeOtherSessions(userId: string) {
   try {
-    const sessions = await auth.session.list(userId);
+    const currentSession = await getServerSession();
+    
+    if (!currentSession?.user) {
+      return { success: false, error: 'Unauthorized' };
+    }
+    
+    const isAdmin = currentSession.user.roles?.includes(ROLES.ADMIN);
+    const isSelf = currentSession.user.id === userId;
+    
+    if (!isAdmin && !isSelf) {
+      return { success: false, error: 'Forbidden - Insufficient permissions' };
+    }
+    
+    // Get the current session ID
+    const currentSessionId = auth.api.getSessionId();
+    
+    if (!currentSessionId) {
+      return { success: false, error: 'Failed to identify current session' };
+    }
+    
+    // Get all sessions for the user
+    const sessions = await auth.api.getUserSessions(userId);
     
     // Revoke all sessions except the current one
     await Promise.all(
       sessions
         .filter(session => session.id !== currentSessionId)
-        .map(session => auth.session.revoke(session.id))
+        .map(session => auth.api.revokeSession({ sessionId: session.id }))
     );
     
     return { success: true };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 ```
 
-## Role-Based Access Control Helpers
+## Authentication Hooks
+
+BetterAuth supports hooks for customizing authentication behavior:
 
 ```typescript
-// In lib/auth/rbac.ts
-import { getServerSession } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+// In your auth configuration
+import { auth } from '@/lib/auth/server';
+import { ROLES, type Role } from '@/types/roles';
+import { parseRoles } from '@/lib/auth/role-utils';
 
-export type Role = 'admin' | 'devops' | 'security' | 'dba' | 'fieldtech' | 'endpoint' | 'collab' | 'user';
-
-// Function to check if user has any of the required roles
-export async function checkUserRoles(requiredRoles: Role[]) {
-  const session = await getServerSession(authConfig);
-  
-  if (!session) {
-    return false;
-  }
-  
-  const userRoles = session.user.roles || [];
-  return requiredRoles.some(role => userRoles.includes(role));
-}
-
-// Function to check if user has admin role
-export async function isAdmin() {
-  return checkUserRoles(['admin']);
-}
-
-// Function to check if user has specific role
-export async function hasRole(role: Role) {
-  return checkUserRoles([role]);
-}
-
-// Get the highest role from a user's roles list
-export function getHighestRole(roles: string[] = []): Role | null {
-  const roleHierarchy: Role[] = [
-    'admin',
-    'security',
-    'devops',
-    'dba',
-    'tcc',
-    'fieldtech',
-    'endpoint',
-    'collab',
-    'user'
-  ];
-  
-  for (const role of roleHierarchy) {
-    if (roles.includes(role)) {
-      return role as Role;
-    }
-  }
-  
-  return null;
-}
-
-// Guard function for server components
-export async function withRoleGuard(
-  component: React.ReactNode,
-  fallback: React.ReactNode,
-  requiredRoles: Role[]
-) {
-  const hasPermission = await checkUserRoles(requiredRoles);
-  
-  if (!hasPermission) {
-    return fallback;
-  }
-  
-  return component;
-}
-```
-
-## Impersonation Mode
-
-BetterAuth can be extended to support impersonation, which allows administrators to temporarily assume another user's permissions:
-
-```typescript
-// In lib/auth/impersonation.ts
-'use server'
-
-import { cookies } from 'next/headers';
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-import { getServerSession } from 'better-auth/integrations/next';
-
-const auth = new BetterAuth(authConfig);
-
-// Start impersonation
-export async function startImpersonation(targetRole: string) {
-  const session = await getServerSession(authConfig);
-  
-  if (!session) {
-    throw new Error('Not authenticated');
-  }
-  
-  // Check if user is admin
-  const userRoles = session.user.roles || [];
-  if (!userRoles.includes('admin')) {
-    throw new Error('Only administrators can impersonate users');
-  }
-  
-  // Store original roles in a secure cookie
-  const originalRoles = JSON.stringify(userRoles);
-  cookies().set('original-roles', originalRoles, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24, // 1 day
-  });
-  
-  // Update the user's session with new role
-  await auth.session.update(session.sessionToken, {
-    user: {
-      ...session.user,
-      roles: [targetRole],
-      isImpersonating: true,
-      impersonatedRole: targetRole,
-    },
-  });
-  
-  return { success: true };
-}
-
-// End impersonation
-export async function endImpersonation() {
-  const session = await getServerSession(authConfig);
-  
-  if (!session) {
-    throw new Error('Not authenticated');
-  }
-  
-  // Get original roles from cookie
-  const originalRolesCookie = cookies().get('original-roles');
-  if (!originalRolesCookie) {
-    throw new Error('No impersonation in progress');
-  }
-  
-  const originalRoles = JSON.parse(originalRolesCookie.value);
-  
-  // Restore original roles
-  await auth.session.update(session.sessionToken, {
-    user: {
-      ...session.user,
-      roles: originalRoles,
-      isImpersonating: undefined,
-      impersonatedRole: undefined,
-    },
-  });
-  
-  // Clear the cookie
-  cookies().delete('original-roles');
-  
-  return { success: true };
-}
-
-// Check if user is impersonating
-export async function isImpersonating() {
-  const session = await getServerSession(authConfig);
-  
-  if (!session) {
-    return false;
-  }
-  
-  return !!session.user.isImpersonating;
-}
-```
-
-## Authentication Hooks (Before/After)
-
-BetterAuth supports before and after hooks for authentication events:
-
-```typescript
-// In auth config
-export const authConfig = {
-  // Other config...
+// Example of extending the auth config with hooks
+const configWithHooks = {
+  // ... other configuration
   
   hooks: {
     // Before hooks
     async beforeSignIn({ provider, credentials }) {
-      // Custom logic before sign in
-      console.log(`Sign in attempt with ${provider}`);
+      // Log sign-in attempts in development
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`Sign in attempt with ${provider}`);
+      }
       
-      // Example: Add rate limiting for specific providers
+      // Example: Implement rate limiting for specific providers
       if (provider === 'email-password') {
         // Check rate limiting
+        // This is where you might implement IP-based rate limiting
       }
       
       // Return modified credentials or undefined to continue
@@ -476,6 +547,9 @@ export const authConfig = {
         throw new Error('example.com emails are not allowed to register');
       }
       
+      // You could add additional validation
+      // or pre-processing of user data here
+      
       return undefined;
     },
     
@@ -485,15 +559,27 @@ export const authConfig = {
       console.log(`User ${user.email} signed in successfully`);
       
       // Example: Record login timestamp
-      await auth.user.update(user.id, {
-        lastLogin: new Date(),
+      await auth.api.updateUser({
+        id: user.id,
+        data: {
+          lastLogin: new Date(),
+        }
       });
       
-      // Example: Assign default role to new users
-      if (isNewUser) {
-        await auth.user.update(user.id, {
-          roles: ['user'],
-        });
+      // Example: Extract roles from token for social sign-ins
+      if (account?.provider === 'microsoft' && account.access_token) {
+        // Get token info from Microsoft
+        const tokenInfo = await fetchMicrosoftTokenInfo(account.access_token);
+        
+        // Extract and set roles
+        if (tokenInfo.roles) {
+          const roles = parseRoles(tokenInfo.roles);
+          
+          await auth.api.updateUser({
+            id: user.id,
+            data: { roles },
+          });
+        }
       }
     },
     
@@ -501,86 +587,177 @@ export const authConfig = {
       // Custom logic after successful sign up
       console.log(`New user registered: ${user.email}`);
       
+      // Assign default role to new users
+      await auth.api.updateUser({
+        id: user.id,
+        data: {
+          roles: [ROLES.USER],
+        }
+      });
+      
       // Example: Send welcome email or provision resources
+      // await sendWelcomeEmail(user.email);
     },
   },
 };
+
+// Helper function to fetch token info (implementation depends on your requirements)
+async function fetchMicrosoftTokenInfo(accessToken: string) {
+  // This would typically make a request to Microsoft's token info endpoint
+  // Example implementation
+  try {
+    const response = await fetch('https://graph.microsoft.com/v1.0/me', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching token info:', error);
+    return {};
+  }
+}
 ```
 
 ## Protected API Routes with Context
 
-```typescript
-// In app/api/protected-data/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { createRouteHandler } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+Create API routes with custom context and role-based protection:
 
-// Create a handler with custom context
-const handler = createRouteHandler({
-  config: authConfig,
+```typescript
+// src/app/api/protected-data/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/roles';
+
+// Define a type for your context
+interface RequestContext {
+  session: ExtendedSession;
+  requestInfo: {
+    ip: string | null;
+    userAgent: string | null;
+    path: string;
+  };
+}
+
+// Create a middleware that builds context and checks roles
+async function withContext(
+  req: NextRequest,
+  allowedRoles: Role[] = [],
+  requireAll = false
+): Promise<{ context: RequestContext | null; response: NextResponse | null }> {
+  // Get the session
+  const session = await getServerSession();
   
-  // Require authentication for all methods
-  requireAuth: true,
-  
-  // Define allowed roles (optional)
-  allowedRoles: ['admin', 'user'],
-  
-  // Create context from request and session
-  async createContext({ req, session }) {
-    // Add custom context data
+  // Not authenticated
+  if (!session?.user) {
     return {
-      session,
-      requestInfo: {
-        ip: req.ip,
-        userAgent: req.headers.get('user-agent'),
-        path: req.nextUrl.pathname,
-      },
+      context: null,
+      response: NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
     };
-  },
+  }
   
-  // Define route handlers
-  async GET({ context }) {
-    const { session, requestInfo } = context;
+  // Check roles if specified
+  if (allowedRoles.length > 0) {
+    const userRoles = session.user.roles || [];
     
-    // Use session and context data
-    console.log(`Request from ${requestInfo.ip} by user ${session.user.email}`);
+    const hasAccess = requireAll
+      ? allowedRoles.every(role => userRoles.includes(role))
+      : allowedRoles.some(role => userRoles.includes(role));
     
-    return NextResponse.json({
-      message: 'Protected data',
-      user: session.user,
-    });
-  },
+    if (!hasAccess) {
+      return {
+        context: null,
+        response: NextResponse.json(
+          { error: 'Forbidden - Insufficient permissions' },
+          { status: 403 }
+        )
+      };
+    }
+  }
   
-  async POST({ context, req }) {
-    const { session } = context;
+  // Create context with request information
+  const context: RequestContext = {
+    session,
+    requestInfo: {
+      ip: req.ip || req.headers.get('x-forwarded-for'),
+      userAgent: req.headers.get('user-agent'),
+      path: req.nextUrl.pathname,
+    },
+  };
+  
+  return { context, response: null };
+}
+
+// GET endpoint with admin-only access
+export async function GET(req: NextRequest) {
+  const { context, response } = await withContext(req, [ROLES.ADMIN]);
+  
+  // Return early if auth failed
+  if (response) return response;
+  
+  // Use context in your handler
+  const { session, requestInfo } = context!;
+  
+  console.log(`Admin data requested by ${session.user.email} from ${requestInfo.ip}`);
+  
+  return NextResponse.json({
+    message: 'Protected admin data',
+    user: session.user,
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// POST endpoint with multiple allowed roles
+export async function POST(req: NextRequest) {
+  const { context, response } = await withContext(
+    req, 
+    [ROLES.ADMIN, ROLES.SECURITY, ROLES.DEVOPS]
+  );
+  
+  // Return early if auth failed
+  if (response) return response;
+  
+  try {
+    // Parse request body
     const body = await req.json();
     
-    // Process authenticated request with body data
+    // Use context in your handler
+    const { session } = context!;
     
+    // Process authenticated request with body data
     return NextResponse.json({
       message: 'Data processed successfully',
+      processedBy: session.user.email,
+      data: body,
     });
-  },
-});
-
-export const { GET, POST } = handler;
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Invalid request data' },
+      { status: 400 }
+    );
+  }
+}
 ```
 
 ## Custom Authentication Logic
 
-For complex authentication scenarios, you can access the BetterAuth instance directly:
+For complex authentication scenarios, you can implement custom logic:
 
 ```typescript
 'use server'
 
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
+import { auth } from '@/lib/auth/server';
 import { cookies } from 'next/headers';
+import { ROLES, type Role } from '@/types/roles';
 
-const auth = new BetterAuth(authConfig);
-
-// Custom sign in with additional verification
-export async function customSignIn(email: string, password: string, mfaCode: string) {
+/**
+ * Custom sign-in with additional verification
+ * This example adds multi-factor authentication
+ */
+export async function customSignInWithMFA(email: string, password: string, mfaCode: string) {
   try {
     // First, validate credentials
     const user = await auth.emailPassword.validate({
@@ -599,76 +776,169 @@ export async function customSignIn(email: string, password: string, mfaCode: str
     }
     
     // Create session manually
-    const session = await auth.session.create({
+    const session = await auth.api.createSession({
       userId: user.id,
       // Set session expiry
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days
     });
     
-    // Set session cookie
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      path: '/',
-      maxAge: 60 * 60 * 24 * 30, // 30 days
-    };
+    // Get session cookie options from auth config
+    const cookieOptions = auth.getCookieOptions();
     
+    // Set session cookie
     cookies().set(
-      auth.options.session.cookie.name,
+      auth.getCookieName(),
       session.sessionToken,
       cookieOptions
     );
     
     return { success: true, user };
   } catch (error) {
-    return { success: false, error: error.message };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 
-// Helper function to validate MFA code
-async function validateMfaCode(userId: string, code: string) {
-  // Implement your MFA validation logic
-  return true; // Placeholder
+/**
+ * Validate MFA code (implementation will depend on your MFA solution)
+ */
+async function validateMfaCode(userId: string, code: string): Promise<boolean> {
+  // This is a placeholder - implement your MFA validation logic
+  // For example, you might use TOTP, SMS, or email verification
+  
+  // Example implementation for a time-based one-time password (TOTP)
+  try {
+    // Look up user's MFA secret
+    const user = await auth.api.getUser(userId);
+    const mfaSecret = user.mfaSecret;
+    
+    if (!mfaSecret) {
+      return false; // MFA not set up for this user
+    }
+    
+    // Validate TOTP
+    // In a real implementation, you would use a library like 'otplib'
+    // return otplib.authenticator.verify({ token: code, secret: mfaSecret });
+    
+    return code === '123456'; // Placeholder - NEVER use in production
+  } catch (error) {
+    console.error('MFA validation error:', error);
+    return false;
+  }
 }
 ```
 
-## Error Handling
+## Integrating with tRPC
+
+For projects using tRPC, add session and role checks to your procedures:
 
 ```typescript
-'use server'
+// src/server/api/trpc.ts
+import { TRPCError } from '@trpc/server';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/roles';
 
-import { BetterAuth, BetterAuthError } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
-
-export async function authenticateWithErrorHandling(email: string, password: string) {
-  try {
-    const user = await auth.emailPassword.validate({
-      email,
-      password,
-    });
-    
-    return { success: true, user };
-  } catch (error) {
-    if (error instanceof BetterAuthError) {
-      // Handle specific BetterAuth errors
-      switch (error.code) {
-        case 'user_not_found':
-          return { success: false, error: 'User not found' };
-        case 'invalid_credentials':
-          return { success: false, error: 'Invalid email or password' };
-        case 'email_not_verified':
-          return { success: false, error: 'Please verify your email before signing in' };
-        default:
-          return { success: false, error: 'Authentication failed' };
-      }
-    } else {
-      // Handle unexpected errors
-      console.error('Unexpected error during authentication:', error);
-      return { success: false, error: 'An unexpected error occurred' };
-    }
+/**
+ * Create a tRPC procedure that requires authentication
+ */
+export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
+  const session = await getServerSession();
+  
+  if (!session?.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Not authenticated' });
   }
+  
+  return next({
+    ctx: {
+      ...ctx,
+      session,
+      user: session.user,
+    },
+  });
+});
+
+/**
+ * Create a tRPC procedure that requires specific roles
+ */
+export function createRoleProtectedProcedure(
+  allowedRoles: Role[],
+  requireAll = false
+) {
+  return protectedProcedure.use(async ({ ctx, next }) => {
+    const userRoles = ctx.session.user.roles || [];
+    
+    const hasAccess = requireAll
+      ? allowedRoles.every(role => userRoles.includes(role))
+      : allowedRoles.some(role => userRoles.includes(role));
+    
+    if (!hasAccess) {
+      throw new TRPCError({ 
+        code: 'FORBIDDEN', 
+        message: 'Insufficient role permissions' 
+      });
+    }
+    
+    return next({ ctx });
+  });
+}
+
+// Create specific role-protected procedures
+export const adminProcedure = createRoleProtectedProcedure([ROLES.ADMIN]);
+export const securityProcedure = createRoleProtectedProcedure([ROLES.SECURITY, ROLES.ADMIN]);
+```
+
+## Impersonation in Server Components
+
+Handle impersonation state in server components:
+
+```typescript
+// src/components/admin/user-impersonation.tsx
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES } from '@/types/roles';
+import { ImpersonationControls } from '@/components/auth/impersonation-controls';
+
+export async function UserImpersonation() {
+  const session = await getServerSession();
+  
+  // Only admin users should see impersonation controls
+  if (!session?.user?.roles?.includes(ROLES.ADMIN)) {
+    return null;
+  }
+  
+  return (
+    <div className="mt-6 p-4 border rounded">
+      <h2 className="text-lg font-semibold">Role Impersonation</h2>
+      <p className="text-sm text-gray-600 mb-4">
+        Test the application with different user roles.
+      </p>
+      
+      {/* Client component with impersonation controls */}
+      <ImpersonationControls />
+    </div>
+  );
 }
 ```
+
+## Security Considerations
+
+1. **Always Verify Server-Side**: Never rely solely on client-side role checks.
+
+2. **Session Encryption**: Ensure session data is encrypted in transit and at rest.
+
+3. **Role Validation**: Validate roles against a predefined list (as we do with the `ROLES` constant).
+
+4. **No Sensitive Data in Session**: Keep only necessary information in the session.
+
+5. **Refresh Validation**: Validate roles on session refresh.
+
+6. **Proper Error Handling**: Return appropriate HTTP status codes (401, 403) for authentication/authorization failures.
+
+7. **CSRF Protection**: Implement CSRF protection for all mutating actions.
+
+8. **Secure Cookies**: Use secure, HTTP-only cookies for session storage.
+
+9. **Role Impersonation**: Limit role impersonation to administrators and ensure proper security controls.
+
+10. **Audit Logging**: Log authentication events, role changes, and security-sensitive actions.

@@ -16,7 +16,7 @@ import { LoadingButton } from '@/components/ui/loading-button';
 import { updateUser } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import { updateProfileSchema } from '@/schema/user';
-import type { Session } from '@/types/auth';
+import type { Session } from '@/types/auth.d';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { UploadIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';

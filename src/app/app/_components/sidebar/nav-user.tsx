@@ -25,7 +25,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import type { Session } from '@/types/auth';
+import type { Session } from '@/types/auth.d';
 import Link from 'next/link';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import * as React from 'react';

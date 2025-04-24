@@ -59,10 +59,10 @@ export const env = createEnv({
       ), */
 
     /** Redis Configuration */
-    REDIS_HOST: z.string().default('localhost'),
+    /* REDIS_HOST: z.string().default('localhost'),
     REDIS_PASSWORD: z.string().optional().default('supersecret'),
     REDIS_PORT: z.coerce.number().default(6379),
-    REDIS_URL: z.string().url().default('redis://localhost:6379'),
+    REDIS_URL: z.string().url().default('redis://localhost:6379'), */
 
     /** Authentication Configuration */
     AUTH_TRUST_HOST: z
@@ -170,10 +170,10 @@ export const env = createEnv({
     DATABASE_URL_PRODUCTION: process.env.DATABASE_URL_PRODUCTION, */
 
     /** Redis Configuration */
-    REDIS_HOST: process.env.REDIS_HOST,
+    /* REDIS_HOST: process.env.REDIS_HOST,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
     REDIS_PORT: process.env.REDIS_PORT,
-    REDIS_URL: process.env.REDIS_URL,
+    REDIS_URL: process.env.REDIS_URL, */
 
     /** Authentication Configuration */
     AUTH_TRUST_HOST: process.env.AUTH_TRUST_HOST,

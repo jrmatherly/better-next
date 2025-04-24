@@ -1,5 +1,6 @@
 import { env } from '@/env';
 import { APP_NAME } from '@/lib/settings';
+import type { EmailVerificationProps } from '@/types/email';
 import {
   Body,
   Button,
@@ -12,11 +13,6 @@ import {
   Section,
   Text,
 } from 'jsx-email';
-
-interface EmailVerificationProps {
-  name: string;
-  url: string;
-}
 
 const main = {
   backgroundColor: '#ffffff',

@@ -1,5 +1,101 @@
 import { authActions } from '@/lib/auth/actions';
 import { authConfig } from '@/lib/auth/config';
+import { parseRoles } from '@/lib/auth/role-utils';
+import type { AuthToken, MicrosoftProfile } from '@/types/auth';
 import { betterAuth } from 'better-auth';
+import type { Account, User as BetterAuthUser, Session } from 'better-auth';
 
-export const auth = betterAuth({ ...authConfig, ...authActions });
+// Create auth configuration with session enhancement
+const configWithCallbacks = {
+  ...authConfig,
+  ...authActions,
+  callbacks: {
+    // This callback is used to customize the JWT token
+    // Store all non-essential data here instead of in the session
+    async jwt({
+      token,
+      account,
+      user,
+      profile,
+    }: {
+      token: AuthToken;
+      account: Account | null;
+      user:
+        | (BetterAuthUser & {
+            roles?: string[];
+            isImpersonating?: boolean;
+            originalRoles?: string[];
+            groups?: string[];
+          })
+        | null;
+      profile?: MicrosoftProfile;
+    }) {
+      // Initial sign-in
+      if (account && user) {
+        // Extract Microsoft-specific groups if available
+        const msGroups = profile?.groups || [];
+
+        // Process roles from Microsoft claims if they exist
+        const msRoles = profile?.roles || [];
+
+        return {
+          ...token,
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          // Only store essential data in the token
+          roles: parseRoles(msRoles.length > 0 ? msRoles : user.roles),
+          // Store minimal group data (only IDs or names, not full objects)
+          groups: msGroups.filter(
+            (group: unknown): group is string => typeof group === 'string'
+          ),
+          // Impersonation state
+          isImpersonating: user.isImpersonating || false,
+          originalRoles: user.originalRoles || [],
+        };
+      }
+
+      return token;
+    },
+
+    // This callback shapes what's stored in the session cookie
+    // Keep this extremely minimal to avoid cookie size limits
+    async session({
+      session,
+      token,
+    }: {
+      session: Session & Record<string, unknown>;
+      token: AuthToken;
+    }) {
+      // Create minimal session with only essential data
+      const enhancedSession = { ...session };
+
+      return {
+        ...enhancedSession,
+        user: {
+          id: token.id as string,
+          email: token.email as string,
+          name: (token.name as string) || null,
+          image: (token.image as string) || null,
+          // Only include essential role and impersonation data
+          roles: parseRoles(token.roles),
+          isImpersonating: !!token.isImpersonating,
+          // Only include originalRoles if currently impersonating
+          ...(token.isImpersonating
+            ? { originalRoles: (token.originalRoles as string[]) || [] }
+            : {}),
+          // Only include groups if they're needed for immediate authorization
+          ...(Array.isArray(token.groups) && token.groups.length > 0
+            ? {
+                groups: (token.groups as string[]).slice(0, 5), // Limit to top 5 groups if needed
+              }
+            : {}),
+        },
+      };
+    },
+  },
+};
+
+// Initialize BetterAuth with our enhanced configuration
+export const auth = betterAuth(configWithCallbacks);

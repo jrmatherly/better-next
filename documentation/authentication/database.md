@@ -1,6 +1,6 @@
 # Database Integration
 
-This document covers how BetterAuth integrates with databases for storing user information, sessions, and other authentication-related data, with a special focus on using Redis as a secondary storage for improved performance.
+This document covers how BetterAuth integrates with databases for storing user information, sessions, and other authentication-related data.
 
 ## Supported Database Adapters
 
@@ -118,73 +118,6 @@ You can use the BetterAuth CLI to generate the schema:
 
 ```bash
 npx @better-auth/cli generate --adapter prisma
-```
-
-## Redis Secondary Storage
-
-For high-performance applications, you can use Redis as a secondary storage for sessions. This improves read performance significantly.
-
-### Redis Secondary Storage Configuration
-
-```typescript
-import { PrismaClient } from '@prisma/client';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { createRedisSecondaryStorage } from 'better-auth/storage/redis';
-import Redis from 'ioredis';
-
-const prisma = new PrismaClient();
-const redis = new Redis(process.env.REDIS_URL);
-
-export const authConfig = {
-  // Other config...
-  
-  database: prismaAdapter(prisma, {
-    provider: 'postgresql',
-    secondaryStorage: createRedisSecondaryStorage({
-      redis,
-      prefix: 'better-auth:',
-      ttl: 60 * 60 * 24 * 30, // 30 days (should match session expiresIn)
-    }),
-  }),
-};
-```
-
-### How Redis Secondary Storage Works
-
-1. **Write Operations**: When a user signs in or a session is created/updated, the data is written to both the primary database (Prisma) and Redis.
-
-2. **Read Operations**: When a session is requested, BetterAuth first checks Redis. If the data is found, it's returned immediately. If not, it falls back to the primary database and caches the result in Redis.
-
-3. **Delete Operations**: When a session is deleted, it's removed from both Redis and the primary database.
-
-### Benefits of Redis Secondary Storage
-
-- **Improved Performance**: Session data is retrieved from memory, which is much faster than querying the database.
-- **Reduced Database Load**: Fewer queries to the primary database, which improves overall application performance.
-- **Scalability**: Better support for high-traffic applications and multiple server instances.
-
-### Redis Configuration Options
-
-```typescript
-createRedisSecondaryStorage({
-  // Redis client instance
-  redis: redisInstance,
-  
-  // Prefix for Redis keys (to avoid collisions)
-  prefix: 'better-auth:',
-  
-  // Time-to-live in seconds (should match your session configuration)
-  ttl: 60 * 60 * 24 * 7, // 7 days
-  
-  // Function to serialize data to Redis (optional)
-  serialize: (data) => JSON.stringify(data),
-  
-  // Function to deserialize data from Redis (optional)
-  deserialize: (data) => JSON.parse(data),
-  
-  // Function to create Redis key from ID (optional)
-  createKey: (id, type) => `${prefix}${type}:${id}`,
-});
 ```
 
 ## Extending the Core Schema
@@ -525,7 +458,7 @@ ls -tp $BACKUP_DIR/$DB_NAME-*.dump | grep -v '/$' | tail -n +8 | xargs -I {} rm 
 
 2. **Slow Queries**
    - Symptoms: High latency, timeouts
-   - Solution: Add indexes, optimize queries, use Redis secondary storage
+   - Solution: Add indexes, optimize queries, use efficient query patterns
 
 3. **Data Integrity Issues**
    - Symptoms: Inconsistent user data, authentication failures
@@ -544,4 +477,3 @@ ORDER BY duration DESC;
 SELECT relname, seq_scan, idx_scan
 FROM pg_stat_user_tables
 ORDER BY seq_scan DESC;
-```

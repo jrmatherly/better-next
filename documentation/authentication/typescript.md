@@ -76,9 +76,22 @@ const authConfig = {
   }),
   
   // Type checking for oauth providers
-  google: {
-    clientId: process.env.GOOGLE_CLIENT_ID!,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+  socialProviders: {
+    microsoft: {
+      clientId: process.env.MICROSOFT_CLIENT_ID || '',
+      clientSecret: process.env.MICROSOFT_CLIENT_SECRET || '',
+      tenantId: process.env.MICROSOFT_TENANT_ID || '',
+      scope: [
+        'email',
+        'offline_access',
+        'openid',
+        'profile',
+        'User.Read',
+        'GroupMember.Read.All',
+        'ProfilePhoto.Read.All',
+        'User.ReadBasic.All'
+      ]
+    }
   },
   
   // Type checking for hook parameters and return values
@@ -93,498 +106,472 @@ const authConfig = {
 
 Using `satisfies` ensures TypeScript checks your configuration without forcing type narrowing.
 
-### User Type Extension
+### Centralized Type Definitions
 
-You can extend the default user type to include custom fields:
+For consistency and maintainability, we centralize our auth-related type definitions in a dedicated `.d.ts` file:
 
 ```typescript
-// src/types/better-auth.d.ts
-import 'better-auth';
+// src/types/auth.d.ts
+import { auth } from "@/lib/auth/server";
+import { type ReactNode } from "react";
 
-declare module 'better-auth' {
+/**
+ * Application roles based on Azure AD app roles
+ */
+export const ROLES = {
+  ADMIN: 'admin',
+  SECURITY: 'security',
+  DEVOPS: 'devops',
+  DBA: 'dba',
+  COLLAB: 'collab',
+  TCC: 'tcc',
+  FIELDTECH: 'fieldtech', 
+  USER: 'user',
+} as const;
+
+/**
+ * Role type derived from the ROLES constant
+ */
+export type Role = (typeof ROLES)[keyof typeof ROLES];
+
+// Base type from BetterAuth
+export type Session = typeof auth.$Infer.Session;
+export type User = typeof auth.$Infer.User;
+
+/**
+ * Extended session type with roles and impersonation support
+ */
+export type ExtendedSession = Session & {
+  user: Session['user'] & {
+    roles?: Role[];
+    groups?: string[];
+    originalRoles?: Role[];
+    isImpersonating?: boolean;
+  };
+};
+
+// Add UI component props types
+export interface RoleGateProps {
+  allowedRoles: Role[];
+  children: ReactNode;
+  fallback?: ReactNode;
+  requireAll?: boolean;
+  showFallbackOnLoading?: boolean;
+}
+
+// Add role information to the existing BetterAuth User type through module augmentation
+declare module '@/lib/auth/server' {
+  interface User {
+    roles?: Role[];
+    groups?: string[];
+    originalRoles?: Role[];
+    isImpersonating?: boolean;
+  }
+}
+```
+
+### Module Augmentation
+
+When extending BetterAuth's types, use module augmentation to add new properties to existing types:
+
+```typescript
+// src/types/auth.d.ts
+import { auth } from "@/lib/auth/server";
+
+// Augment BetterAuth's User interface
+declare module '@/lib/auth/server' {
   interface User {
     // Add custom user fields
     roles?: string[];
-    isActive?: boolean;
-    company?: string;
-    preferences?: Record<string, any>;
+    department?: string;
+    permissions?: string[];
+  }
+}
+```
+
+This approach allows you to maintain type safety while adding custom fields to BetterAuth's User type.
+
+### Creating Role-Related Utility Functions
+
+Create strongly-typed utility functions in a dedicated file:
+
+```typescript
+// src/lib/auth/roles.ts
+import { ROLES, type Role } from "@/types/roles";
+
+/**
+ * Type guard to check if a value is a valid Role
+ */
+export function isValidRole(role: string): role is Role {
+  return Object.values(ROLES).includes(role as Role);
+}
+
+/**
+ * Parse roles from token data, ensuring type safety
+ */
+export function parseRoles(tokenRoles: unknown): Role[] {
+  if (!Array.isArray(tokenRoles)) {
+    return [ROLES.USER]; // Default to basic user role
   }
   
-  // Extend session user as well
-  interface SessionUser {
-    roles?: string[];
-    isActive?: boolean;
-    preferences?: Record<string, any>;
-  }
+  return tokenRoles
+    .filter((role): role is string => typeof role === 'string')
+    .filter(isValidRole);
 }
+
+// Re-export ROLES for convenience
+export { ROLES };
 ```
 
-### Creating Custom Type Guards
+### Type-Safe Hooks
 
-Type guards can be useful for checking user permissions:
-
-```typescript
-// src/lib/auth/type-guards.ts
-import type { User, Session } from 'better-auth';
-
-// Type guard for checking if a user has a specific role
-export function hasRole(
-  user: User | Session['user'] | null | undefined,
-  role: string
-): boolean {
-  if (!user) return false;
-  return user.roles?.includes(role) ?? false;
-}
-
-// Type guard for checking if a user is an admin
-export function isAdmin(
-  user: User | Session['user'] | null | undefined
-): boolean {
-  return hasRole(user, 'admin');
-}
-
-// Usage
-if (isAdmin(session?.user)) {
-  // TypeScript knows this is an admin user
-  console.log('Admin user', session.user);
-}
-```
-
-## Client-Side TypeScript Integration
-
-### useSession Hook with TypeScript
-
-The `useSession` hook is fully typed:
+Create strongly-typed custom hooks:
 
 ```typescript
-'use client'
-
+// src/hooks/use-role.ts
 import { useSession } from '@/lib/auth/client';
+import { ROLES } from '@/lib/auth/roles';
+import type { ExtendedSession, Role } from '@/types/auth.d';
+import { useState, useCallback } from 'react';
 
-function ProfileComponent() {
-  // TypeScript knows the shape of session and status
-  const { data: session, status } = useSession();
+export function useRole() {
+  const sessionResponse = useSession();
+  const session = sessionResponse.data as ExtendedSession | null;
+  const roles = session?.user?.roles || [];
   
-  // Type-safe status checks
-  if (status === 'loading') return <div>Loading...</div>;
-  
-  if (status === 'unauthenticated') {
-    return <div>Please sign in</div>;
-  }
-  
-  // TypeScript knows session.user exists and its shape here
-  return (
-    <div>
-      <h1>Welcome, {session.user.name || session.user.email}</h1>
-      {/* Access custom fields with type safety */}
-      {session.user.roles?.includes('admin') && (
-        <div>Admin panel link</div>
-      )}
-    </div>
-  );
+  return {
+    roles,
+    hasRole: (role: Role) => roles.includes(role),
+    hasAnyRole: (checkRoles: Role[]) => checkRoles.some(role => roles.includes(role)),
+    hasAllRoles: (checkRoles: Role[]) => checkRoles.every(role => roles.includes(role)),
+    isAdmin: () => roles.includes(ROLES.ADMIN),
+    // ...other convenience methods
+  };
 }
 ```
 
-### Type-Safe Authentication Functions
+## Type Inference
 
-BetterAuth's client functions are fully typed:
+BetterAuth provides built-in type inference for many common operations:
 
 ```typescript
-'use client'
-
-import { signIn, signUp, updateUser } from '@/lib/auth/client';
-
-// Type-safe sign in
 async function handleSignIn(email: string, password: string) {
   try {
     // TypeScript knows the parameter and return types
     const result = await signIn('email-password', {
       email,
       password,
-      // TypeScript will error on invalid options
     });
     
-    // Type-safe access to result
-    console.log('User signed in:', result.user.email);
+    // result is properly typed
+    if (result.error) {
+      console.error(result.error);
+    }
   } catch (error) {
-    // TypeScript knows this can be a BetterAuthError
-    console.error('Error:', error);
-  }
-}
-
-// Type-safe user updates
-async function updateProfileData(name: string, image?: string) {
-  try {
-    // TypeScript validates update parameters
-    const result = await updateUser({
-      name,
-      image,
-      // TypeScript will error on invalid fields
-    });
-    
-    return result;
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    return null;
+    console.error(error);
   }
 }
 ```
 
-## Server-Side TypeScript Integration
+## Type Safety for Server Components
 
-### Type-Safe Session Access
+Ensure your server components have proper type safety:
 
 ```typescript
-// In a server component
-import { getServerSession } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+// src/app/profile/page.tsx
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth/server';
+import type { ExtendedSession } from '@/types/auth.d';
 
 export default async function ProfilePage() {
-  // TypeScript knows the shape of the session
-  const session = await getServerSession(authConfig);
+  // Type-safe session access
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  }) as ExtendedSession | null;
   
-  if (!session) {
-    return <div>Please sign in</div>;
+  // Type guard for authenticated state
+  if (!session?.user) {
+    return <div>Not authenticated</div>;
   }
   
-  // Type-safe access to session fields
+  // TypeScript knows the shape of session.user including our custom properties
+  const { name, email, roles } = session.user;
+  
   return (
     <div>
-      <h1>Hello, {session.user.name}</h1>
-      <p>Email: {session.user.email}</p>
-      
-      {/* TypeScript knows about custom fields */}
-      <p>Roles: {session.user.roles?.join(', ')}</p>
+      <h1>Profile: {name}</h1>
+      <p>Email: {email}</p>
+      <p>Roles: {roles?.join(', ') ?? 'No roles assigned'}</p>
     </div>
   );
 }
 ```
 
-### Type-Safe API Routes
+## Type-Safe API Routes
+
+Create type-safe API routes with proper type checking:
 
 ```typescript
-// In app/api/user-data/route.ts
+// src/app/api/user/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'better-auth/integrations/next';
-import { authConfig } from '@/lib/auth/config';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/roles';
 
-// Define response type
-interface UserDataResponse {
-  user: {
-    id: string;
-    name: string | null;
-    email: string | null;
-    roles?: string[];
-  } | null;
-  message: string;
+// Define request body type
+interface UpdateUserRequest {
+  name?: string;
+  roles?: Role[]; // Type-safe with Role enum
 }
 
-export async function GET(
-  req: NextRequest
-): Promise<NextResponse<UserDataResponse>> {
-  const session = await getServerSession(authConfig);
-  
-  if (!session) {
-    return NextResponse.json({
-      user: null,
-      message: 'Not authenticated',
-    });
+export async function PUT(req: NextRequest) {
+  try {
+    // Ensure authenticated and authorized
+    const session = await getServerSession();
+    
+    if (!session?.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+    
+    if (!session.user.roles?.includes(ROLES.ADMIN)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      );
+    }
+    
+    // Parse and validate request body with types
+    const body: UpdateUserRequest = await req.json();
+    
+    // Validate roles using type guard
+    if (body.roles) {
+      const validRoles = body.roles.every(role => 
+        Object.values(ROLES).includes(role)
+      );
+      
+      if (!validRoles) {
+        return NextResponse.json(
+          { error: 'Invalid roles provided' },
+          { status: 400 }
+        );
+      }
+    }
+    
+    // Process the request...
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-  
-  // Type-safe response
-  return NextResponse.json({
-    user: {
-      id: session.user.id,
-      name: session.user.name,
-      email: session.user.email,
-      roles: session.user.roles,
-    },
-    message: 'Authenticated',
-  });
 }
 ```
 
-## Error Handling with TypeScript
+## Type-Safe Server Actions
 
-BetterAuth provides TypeScript definitions for error types:
+Server actions with strong typing:
+
+```typescript
+'use server'
+
+import { z } from 'zod';
+import { auth } from '@/lib/auth/server';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/roles';
+
+// Define schema for type safety and validation
+const UpdateRolesSchema = z.object({
+  userId: z.string(),
+  roles: z.array(z.enum([
+    ROLES.ADMIN,
+    ROLES.SECURITY,
+    ROLES.DEVOPS,
+    ROLES.DBA,
+    ROLES.COLLAB,
+    ROLES.TCC,
+    ROLES.FIELDTECH,
+    ROLES.USER
+  ]))
+});
+
+// Type inferencing with zod
+type UpdateRolesInput = z.infer<typeof UpdateRolesSchema>;
+
+/**
+ * Type-safe server action for updating user roles
+ */
+export async function updateUserRoles(input: UpdateRolesInput) {
+  try {
+    // Validate with zod
+    const validatedData = UpdateRolesSchema.parse(input);
+    
+    // Get session with proper typing
+    const session = await getServerSession();
+    
+    // Check permissions
+    if (!session?.user?.roles?.includes(ROLES.ADMIN)) {
+      return { success: false, error: 'Unauthorized' };
+    }
+    
+    // Update user roles
+    await auth.api.updateUser({
+      id: validatedData.userId,
+      data: { roles: validatedData.roles }
+    });
+    
+    return { success: true };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // Type-safe error handling
+      return { 
+        success: false, 
+        error: 'Validation error', 
+        issues: error.errors 
+      };
+    }
+    
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}
+```
+
+## Typed Error Handling
+
+Handle authentication errors with proper typing:
 
 ```typescript
 import { BetterAuthError } from 'better-auth';
 
-async function handleAuthWithErrorTypes() {
+async function handleSignIn(email: string, password: string) {
   try {
-    // Some auth operation
-    await signIn('email-password', {
-      email: 'user@example.com',
-      password: 'password',
-    });
+    await signIn('email-password', { email, password });
   } catch (error) {
-    // Type guard for BetterAuthError
+    // Type guard for BetterAuth errors
     if (error instanceof BetterAuthError) {
-      // TypeScript knows about error properties
-      console.error(`Auth error: ${error.code} - ${error.message}`);
-      
-      // Type-safe error code checking
+      // TypeScript knows about the error code property
       switch (error.code) {
-        case 'invalid_credentials':
-          return { error: 'Invalid email or password' };
         case 'user_not_found':
-          return { error: 'User not found' };
+          return { success: false, message: 'User not found' };
+        case 'invalid_credentials':
+          return { success: false, message: 'Invalid email or password' };
+        case 'email_not_verified':
+          return { success: false, message: 'Please verify your email first' };
         default:
-          return { error: 'An error occurred during authentication' };
+          return { success: false, message: `Authentication error: ${error.message}` };
       }
     }
     
-    // Other error types
-    console.error('Unexpected error:', error);
-    return { error: 'An unexpected error occurred' };
+    // Handle other types of errors
+    return { success: false, message: 'An unexpected error occurred' };
   }
 }
 ```
 
-## Type-Safe Role-Based Access Control
+## Type Safety for Role Guards
 
-Implement type-safe RBAC with TypeScript:
+Create type-safe components for role-based access control:
 
-```typescript
-// Define available roles as a union type
-type Role = 'admin' | 'manager' | 'user' | 'guest';
+```tsx
+// src/components/auth/role-gate.tsx
+import { useRole } from '@/hooks/use-role';
+import { type RoleGateProps } from '@/types/auth.d';
 
-// Type-safe hook for checking roles
-function useHasRole(requiredRole: Role): boolean {
-  const { data: session } = useSession();
-  return session?.user?.roles?.includes(requiredRole) ?? false;
-}
-
-// Type-safe component for role-based rendering
-interface RoleGuardProps {
-  requiredRole: Role;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
-}
-
-function RoleGuard({ requiredRole, children, fallback = null }: RoleGuardProps) {
-  const hasRequiredRole = useHasRole(requiredRole);
-  return hasRequiredRole ? <>{children}</> : <>{fallback}</>;
-}
-
-// Usage with type safety
-function AdminContent() {
-  return (
-    <RoleGuard requiredRole="admin">
-      <div>Admin only content</div>
-    </RoleGuard>
-  );
-}
-```
-
-## Plugin Type Extensions
-
-When using plugins with BetterAuth, TypeScript helps ensure proper configuration:
-
-```typescript
-import { jwtPlugin } from 'better-auth/plugins';
-
-// Type-safe plugin configuration
-const jwtConfig = jwtPlugin({
-  secret: process.env.JWT_SECRET!,
-  // TypeScript validates all options
-  options: {
-    expiresIn: 60 * 60, // 1 hour
-    algorithm: 'HS256', // Type-checked algorithm
-  },
-});
-```
-
-For custom plugins, you can define TypeScript interfaces:
-
-```typescript
-// Define plugin options interface
-interface CustomPluginOptions {
-  enabled?: boolean;
-  maxItems?: number;
-  logLevel?: 'debug' | 'info' | 'warn' | 'error';
-}
-
-// Define plugin function with type safety
-function customPlugin(options: CustomPluginOptions = {}): BetterAuthPlugin {
-  const {
-    enabled = true,
-    maxItems = 10,
-    logLevel = 'info',
-  } = options;
+/**
+ * Type-safe component for conditional rendering based on user roles
+ */
+export function RoleGate({
+  allowedRoles,
+  children,
+  fallback,
+  requireAll = false,
+  showFallbackOnLoading = true,
+}: RoleGateProps) {
+  const { isLoading, hasAnyRole, hasAllRoles } = useRole();
   
-  return {
-    name: 'custom-plugin',
-    setup: ({ auth, config }) => {
-      // Implementation
-    },
-  };
-}
-```
-
-## Generating TypeScript Types
-
-BetterAuth provides a CLI tool for generating TypeScript types from your auth configuration:
-
-```bash
-# Generate TypeScript types
-npx @better-auth/cli generate-types
-```
-
-This creates a `better-auth.d.ts` file with types specific to your configuration, including:
-
-- User type with your custom fields
-- Session type with your session configuration
-- Provider types based on your configured providers
-- API endpoint types for your auth routes
-
-## Type-Safe Database Queries
-
-When working with the database, leverage TypeScript with Prisma:
-
-```typescript
-// Type-safe user query with Prisma
-async function getUserWithRoles(userId: string) {
-  // TypeScript knows the shape of User model from Prisma
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      roles: true,
-      accounts: {
-        select: {
-          provider: true,
-          providerAccountId: true,
-        },
-      },
-    },
-  });
-  
-  return user;
-}
-```
-
-## Best Practices for TypeScript with BetterAuth
-
-1. **Use `satisfies` for Configuration**: Use `satisfies BetterAuthOptions` for type checking without type narrowing.
-
-2. **Extend User Types**: Create a declaration file to extend BetterAuth types with your custom fields.
-
-3. **Create Type Guards**: Define type guards for common checks like role verification.
-
-4. **Use Discriminated Unions for States**: When handling multiple states, use discriminated unions for type safety.
-
-5. **Leverage Generic Types**: Use TypeScript's generic types for flexible, type-safe functions.
-
-6. **Define API Contracts**: Create interfaces for request/response data in your API routes.
-
-7. **Type Check Hooks**: Ensure your hooks have proper parameter and return types.
-
-8. **Avoid `any`**: Prefer specific types over `any` to maintain type safety.
-
-9. **Use Zod for Runtime Validation**: Combine TypeScript with Zod for runtime validation.
-
-10. **Keep Type Definitions Updated**: Update your type definitions when your auth configuration changes.
-
-## Integration with Other TypeScript Libraries
-
-### Zod Integration
-
-Combine BetterAuth with Zod for runtime validation:
-
-```typescript
-import { z } from 'zod';
-import { signUp } from '@/lib/auth/client';
-
-// Define schema for sign-up data
-const signUpSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-});
-
-// Type inferred from schema
-type SignUpData = z.infer<typeof signUpSchema>;
-
-// Type-safe and runtime-validated sign-up
-async function handleSignUp(data: SignUpData) {
-  // Validate data at runtime
-  const result = signUpSchema.safeParse(data);
-  
-  if (!result.success) {
-    return { success: false, errors: result.error.flatten().fieldErrors };
+  // Optional handling for loading state
+  if (isLoading) {
+    return showFallbackOnLoading ? <>{fallback}</> : null;
   }
   
-  try {
-    // TypeScript knows the shape of validated data
-    await signUp(result.data);
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
+  // Check permission based on required access pattern
+  const hasAccess = requireAll
+    ? hasAllRoles(allowedRoles)
+    : hasAnyRole(allowedRoles);
+    
+  // Render based on access check
+  return hasAccess ? <>{children}</> : <>{fallback}</>;
+}
+```
+
+## Type Discrimination for Microsoft Accounts
+
+Handle provider-specific typing with discriminated unions:
+
+```typescript
+// Define type for Microsoft account
+interface MicrosoftAccount {
+  provider: 'microsoft';
+  type: 'oauth';
+  providerAccountId: string;
+  access_token: string;
+  id_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+  tenant_id?: string;
+}
+
+// Define type for Google account
+interface GoogleAccount {
+  provider: 'google';
+  type: 'oauth';
+  providerAccountId: string;
+  access_token: string;
+  id_token?: string;
+  refresh_token?: string;
+  expires_at?: number;
+}
+
+// Union type for all supported accounts
+type SocialAccount = MicrosoftAccount | GoogleAccount;
+
+// Function using type discrimination
+function handleSocialAccount(account: SocialAccount) {
+  // TypeScript knows which properties are available based on provider
+  if (account.provider === 'microsoft') {
+    // TypeScript knows this is a MicrosoftAccount
+    console.log('Microsoft tenant ID:', account.tenant_id);
+  } else if (account.provider === 'google') {
+    // TypeScript knows this is a GoogleAccount
+    // account.tenant_id would be a type error here
+    console.log('Google account:', account.providerAccountId);
   }
 }
 ```
 
-### React Hook Form Integration
+## Type Safety Best Practices
 
-Combine BetterAuth with React Hook Form for type-safe forms:
+1. **Use Type Declarations**: Place type definitions in `.d.ts` files for clarity
+2. **Module Augmentation**: Use module augmentation to extend BetterAuth types
+3. **Type Guards**: Create type guards for runtime type checking
+4. **Strict Mode**: Keep `strict: true` in your TypeScript configuration
+5. **Type Imports**: Use `import type` for type-only imports
+6. **Avoid Any**: Avoid using `any` type; use proper type definitions
+7. **Function Types**: Provide explicit return types for functions
+8. **Utility Types**: Leverage TypeScript utility types (Partial, Pick, etc.)
+9. **Consistent Naming**: Use consistent naming patterns (e.g., prefixing interfaces with `I`)
+10. **Type Comments**: Document complex types with JSDoc comments
+
+## Example 1: Type-Safe Role Checking
 
 ```typescript
-'use client'
+// Example of type-safe role checking in a server component
+import { ROLES, type Role } from '@/types/roles';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { signIn } from '@/lib/auth/client';
-
-// Define schema for sign-in data
-const signInSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-type SignInData = z.infer<typeof signInSchema>;
-
-export function SignInForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<SignInData>({
-    resolver: zodResolver(signInSchema),
-  });
-  
-  const onSubmit = async (data: SignInData) => {
-    try {
-      await signIn('email-password', data);
-      // Handle successful sign-in
-    } catch (error) {
-      // Handle error
-      console.error('Sign-in failed:', error);
-    }
-  };
-  
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div>
-        <label htmlFor="email">Email</label>
-        <input id="email" {...register('email')} />
-        {errors.email && <p>{errors.email.message}</p>}
-      </div>
-      
-      <div>
-        <label htmlFor="password">Password</label>
-        <input id="password" type="password" {...register('password')} />
-        {errors.password && <p>{errors.password.message}</p>}
-      </div>
-      
-      <button type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Signing In...' : 'Sign In'}
-      </button>
-    </form>
-  );
-}
-```
+// ... rest of the code remains the same ...

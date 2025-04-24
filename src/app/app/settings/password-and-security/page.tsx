@@ -2,7 +2,7 @@ import { UserDeleteForm } from '@/app/app/settings/password-and-security/_compon
 import { UserPasswordForm } from '@/app/app/settings/password-and-security/_components/user-password-form';
 import { Spinner } from '@/components/ui/spinner';
 import { auth } from '@/lib/auth/server';
-import type { Session } from '@/types/auth';
+import type { Session } from '@/types/auth.d';
 import { headers } from 'next/headers';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import React, { Suspense } from 'react';

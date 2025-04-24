@@ -119,6 +119,126 @@ const { data, status, update } = useSession({
 });
 ```
 
+### useRole Hook
+
+BetterAuth provides a specialized hook for handling role-based access control in client components:
+
+```tsx
+'use client'
+
+import { useRole } from '@/hooks/use-role';
+
+export default function RoleDependentComponent() {
+  const { 
+    hasRole, 
+    isAdmin, 
+    roles, 
+    isAuthenticated, 
+    isLoading 
+  } = useRole();
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!isAuthenticated) {
+    return <div>Please sign in to access this content.</div>;
+  }
+  
+  // Admin-only content
+  if (isAdmin()) {
+    return <div>Admin Dashboard</div>;
+  }
+  
+  // Content for users with 'security' role
+  if (hasRole('security')) {
+    return <div>Security Panel</div>;
+  }
+  
+  // Fallback for authenticated users without specific roles
+  return <div>User Dashboard</div>;
+}
+```
+
+### useRole Implementation
+
+Our implementation uses centralized role utilities to prevent code duplication and ensure consistent behavior across server and client components:
+
+```typescript
+// src/hooks/use-role.ts
+import { useSession } from '@/lib/auth/client';
+import { 
+  ROLES, 
+  type Role 
+} from '@/types/roles';
+import {
+  hasRole as checkHasRole,
+  hasAnyRole as checkHasAnyRole,
+  getHighestRole as getHighestRoleUtil
+} from '@/lib/auth/role-utils';
+import type { ExtendedSession } from '@/types/auth.d';
+import { useState, useCallback } from 'react';
+
+export function useRole() {
+  // Get the session and cast to our extended session type
+  const sessionResponse = useSession();
+  const session = sessionResponse.data as ExtendedSession | null;
+  const isLoading = sessionResponse.isPending || false;
+  const isAuthenticated = !!session?.user;
+  
+  // Extract user roles or use empty array as fallback
+  const roles = session?.user?.roles || [];
+  
+  // State for managing impersonation
+  const [isImpersonating, setIsImpersonating] = useState(
+    session?.user?.isImpersonating || false
+  );
+  const [impersonationLoading, setImpersonationLoading] = useState(false);
+  
+  // Impersonation API functionality
+  const startImpersonation = useCallback(async (role: Role) => {
+    // Implementation details...
+  }, [session]);
+  
+  const endImpersonation = useCallback(async () => {
+    // Implementation details...
+  }, []);
+  
+  return {
+    // Session information
+    roles,
+    isLoading,
+    isAuthenticated,
+    
+    // Impersonation state and functions
+    isImpersonating: session?.user?.isImpersonating || false,
+    impersonationLoading,
+    startImpersonation,
+    endImpersonation,
+    originalRoles: session?.user?.originalRoles || [],
+    
+    // Role checking functions using centralized utilities
+    hasRole: (role: Role) => checkHasRole(roles, role),
+    hasAnyRole: (checkRoles: Role[]) => checkHasAnyRole(roles, checkRoles),
+    hasAllRoles: (checkRoles: Role[]) => checkRoles.every(role => roles.includes(role)),
+    
+    // Convenience role check methods
+    isAdmin: () => checkHasRole(roles, ROLES.ADMIN),
+    isSecurity: () => checkHasRole(roles, ROLES.SECURITY),
+    isDevOps: () => checkHasRole(roles, ROLES.DEVOPS),
+    isDBA: () => checkHasRole(roles, ROLES.DBA),
+    isCollab: () => checkHasRole(roles, ROLES.COLLAB),
+    isTCC: () => checkHasRole(roles, ROLES.TCC),
+    isFieldTech: () => checkHasRole(roles, ROLES.FIELDTECH),
+    
+    // Role hierarchy helper 
+    getHighestRole: () => getHighestRoleUtil(roles),
+  };
+}
+```
+
+This approach ensures consistent role validation across your application by reusing the same utility functions on both server and client.
+
 ### Custom Authentication Hooks
 
 You can create custom hooks that build on BetterAuth's functionality:
@@ -712,3 +832,40 @@ export const authClient = createAuthClient({
   },
 });
 ```
+
+### RoleAccess Component
+
+```tsx
+// src/components/role-access.tsx
+import { useRole } from '@/hooks/use-role';
+
+export default function RoleAccessComponent() {
+  const { 
+    hasRole, 
+    isAdmin, 
+    roles, 
+    isAuthenticated, 
+    isLoading 
+  } = useRole();
+  
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!isAuthenticated) {
+    return <div>Please sign in to access this content.</div>;
+  }
+  
+  // Admin-only content
+  if (isAdmin()) {
+    return <div>Admin Dashboard</div>;
+  }
+  
+  // Content for users with 'security' role
+  if (hasRole('security')) {
+    return <div>Security Panel</div>;
+  }
+  
+  // Fallback for authenticated users without specific roles
+  return <div>User Dashboard</div>;
+}

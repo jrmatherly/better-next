@@ -33,10 +33,9 @@ export const authConfig = {
       },
     },
     
-    // Cookie cache configuration (improves performance)
+    // Disable cookie cache to prevent session data size issues
     cookieCache: {
-      enabled: true,
-      maxAge: 60 * 5, // 5 minutes
+      enabled: false, // Disabled to prevent "Session data too large" errors
     },
   },
 } satisfies BetterAuthOptions;
@@ -341,36 +340,90 @@ BetterAuth implements several security features for sessions:
 4. **Session Rotation**: Session tokens are rotated based on the updateAge configuration
 5. **Session Expiration**: Sessions expire after a configurable period of inactivity
 
-## Session with Redis Secondary Storage
+## Session Storage Options
 
-For high-performance environments or multi-server setups, Redis can be used as a secondary storage for sessions:
+BetterAuth provides several options for session storage. Our implementation uses the following strategy:
+
+### Database Storage
+
+By default, BetterAuth stores session data in the database when cookie caching is disabled. This is our chosen approach because:
+
+1. It's reliable across all environments including middleware
+2. It handles large session data from Microsoft SSO without size limitations
+3. It works seamlessly with our Prisma adapter
+4. It simplifies our authentication architecture
+
+To configure database-only session storage, we disable the cookie cache:
 
 ```typescript
-import { PrismaClient } from '@prisma/client';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { createRedisSecondaryStorage } from 'better-auth/storage/redis';
-import Redis from 'ioredis';
-
-const prisma = new PrismaClient();
-const redis = new Redis(process.env.REDIS_URL);
-
+// src/lib/auth/config.ts
 export const authConfig = {
   // Other config...
-  
-  database: prismaAdapter(prisma, {
-    provider: 'postgresql',
-    secondaryStorage: createRedisSecondaryStorage({
-      redis,
-      prefix: 'better-auth:',
-      ttl: 60 * 60 * 24 * 30, // 30 days (should match session expiresIn)
-    }),
-  }),
+  session: {
+    freshAge: 0,
+    expiresIn: 60 * 60 * 24 * 3, // 3 days
+    updateAge: 60 * 60 * 12, // 12 hours
+    cookieCache: {
+      enabled: false, // Disabled to prevent "Session data too large" errors with Microsoft SSO
+    },
+    // BetterAuth automatically uses the database when cookieCache is disabled
+  },
 };
 ```
 
-This configuration:
+### Cookie Storage (Not Used)
 
-1. Uses Prisma for primary storage of user and account data
-2. Uses Redis for faster session retrieval and validation
-3. Automatically synchronizes session data between Prisma and Redis
-4. Improves performance for high-traffic applications
+While BetterAuth can store sessions in cookies, we've disabled this option because:
+
+1. Microsoft authentication can return large amounts of profile data
+2. Storing this data in cookies can lead to "Session data too large" errors
+3. Cookie storage has size limitations (~4KB)
+
+### Secondary Storage (Removed)
+
+> **⚠️ Note: We previously attempted to use Redis as secondary storage but have removed it due to compatibility issues with middleware and session management.**
+
+We found that using Redis as secondary storage led to issues with session recognition despite having valid session cookies. For this reason, we've simplified our approach to use only database storage for sessions.
+
+## Handling Large Session Data
+
+Microsoft authentication can return large amounts of data, especially when requesting user groups, roles, and other profile information. To manage this:
+
+**Disabled Cookie Cache**: We prevent session data from being stored in cookies, avoiding size limits.
+**Database Storage**: All session data is stored in the PostgreSQL database.
+**Minimized JWT Payload**: We only include essential data in the JWT token:
+
+```typescript
+// src/lib/auth/server.ts
+async jwt({ token, account, user, profile }) {
+  // Only store essential data in the token
+  token.roles = parseRoles(msRoles.length > 0 ? msRoles : user.roles);
+  token.groups = msGroups.filter((group: unknown): group is string => typeof group === 'string');
+  token.isImpersonating = user.isImpersonating || false;
+  token.originalRoles = user.originalRoles || [];
+}
+```
+
+**Minimized Session Data**: The session callback also keeps only necessary data:
+
+```typescript
+async session({ session, token }) {
+  return {
+    ...session,
+    user: {
+      id: token.id as string,
+      email: token.email as string,
+      name: (token.name as string) || null,
+      image: (token.image as string) || null,
+      roles: parseRoles(token.roles),
+      isImpersonating: !!token.isImpersonating,
+      ...(token.isImpersonating ? { originalRoles: (token.originalRoles as string[]) || [] } : {}),
+      ...(Array.isArray(token.groups) && token.groups.length > 0 ? {
+        groups: (token.groups as string[]).slice(0, 5) // Limit to top 5 groups
+      } : {}),
+    },
+  };
+}
+```
+
+This approach ensures that our sessions work reliably across all environments, including middleware.

@@ -15,7 +15,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { deleteUser } from '@/lib/auth/client';
 import { trackEvent } from '@/lib/umami';
-import type { Session } from '@/types/auth';
+import type { Session } from '@/types/auth.d';
 import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { toast } from 'sonner';

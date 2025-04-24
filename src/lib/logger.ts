@@ -1,5 +1,4 @@
 import { env } from '@/env';
-/* import { showLogger } from '@/lib/settings'; */
 import type {
   LogContext,
   LogData,
@@ -8,35 +7,6 @@ import type {
   SensitiveDataConfig,
 } from '@/types/logs';
 import { consola } from 'consola';
-
-/** Types and Interfaces */
-/* type LogLevel = 'debug' | 'error' | 'info' | 'warn';
-type LogModule = 'auth' | 'database' | 'general' | 'api' | 'ui';
-
-interface LogContext {
-  [key: string]: unknown;
-  module?: LogModule;
-  sessionId?: string;
-  userId?: string;
-  requestId?: string;
-  path?: string;
-  metadata?: Record<string, unknown>;
-  traceId?: string;
-  spanId?: string;
-}
-
-interface LogData {
-  level: LogLevel;
-  message: string;
-  context: LogContext;
-  timestamp: string;
-  data?: unknown;
-}
-
-interface SensitiveDataConfig {
-  patterns: RegExp[];
-  replacement: string;
-} */
 
 /** Constants */
 

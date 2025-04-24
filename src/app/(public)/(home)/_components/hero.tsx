@@ -40,11 +40,11 @@ export default function Hero() {
                   data-umami-event="Github Button"
                 >
                   <a
-                    href="https://github.com/laduniestu/better-next"
+                    href="https://github.com/jrmatherly/better-next"
                     target="_BLANK"
                   >
                     <GithubIcon className="h-6 w-6" />
-                    laduniestu/better-next
+                    jrmatherly/better-next
                   </a>
                 </Button>
               </div>

@@ -46,14 +46,19 @@ export const authConfig = {
   
   socialProviders: {
     microsoft: {
-      clientId: process.env.MICROSOFT_CLIENT_ID,
-      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-      tenantId: process.env.MICROSOFT_TENANT_ID,
-      authorization: {
-        params: {
-          scope: 'email offline_access openid profile User.Read GroupMember.Read.All ProfilePhoto.Read.All User.ReadBasic.All'
-        }
-      }
+      clientId: MICROSOFT_CLIENT_ID || '',
+      clientSecret: MICROSOFT_CLIENT_SECRET || '',
+      tenantId: MICROSOFT_TENANT_ID || '',
+      scope: [
+        'email',
+        'offline_access',
+        'openid',
+        'profile',
+        'User.Read',
+        'GroupMember.Read.All',
+        'ProfilePhoto.Read.All',
+        'User.ReadBasic.All'
+      ]
     }
   },
   
@@ -84,14 +89,19 @@ export function MicrosoftSignInButton() {
 }
 ```
 
-### Phase 2: Role Management
+### Phase 2: Type Definitions and Role Management
 
-#### 2.1 Create Types for Extended Session
+#### 2.1 Define Role Types and Constants
+
+Create centralized type definitions in `src/types/auth.d.ts`:
 
 ```typescript
-// src/types/auth.ts
-import { User } from 'better-auth';
+import { auth } from "@/lib/auth/server";
+import { type ReactNode } from "react";
 
+/**
+ * Application roles based on Azure AD app roles
+ */
 export const ROLES = {
   ADMIN: 'admin',
   SECURITY: 'security',
@@ -99,307 +109,504 @@ export const ROLES = {
   DBA: 'dba',
   COLLAB: 'collab',
   TCC: 'tcc',
-  FIELDTECH: 'fieldtech',
+  FIELDTECH: 'fieldtech', 
   USER: 'user',
 } as const;
 
+/**
+ * Role type derived from the ROLES constant
+ */
 export type Role = (typeof ROLES)[keyof typeof ROLES];
 
-export interface ExtendedUser extends User {
-  roles: Role[];
-  groups?: string[]; // Store original Microsoft groups if needed
-}
+// Base type from BetterAuth
+export type Session = typeof auth.$Infer.Session;
+export type User = typeof auth.$Infer.User;
 
-export interface ExtendedSession extends Session {
-  user: ExtendedUser;
+/**
+ * Extended session type with roles and impersonation support
+ */
+export type ExtendedSession = Session & {
+  user: Session['user'] & {
+    roles?: Role[];
+    groups?: string[];
+    originalRoles?: Role[];
+    isImpersonating?: boolean;
+  };
+};
+
+// Module augmentation for BetterAuth
+declare module '@/lib/auth/server' {
+  interface User {
+    roles?: Role[];
+    groups?: string[];
+    originalRoles?: Role[];
+    isImpersonating?: boolean;
+  }
 }
 ```
 
-#### 2.2 Session Enhancement Hook
+#### 2.2 Role Utility Functions
+
+Create utility functions in `src/lib/auth/roles.ts`:
+
+```typescript
+import { ROLES, type Role } from "@/types/auth.d";
+
+/**
+ * Type guard to check if a value is a valid Role
+ */
+export function isValidRole(role: string): role is Role {
+  return Object.values(ROLES).includes(role as Role);
+}
+
+/**
+ * Parse roles from token data, ensuring type safety
+ */
+export function parseRoles(tokenRoles: unknown): Role[] {
+  if (!Array.isArray(tokenRoles)) {
+    return [ROLES.USER]; // Default to basic user role
+  }
+  
+  return tokenRoles
+    .filter((role): role is string => typeof role === 'string')
+    .filter(isValidRole);
+}
+
+// Re-export ROLES for backward compatibility and convenience
+export { ROLES };
+```
+
+#### 2.3 Session Enhancement Hook
 
 Create a hook to process Microsoft identity tokens and extract roles:
 
 ```typescript
 // src/lib/auth/hooks.ts
-import { ROLES, Role } from '@/types/auth';
+import { ROLES } from '@/lib/auth/roles';
+import { parseRoles } from '@/lib/auth/role-utils';
+import { authLogger } from '@/lib/logger';
+import type { ExtendedSession } from '@/types/auth.d';
 
-export const enhanceSession = async ({ session, token }) => {
-  // App roles come directly from token.roles claim
-  const userRoles = token?.roles && Array.isArray(token.roles) 
-    ? token.roles as Role[]
-    : [];
+export const enhanceSession = async ({ 
+  session, 
+  token 
+}: { 
+  session: ExtendedSession; 
+  token: Record<string, unknown>; 
+}): Promise<ExtendedSession> => {
+  if (!session?.user) {
+    return session;
+  }
+
+  // Extract roles from token (should come in the roles claim)
+  const userRoles = parseRoles(token?.roles);
   
-  // Default role assignment if no roles were assigned
+  // If no valid roles were assigned, set default role
   if (userRoles.length === 0) {
-    userRoles.push(ROLES.USER); // Default role
+    userRoles.push(ROLES.USER);
   }
   
-  // Optionally store groups if needed for group-based features
-  const userGroups = token?.groups && Array.isArray(token.groups)
-    ? token.groups
+  // Optionally extract and store groups if needed for other purposes
+  const userGroups = Array.isArray(token?.groups) 
+    ? token.groups.filter((group: unknown): group is string => typeof group === 'string')
     : [];
   
+  // Log role assignment for debugging (using authLogger instead of console)
+  if (process.env.NODE_ENV !== 'production') {
+    authLogger.debug('[Auth] Assigned roles:', userRoles);
+    if (userGroups.length > 0) {
+      authLogger.debug('[Auth] User groups:', userGroups);
+    }
+  }
+  
+  // Return enhanced session with roles (and optionally groups)
   return {
     ...session,
     user: {
       ...session.user,
       roles: userRoles,
-      groups: userGroups, // Optional, remove if not needed
-    }
+      ...(userGroups.length > 0 && { groups: userGroups }),
+    },
   };
-};
+}
 ```
 
 ### Phase 3: RBAC Implementation
 
 #### 3.1 Client-Side Role Hook
 
+Create a hook for client-side role checks:
+
 ```typescript
 // src/hooks/use-role.ts
 import { useSession } from '@/lib/auth/client';
-import { ROLES, Role, ExtendedSession } from '@/types/auth';
+import { ROLES } from '@/lib/auth/roles';
+import type { ExtendedSession, Role } from '@/types/auth.d';
+import { useState, useCallback } from 'react';
 
 export function useRole() {
-  const { data: session } = useSession() as { data: ExtendedSession | null };
+  // Cast the session response to the appropriate type
+  const sessionResponse = useSession();
+  const session = sessionResponse.data as ExtendedSession | null;
+  const isLoading = sessionResponse.isPending || false;
+  const isAuthenticated = !!session?.user;
+  
+  // State for handling impersonation loading state
+  const [isImpersonating, setIsImpersonating] = useState(
+    session?.user?.isImpersonating || false
+  );
+  const [impersonationLoading, setImpersonationLoading] = useState(false);
+  
+  // Get all roles assigned to the user
+  const roles = session?.user?.roles || [];
+  
+  // Impersonation functions
+  const startImpersonation = useCallback(async (role: Role) => {
+    // Implementation details...
+  }, [session]);
+  
+  const endImpersonation = useCallback(async () => {
+    // Implementation details...
+  }, []);
   
   return {
-    hasRole: (role: Role) => session?.user?.roles?.includes(role) ?? false,
-    roles: session?.user?.roles || [],
-    isAdmin: () => session?.user?.roles?.includes(ROLES.ADMIN) ?? false,
-    isSecurity: () => session?.user?.roles?.includes(ROLES.SECURITY) ?? false,
-    isDevOps: () => session?.user?.roles?.includes(ROLES.DEVOPS) ?? false,
-    isDBA: () => session?.user?.roles?.includes(ROLES.DBA) ?? false,
-    isCollab: () => session?.user?.roles?.includes(ROLES.COLLAB) ?? false,
-    isTCC: () => session?.user?.roles?.includes(ROLES.TCC) ?? false,
-    isFieldTech: () => session?.user?.roles?.includes(ROLES.FIELDTECH) ?? false,
-    // Helper to check if user has at least one of the specified roles
-    hasAnyRole: (roles: Role[]) => roles.some(role => session?.user?.roles?.includes(role) ?? false),
+    // Basic session information
+    roles,
+    isLoading,
+    isAuthenticated,
+    
+    // Impersonation state
+    isImpersonating: session?.user?.isImpersonating || false,
+    impersonationLoading,
+    startImpersonation,
+    endImpersonation,
+    originalRoles: session?.user?.originalRoles || [],
+    
+    // Role check methods
+    hasRole: (role: Role) => roles.includes(role),
+    hasAnyRole: (checkRoles: Role[]) => checkRoles.some(role => roles.includes(role)),
+    hasAllRoles: (checkRoles: Role[]) => checkRoles.every(role => roles.includes(role)),
+    
+    // Convenience methods for common role checks
+    isAdmin: () => roles.includes(ROLES.ADMIN),
+    isSecurity: () => roles.includes(ROLES.SECURITY),
+    isDevOps: () => roles.includes(ROLES.DEVOPS),
+    isDBA: () => roles.includes(ROLES.DBA),
+    isCollab: () => roles.includes(ROLES.COLLAB),
+    isTCC: () => roles.includes(ROLES.TCC),
+    isFieldTech: () => roles.includes(ROLES.FIELDTECH),
+    
+    // Method to get the highest role based on a predefined hierarchy
+    getHighestRole: () => {
+      // Role hierarchy from highest to lowest permissions
+      const roleHierarchy: Role[] = [
+        ROLES.ADMIN,
+        ROLES.SECURITY,
+        ROLES.DEVOPS,
+        ROLES.DBA,
+        ROLES.COLLAB,
+        ROLES.TCC,
+        ROLES.FIELDTECH,
+        ROLES.USER
+      ];
+      
+      // Find the highest role in the hierarchy that the user has
+      return roleHierarchy.find(role => roles.includes(role)) || ROLES.USER;
+    },
   };
 }
 ```
 
 #### 3.2 Role-Based UI Components
 
+Create a component for conditional UI rendering based on roles:
+
 ```typescript
 // src/components/auth/role-gate.tsx
-import { ReactNode } from 'react';
 import { useRole } from '@/hooks/use-role';
-import { Role } from '@/types/auth';
+import { type RoleGateProps } from '@/types/auth.d';
 
-interface RoleGateProps {
-  children: ReactNode;
-  allowedRoles: Role[];
-  fallback?: ReactNode;
-}
-
-export function RoleGate({ children, allowedRoles, fallback = null }: RoleGateProps) {
-  const { hasAnyRole } = useRole();
+/**
+ * Component for conditional rendering based on user roles
+ * 
+ * Use this component to show or hide UI elements based on the user's roles.
+ * This is useful for building role-specific navigation, feature flags, etc.
+ */
+export function RoleGate({
+  allowedRoles,
+  children,
+  fallback,
+  requireAll = false,
+  showFallbackOnLoading = true,
+}: RoleGateProps) {
+  const { isLoading, hasAnyRole, hasAllRoles } = useRole();
   
-  if (!hasAnyRole(allowedRoles)) {
-    return fallback;
+  // Optional handling for loading state
+  if (isLoading) {
+    return showFallbackOnLoading ? <>{fallback}</> : null;
   }
   
-  return <>{children}</>;
+  // Check permission based on required access pattern
+  const hasAccess = requireAll
+    ? hasAllRoles(allowedRoles)
+    : hasAnyRole(allowedRoles);
+    
+  // Render based on access check
+  return hasAccess ? <>{children}</> : <>{fallback}</>;
 }
 ```
 
-#### 3.3 Server-Side Role Guards
+#### 3.3 Server-Side Guards
+
+Implement server-side role-based access control:
 
 ```typescript
 // src/lib/auth/guards.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from '@/lib/auth/server';
-import { Role, ExtendedSession } from '@/types/auth';
+import { headers } from 'next/headers';
+import type { ExtendedSession, Role } from '@/types/auth.d';
+import { auth } from './server';
 
+/**
+ * Get the server session using the official BetterAuth approach
+ */
+async function getServerSession(): Promise<ExtendedSession | null> {
+  try {
+    const session = await auth.api.getSession({
+      headers: await headers(),
+    });
+    
+    // If no session, return null
+    if (!session) return null;
+    
+    // Map the BetterAuth session to include roles
+    return {
+      ...session,
+      user: {
+        ...session.user,
+        // Ensure roles property exists, default to empty array if not present
+        roles: Array.isArray((session.user as Record<string, unknown>)?.roles)
+          ? (session.user as Record<string, unknown>).roles as Role[]
+          : []
+      }
+    } as ExtendedSession;
+  } catch (error) {
+    console.error('Error getting server session:', error);
+    return null;
+  }
+}
+
+/**
+ * Check if the user's session contains the required roles
+ */
+export function checkRoleAccess(
+  session: ExtendedSession | null,
+  allowedRoles: Role[],
+  requireAll = false
+): boolean {
+  // No session means no access
+  if (!session?.user?.roles) {
+    return false;
+  }
+
+  // Check if user has the required roles
+  return requireAll
+    ? allowedRoles.every(role => session.user.roles?.includes(role))
+    : allowedRoles.some(role => session.user.roles?.includes(role));
+}
+
+/**
+ * Middleware guard for role-based route protection
+ */
 export async function requireRole(
   req: NextRequest,
   allowedRoles: Role[],
-  redirectTo = '/unauthorized'
-) {
-  const session = await getServerSession() as ExtendedSession | null;
-  
-  if (!session?.user) {
-    return NextResponse.redirect(new URL('/signin', req.url));
-  }
-  
-  const hasPermission = allowedRoles.some(role => 
-    session.user.roles?.includes(role)
-  );
-  
-  if (!hasPermission) {
-    return NextResponse.redirect(new URL(redirectTo, req.url));
-  }
-  
-  return NextResponse.next();
+  redirectTo = '/unauthorized',
+  requireAll = false
+): Promise<NextResponse> {
+  // Implementation details...
+}
+
+/**
+ * Guard for protecting API routes with role-based access
+ */
+export function withRoleGuard(allowedRoles: Role[], requireAll = false) {
+  // Implementation details...
 }
 ```
 
-#### 3.4 Next.js Middleware for Route Protection
+#### 3.4 Route Protection with Middleware
+
+Create middleware for route protection based on roles:
 
 ```typescript
 // src/middleware.ts
-import { NextResponse, NextRequest } from 'next/server';
-import { requireRole } from '@/lib/auth/guards';
-import { ROLES } from '@/types/auth';
+import { env } from '@/env';
+import { authLogger } from '@/lib/logger';
+import { AUTHENTICATED_URL } from '@/lib/settings';
+import { betterFetch } from '@better-fetch/fetch';
+import { type NextRequest, NextResponse } from 'next/server';
+import { ROLES } from '@/lib/auth/roles';
+import { checkRoleAccess } from '@/lib/auth/guards';
+import type { ExtendedSession } from '@/types/auth.d';
 
-export async function middleware(req: NextRequest) {
-  const path = req.nextUrl.pathname;
-  
-  // Admin routes
-  if (path.startsWith('/admin')) {
-    return requireRole(req, [ROLES.ADMIN]);
+const authRoutes = ['/login', '/sign-up'];
+const protectedRoutesPrefix = '/app';
+
+// Define role-protected routes
+const adminRoutes = ['/admin', '/app/admin'];
+const securityRoutes = ['/security', '/app/security'];
+const devopsRoutes = ['/dev', '/app/dev'];
+const dbaRoutes = ['/db', '/app/db'];
+const apiImpersonationRoutes = ['/api/impersonation'];
+
+export default async function authMiddleware(request: NextRequest) {
+  // Middleware implementation...
+
+  // Handle role-based access control for specific routes
+  if (session) {
+    // Admin routes require admin role
+    if (pathStartsWith(pathName, adminRoutes)) {
+      if (!checkRoleAccess(session, [ROLES.ADMIN], false)) {
+        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
+      }
+    }
+
+    // Security routes require security role or admin
+    if (pathStartsWith(pathName, securityRoutes)) {
+      if (!checkRoleAccess(session, [ROLES.SECURITY, ROLES.ADMIN], false)) {
+        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
+      }
+    }
+
+    // DevOps routes require devops role or admin
+    if (pathStartsWith(pathName, devopsRoutes)) {
+      if (!checkRoleAccess(session, [ROLES.DEVOPS, ROLES.ADMIN], false)) {
+        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
+      }
+    }
+
+    // Database routes require dba role or admin
+    if (pathStartsWith(pathName, dbaRoutes)) {
+      if (!checkRoleAccess(session, [ROLES.DBA, ROLES.ADMIN], false)) {
+        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
+      }
+    }
   }
-  
-  // Security routes
-  if (path.startsWith('/security')) {
-    return requireRole(req, [ROLES.ADMIN, ROLES.SECURITY]);
-  }
-  
-  // Developer routes
-  if (path.startsWith('/dev')) {
-    return requireRole(req, [ROLES.ADMIN, ROLES.DEVOPS]);
-  }
-  
-  // Database routes
-  if (path.startsWith('/db')) {
-    return requireRole(req, [ROLES.ADMIN, ROLES.DBA]);
-  }
-  
-  // Authenticated routes (any role can access)
-  if (path.startsWith('/dashboard')) {
-    return requireRole(req, Object.values(ROLES));
-  }
-  
+
   return NextResponse.next();
 }
-
-export const config = {
-  matcher: ['/admin/:path*', '/security/:path*', '/dev/:path*', '/db/:path*', '/dashboard/:path*'],
-};
 ```
 
-### Phase 4: Authentication UI
+### Phase 4: Impersonation Support
 
-#### 4.1 Sign-In Page
-
-```typescript
-// src/app/(auth)/signin/page.tsx
-import { MicrosoftSignInButton } from '@/components/auth/microsoft-sign-in-button';
-
-export default function SignInPage() {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 space-y-8">
-      <div className="w-full max-w-md space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold">Sign in to your account</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Use your Microsoft work account to access the application
-          </p>
-        </div>
-        
-        <div className="mt-8 space-y-6">
-          <MicrosoftSignInButton />
-        </div>
-      </div>
-    </div>
-  );
-}
-```
-
-#### 4.2 User Profile Component with Role Display
+#### 4.1 Impersonation API Routes
 
 ```typescript
-// src/components/user/profile.tsx
-import { useSession } from '@/lib/auth/client';
-import { useRole } from '@/hooks/use-role';
-import { ExtendedSession } from '@/types/auth';
+// src/app/api/impersonation/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth/server';
+import { getServerSession } from '@/lib/auth/session';
+import { ROLES, type Role } from '@/types/auth.d';
 
-export function UserProfile() {
-  const { data: session } = useSession() as { data: ExtendedSession | null };
-  const { roles, isAdmin } = useRole();
+// Start impersonation - POST /api/impersonation
+export async function POST(req: NextRequest) {
+  const session = await getServerSession();
   
-  if (!session?.user) {
-    return null;
+  // Only admins can impersonate
+  if (!session?.user?.roles?.includes(ROLES.ADMIN)) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Only admins can impersonate' },
+      { status: 403 }
+    );
   }
   
-  return (
-    <div className="p-4 bg-white rounded-lg shadow">
-      <div className="flex items-center space-x-4">
-        {session.user.image && (
-          <img 
-            src={session.user.image} 
-            alt={session.user.name || 'User'} 
-            className="w-12 h-12 rounded-full"
-          />
-        )}
-        
-        <div>
-          <h3 className="text-lg font-medium">{session.user.name}</h3>
-          <p className="text-sm text-gray-500">{session.user.email}</p>
-          
-          <div className="mt-2">
-            <h4 className="text-xs font-medium text-gray-500">Roles:</h4>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {roles.map(role => (
-                <span 
-                  key={role}
-                  className="px-2 py-1 text-xs font-medium text-white bg-blue-500 rounded-full"
-                >
-                  {role}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {isAdmin() && (
-        <div className="mt-4 pt-4 border-t">
-          <h4 className="text-sm font-medium">Admin Options</h4>
-          {/* Admin-specific UI options */}
-        </div>
-      )}
-    </div>
-  );
+  try {
+    const body = await req.json();
+    const { role } = body;
+    
+    // Validate role exists
+    if (!Object.values(ROLES).includes(role as Role)) {
+      return NextResponse.json(
+        { error: 'Invalid role' },
+        { status: 400 }
+      );
+    }
+    
+    // Store original roles and set new role
+    await auth.api.updateUser({
+      data: {
+        originalRoles: session.user.roles,
+        roles: [role],
+        isImpersonating: true
+      }
+    });
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to start impersonation' },
+      { status: 500 }
+    );
+  }
+}
+
+// End impersonation - DELETE /api/impersonation
+export async function DELETE() {
+  const session = await getServerSession();
+  
+  if (!session?.user?.isImpersonating) {
+    return NextResponse.json(
+      { error: 'Not currently impersonating' },
+      { status: 400 }
+    );
+  }
+  
+  try {
+    // Restore original roles
+    await auth.api.updateUser({
+      data: {
+        roles: session.user.originalRoles || [ROLES.USER],
+        originalRoles: undefined,
+        isImpersonating: false
+      }
+    });
+    
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Failed to end impersonation' },
+      { status: 500 }
+    );
+  }
 }
 ```
 
-### Phase 5: Testing & Refinement
+## Best Practices
 
-#### 5.1 Authentication Flow Testing
+1. **Type Safety**:
+   - Use TypeScript for all files, with proper type definitions
+   - Keep type definitions in `.d.ts` files for clarity
+   - Use explicit type annotations for function parameters and return types
 
-- Verify Microsoft sign-in flow
-- Confirm access to Microsoft Graph data (profile, photo)
-- Test sign-out flow
+2. **Session Management**:
+   - Use BetterAuth's server-side APIs for secure session handling
+   - Store minimal data in sessions (e.g., user ID, roles)
+   - Use session enhancement for role assignment
 
-#### 5.2 Role Assignment Testing
+3. **Role-Based Access Control**:
+   - Always check roles on both client and server sides
+   - Use middleware for route protection
+   - Implement fine-grained access controls with role checks
 
-- Verify app role assignments from Azure AD are correctly recognized
-- Test access control when assigning/removing roles in Azure AD
-- Validate default role assignment for users without assigned roles
+4. **Security Considerations**:
+   - Validate all inputs, especially in API routes
+   - Use HTTPS for all communication
+   - Implement proper error handling and logging
+   - Set appropriate cookie security options
 
-#### 5.3 Access Control Testing
+## Troubleshooting
 
-- Test client-side role-based UI rendering
-- Verify server-side route protection
-- Ensure API endpoints respect role-based permissions
-
-#### 5.4 Error Handling
-
-- Implement and test error boundaries for authentication failures
-- Add proper error messages for unauthorized access attempts
-- Create fallback experiences when role information is missing
-
-## Implementation Timeline
-
-1. **Week 1**: Phase 1 - Microsoft Provider Integration
-2. **Week 1-2**: Phase 2 - Role Management
-3. **Week 2-3**: Phase 3 - RBAC Implementation
-4. **Week 3-4**: Phase 4 - Authentication UI
-5. **Week 4**: Phase 5 - Testing & Refinement
-
-## Conclusion
-
-This implementation plan provides a structured approach to integrating Microsoft Enterprise authentication with role-based access control. By following these phases, we will create a robust authentication system that uses Azure AD app roles to control access across our application.
-
-The approach is simplified by using app roles directly from Azure AD rather than mapping groups to roles, resulting in clearer role management and easier troubleshooting.
+- **Microsoft Token Issues**: Enable debug logging to view token contents
+- **Session Data Issues**: Check BetterAuth session store configuration
+- **Role Assignment Issues**: Verify Azure AD app role configuration

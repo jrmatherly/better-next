@@ -14,7 +14,7 @@ import { LoadingButton } from '@/components/ui/loading-button';
 import { changeEmail } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import { updateEmailSchema } from '@/schema/user';
-import type { Session } from '@/types/auth';
+import type { Session } from '@/types/auth.d';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
