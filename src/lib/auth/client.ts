@@ -44,10 +44,32 @@ export const {
   revokeSessions,
 } = authClient;
 
+// Create stable admin client that won't change between renders
+// This is a module-level constant that won't be recreated on each hook call
+const stableAdminClient = {
+  // Admin placeholder functions
+  getUsers: async (): Promise<User[]> => [],
+  getUserById: async (id: string): Promise<User | null> => null,
+  getUserStats: async (): Promise<UserStats> => ({
+    totalUsers: 0,
+    activeUsers: 0,
+    newUsersToday: 0,
+    newUsersThisWeek: 0,
+    newUsersThisMonth: 0,
+  }),
+  deleteUser: async (id: string): Promise<void> => {},
+  updateUser: async (id: string, data: Partial<User>): Promise<User | null> => null,
+};
+
 // Export typed plugin accessors
 export const getAdminClient = (): AdminClientMethods => {
   // @ts-expect-error - Will be properly implemented when plugin is added
   return authClient.admin || {};
+};
+
+// Placeholder hooks
+export const useAdmin = () => {
+  return stableAdminClient;
 };
 
 export const getApiKeyClient = (): ApiKeyClientMethods => {
@@ -63,22 +85,6 @@ export const getJwtClient = (): JwtClientMethods => {
 export const getOrganizationClient = (): OrganizationClientMethods => {
   // @ts-expect-error - Will be properly implemented when plugin is added
   return authClient.organization || {};
-};
-
-// Placeholder hooks
-export const useAdmin = () => {
-  return {
-    // Admin placeholder functions
-    getUsers: async (): Promise<User[]> => [],
-    getUserById: async (id: string): Promise<User | null> => null,
-    getUserStats: async (): Promise<UserStats> => ({
-      totalUsers: 0,
-      activeUsers: 0,
-      newUsersToday: 0,
-      newUsersThisWeek: 0,
-      newUsersThisMonth: 0,
-    }),
-  };
 };
 
 export const useApiKeys = () => {
