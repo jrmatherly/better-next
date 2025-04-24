@@ -9,6 +9,58 @@ import type { Account, User as BetterAuthUser, Session } from 'better-auth';
 const configWithCallbacks = {
   ...authConfig,
   ...authActions,
+  socialProviders: {
+    ...authConfig.socialProviders,
+    microsoft: {
+      ...authConfig.socialProviders.microsoft,
+      // Map Microsoft profile data to user model, extracting roles
+      mapProfileToUser: (profile: Record<string, unknown>) => {
+        // For debugging in development only
+        if (process.env.NODE_ENV !== 'production') {
+          // biome-ignore lint/suspicious/noConsole: allow console to prevent schema generation errors
+          console.debug('[Auth] Microsoft Profile:', profile.email);
+        }
+
+        // Check all possible locations where Azure AD might store roles
+        const possibleRoleClaims = [
+          profile.roles,
+          profile.appRoles,
+          profile.wids,
+          profile[
+            'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
+          ],
+        ];
+
+        // Find the first claim array that contains roles
+        const rolesFromClaims = possibleRoleClaims.find(
+          claim => Array.isArray(claim) && claim.length > 0
+        );
+
+        // Process roles if found
+        if (rolesFromClaims) {
+          const roles = parseRoles(rolesFromClaims);
+
+          if (process.env.NODE_ENV !== 'production') {
+            // biome-ignore lint/suspicious/noConsole: allow console to prevent schema generation errors
+            console.debug('[Auth] Found roles in Microsoft claims:', roles);
+          }
+
+          // Return roles to be added to user model
+          return { roles };
+        }
+
+        if (process.env.NODE_ENV !== 'production') {
+          // biome-ignore lint/suspicious/noConsole: allow console to prevent schema generation errors
+          console.debug(
+            '[Auth] No Microsoft roles found, using default "user" role'
+          );
+        }
+
+        // Default to 'user' role if no roles found
+        return { roles: ['user'] };
+      },
+    },
+  },
   callbacks: {
     // This callback is used to customize the JWT token
     // Store all non-essential data here instead of in the session
