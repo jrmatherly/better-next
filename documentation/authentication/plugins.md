@@ -6,19 +6,9 @@ This document covers the plugin system in BetterAuth, including available offici
 
 BetterAuth uses a plugin architecture to extend its functionality without bloating the core package. Plugins can add new features, integrate with other services, or modify the behavior of existing features.
 
-## Available Official Plugins
-
-BetterAuth offers several official plugins:
-
-- **Admin** - Administrative interface and management APIs
-- **API Key** - API key generation and validation
-- **JWT** - JSON Web Token authentication
-- **Organization** - Multi-tenant organization support
-- **OpenAPI** - API documentation generation
-
 ## Configuring Plugins
 
-Plugins are configured in your main auth configuration file:
+Plugins are configured in our main auth configuration file:
 
 ```typescript
 // src/lib/auth/config.ts
@@ -26,811 +16,226 @@ import { PrismaClient } from '@prisma/client';
 import type { BetterAuthOptions } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { 
-  adminPlugin, 
-  apiKeyPlugin, 
-  jwtPlugin, 
-  openAPIPlugin, 
-  organizationPlugin 
+  admin, 
+  apiKey, 
+  jwt, 
+  openAPI, 
+  organization 
 } from 'better-auth/plugins';
 
 const prisma = new PrismaClient();
 
 export const authConfig = {
   // Core configuration...
-  appName: 'Your App Name',
-  baseURL: process.env.NEXT_PUBLIC_APP_URL,
-  
-  // Configure database adapter
-  database: prismaAdapter(prisma, {
-    provider: 'postgresql',
-  }),
   
   // Configure plugins
   plugins: [
-    adminPlugin({
-      // Admin plugin options
-    }),
-    apiKeyPlugin({
-      // API key plugin options
-    }),
-    jwtPlugin({
-      // JWT plugin options
-    }),
-    openAPIPlugin({
-      // OpenAPI plugin options
-    }),
-    organizationPlugin({
-      // Organization plugin options
-    }),
+    admin(),     // Admin plugin for user and session management
+    apiKey(),    // API Key plugin for secure API access
+    jwt(),       // JWT plugin for token-based authentication
+    organization(), // Organization plugin for multi-tenant support
+    openAPI(),   // OpenAPI plugin for API documentation
   ],
 } satisfies BetterAuthOptions;
 ```
 
-## Admin Plugin
+## Enabled Plugins
+
+Our application currently uses the following plugins:
+
+### Admin Plugin
 
 The Admin plugin provides an administrative interface and API endpoints for managing users, roles, and other authentication-related data.
 
-### Configuration
+#### Admin Features
 
-```typescript
-import { adminPlugin } from 'better-auth/plugins';
+- Admin dashboard for user management at `/admin`
+- API endpoints for managing users, accounts, and sessions
+- Role-based access control for admin features (admin role required)
 
-// In your auth config
-plugins: [
-  adminPlugin({
-    // Path prefix for admin API endpoints
-    path: '/admin',
-    
-    // Secret key for accessing admin API (highly recommended)
-    secret: process.env.ADMIN_API_SECRET,
-    
-    // Roles that can access admin functionality
-    roles: ['admin'],
-    
-    // Custom admin authentication function (optional)
-    authenticate: async (req) => {
-      // Custom authentication logic
-      return true; // Return true to allow access, false to deny
-    },
-    
-    // Dashboard UI settings (if using built-in dashboard)
-    dashboard: {
-      enabled: true,
-      title: 'Auth Admin',
-      logoUrl: '/admin-logo.png',
-      theme: 'light', // 'light', 'dark', or 'system'
-    },
-  }),
-],
-```
-
-### Usage
-
-#### Admin API Endpoints
-
-The Admin plugin adds several API endpoints:
-
-- `GET /admin/users` - List users with pagination and filtering
-- `GET /admin/users/:id` - Get a specific user by ID
-- `PUT /admin/users/:id` - Update a specific user
-- `DELETE /admin/users/:id` - Delete a specific user
-- `GET /admin/accounts` - List accounts with pagination and filtering
-- `GET /admin/sessions` - List sessions with pagination and filtering
-- `DELETE /admin/sessions/:id` - Revoke a specific session
-
-#### Admin Dashboard
-
-If enabled, the admin dashboard is available at `/admin` (or your configured path).
-
-#### Programmatic Access
+#### Admin Programmatic Access
 
 ```typescript
 // Server-side
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
+import { auth } from '@/lib/auth/server';
 
 // Access admin functionality
 const adminApi = auth.admin;
 
 // List users
-const users = await adminApi.listUsers({
-  limit: 10,
-  offset: 0,
-  filter: {
-    email: { contains: '@example.com' },
-  },
-  sort: { createdAt: 'desc' },
-});
+const users = await adminApi.listUsers();
 
 // Get user stats
 const stats = await adminApi.getUserStats();
 ```
 
-## API Key Plugin
+### API Key Plugin
 
-The API Key plugin enables API key generation, validation, and management for your application's API.
+The API Key plugin enables API key generation, validation, and management for our application's API.
 
-### API Key Plugin Configuration
+#### API Key Features
 
-```typescript
-import { apiKeyPlugin } from 'better-auth/plugins';
+- API key generation and validation
+- API key management UI at `/api-keys`
+- Role-based permissions for key generation
+- Automatic key expiration handling
 
-// In your auth config
-plugins: [
-  apiKeyPlugin({
-    // Enable API key functionality
-    enabled: true,
-    
-    // Path prefix for API key endpoints
-    path: '/api-keys',
-    
-    // API key settings
-    keys: {
-      // Maximum length of generated keys
-      length: 32,
-      
-      // Key prefix to identify your app's keys
-      prefix: 'myapp_',
-      
-      // Default expiration time (in seconds)
-      expiresIn: 60 * 60 * 24 * 30, // 30 days
-      
-      // Maximum number of keys per user
-      maxKeys: 5,
-      
-      // Roles allowed to create API keys
-      allowedRoles: ['admin', 'developer'],
-    },
-    
-    // Rate limiting for API key requests
-    rateLimit: {
-      enabled: true,
-      windowMs: 60 * 1000, // 1 minute
-      max: 100, // Max requests per windowMs
-    },
-  }),
-],
-```
-
-### API Key Plugin Usage
-
-#### Generate API Key
+#### API Key Usage Example
 
 ```typescript
-// Server-side
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
+// Generate an API key
+import { auth } from '@/lib/auth/server';
 
-const auth = new BetterAuth(authConfig);
-
-// Generate API key for a user
-const apiKey = await auth.apiKey.generate({
+// Create a new API key for a user
+const newKey = await auth.apiKey.createKey({
   userId: 'user-id',
-  name: 'Development API Key',
-  scopes: ['read:users', 'write:posts'],
-  expiresIn: 60 * 60 * 24 * 7, // 7 days (optional)
+  expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+  description: 'Development API key',
 });
 
-// Client-side API key generation form
-'use client'
-
-import { useState } from 'react';
-
-export function ApiKeyForm() {
-  const [keyName, setKeyName] = useState('');
-  const [apiKey, setApiKey] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  const handleGenerateKey = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const response = await fetch('/api/auth/api-keys', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: keyName }),
-      });
-      
-      const data = await response.json();
-      setApiKey(data.key);
-    } catch (error) {
-      console.error('Failed to generate API key:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  return (
-    <form onSubmit={handleGenerateKey}>
-      <div>
-        <label htmlFor="keyName">API Key Name</label>
-        <input
-          id="keyName"
-          value={keyName}
-          onChange={(e) => setKeyName(e.target.value)}
-          required
-        />
-      </div>
-      
-      <button type="submit" disabled={loading}>
-        {loading ? 'Generating...' : 'Generate API Key'}
-      </button>
-      
-      {apiKey && (
-        <div className="mt-4">
-          <p>Your API key (copy this now, it won't be shown again):</p>
-          <code className="block p-2 bg-gray-100">{apiKey}</code>
-        </div>
-      )}
-    </form>
-  );
+// Validate an API key
+const validated = await auth.apiKey.validateKey('api-key-value');
+if (validated) {
+  // Key is valid, proceed with API operation
 }
 ```
 
-#### Validate API Key
+### JWT Plugin
+
+The JWT plugin provides JWT token generation and validation for authenticated API access.
+
+#### JWT Features
+
+- JWT token generation for authenticated users
+- Token verification and validation
+- Automatic token refresh
+- Audience and issuer validation
+
+#### JWT Usage Example
 
 ```typescript
-// In middleware or API route
-import { NextRequest, NextResponse } from 'next/server';
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
+// Generate a JWT token
+import { auth } from '@/lib/auth/server';
 
-const auth = new BetterAuth(authConfig);
+const token = await auth.jwt.sign({ 
+  userId: 'user-id',
+  roles: ['admin'],
+});
 
-export async function middleware(req: NextRequest) {
-  // Get API key from Authorization header
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json(
-      { error: 'Missing or invalid API key' },
-      { status: 401 }
-    );
-  }
-  
-  const apiKey = authHeader.replace('Bearer ', '');
-  
-  // Validate API key
-  try {
-    const result = await auth.apiKey.validate(apiKey);
-    
-    // Add user to request for downstream middleware/handlers
-    (req as any).user = result.user;
-    
-    return NextResponse.next();
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid or expired API key' },
-      { status: 401 }
-    );
-  }
+// Verify a token
+const payload = await auth.jwt.verify(token);
+if (payload) {
+  // Token is valid
 }
 ```
 
-#### List API Keys
+### Organization Plugin
+
+The Organization plugin adds support for multi-tenant organizations, allowing users to be members of different organizations with specific roles.
+
+#### Organization Features
+
+- Organization creation and management
+- Member invitations and management
+- Organization-specific roles
+- Organization-scoped data access
+
+#### Organization Usage Example
 
 ```typescript
-// Server-side
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
+// Create a new organization
+import { auth } from '@/lib/auth/server';
 
-const auth = new BetterAuth(authConfig);
+const org = await auth.organization.create({
+  name: 'My Organization',
+  ownerId: 'user-id',
+});
 
-export async function listUserApiKeys(userId: string) {
-  try {
-    const keys = await auth.apiKey.list(userId);
-    return { success: true, keys };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
+// Invite a member
+const invitation = await auth.organization.inviteUser({
+  organizationId: org.id,
+  email: 'user@example.com',
+  role: 'member',
+});
 ```
 
-## JWT Plugin
+### OpenAPI Plugin
 
-The JWT plugin adds JSON Web Token support for authentication, especially useful for APIs and microservices.
+The OpenAPI plugin generates API documentation for all authentication endpoints.
 
-### JWT Plugin Configuration
+#### OpenAPI Features
+
+- Interactive API documentation
+- Documentation available at `/api-docs`
+- Automatic endpoint and schema discovery
+- Authentication support in documentation
+
+## Environment Variables
+
+The following environment variables are used by our plugin configuration:
+
+```bash
+# JWT Plugin
+JWT_SECRET=your-secret-key-for-jwt-tokens
+
+# General Auth Settings
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_NAME=Better Next
+```
+
+Make sure these are properly configured in your `.env` file before using the plugins.
+
+## Client-Side Integration
+
+To use the plugins on the client side, we need to create an auth client with the corresponding client plugins:
 
 ```typescript
-import { jwtPlugin } from 'better-auth/plugins';
+// src/lib/auth/client.ts
+import { createAuthClient } from 'better-auth/client';
+import { 
+  adminClient, 
+  apiKeyClient,
+  jwtClient,
+  organizationClient
+} from 'better-auth/client/plugins';
 
-// In your auth config
-plugins: [
-  jwtPlugin({
-    // Secret for signing JWTs (use a secure, long random string)
-    secret: process.env.JWT_SECRET,
-    
-    // JWT options
-    options: {
-      // Expiration time (in seconds)
-      expiresIn: 60 * 60, // 1 hour
-      
-      // JWT algorithm
-      algorithm: 'HS256',
-      
-      // Issuer
-      issuer: 'your-app',
-      
-      // Audience
-      audience: 'your-api',
-    },
-    
-    // Custom function to generate JWT payload
-    createPayload: (user, session) => {
-      return {
-        sub: user.id,
-        email: user.email,
-        roles: user.roles,
-        // Add custom claims
-        tenantId: user.tenantId,
-      };
-    },
-    
-    // Custom JWT validation logic
-    validateJwt: async (payload, token) => {
-      // Custom validation (e.g., check if user is still active)
-      return true;
-    },
-  }),
-],
+export const authClient = createAuthClient({
+  plugins: [
+    adminClient(),
+    apiKeyClient(),
+    jwtClient(),
+    organizationClient(),
+  ],
+});
 ```
 
-### JWT Plugin Usage
-
-#### Generate JWT Token
-
-```typescript
-// Server-side
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
-
-export async function generateJwtForUser(userId: string) {
-  try {
-    const user = await auth.user.getById(userId);
-    const token = await auth.jwt.generate(user);
-    
-    return { success: true, token };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-```
-
-#### Verify JWT Token
-
-```typescript
-// In middleware or API route
-import { NextRequest, NextResponse } from 'next/server';
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
-
-export async function middleware(req: NextRequest) {
-  // Get JWT from Authorization header
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json(
-      { error: 'Missing JWT' },
-      { status: 401 }
-    );
-  }
-  
-  const token = authHeader.replace('Bearer ', '');
-  
-  // Verify JWT
-  try {
-    const payload = await auth.jwt.verify(token);
-    
-    // Add payload to request for downstream middleware/handlers
-    (req as any).user = payload;
-    
-    return NextResponse.next();
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid or expired JWT' },
-      { status: 401 }
-    );
-  }
-}
-```
-
-#### Refresh JWT Token
-
-```typescript
-// Server-side refresh endpoint
-import { NextRequest, NextResponse } from 'next/server';
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
-
-export async function POST(req: NextRequest) {
-  try {
-    const { refreshToken } = await req.json();
-    
-    if (!refreshToken) {
-      return NextResponse.json(
-        { error: 'Refresh token required' },
-        { status: 400 }
-      );
-    }
-    
-    // Verify refresh token and generate new access token
-    const result = await auth.jwt.refresh(refreshToken);
-    
-    return NextResponse.json({
-      accessToken: result.accessToken,
-      expiresIn: result.expiresIn,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Invalid or expired refresh token' },
-      { status: 401 }
-    );
-  }
-}
-```
-
-## Organization Plugin
-
-The Organization plugin adds multi-tenant organization support to your authentication system.
-
-### Organization Plugin Configuration
-
-```typescript
-import { organizationPlugin } from 'better-auth/plugins';
-
-// In your auth config
-plugins: [
-  organizationPlugin({
-    // Organization setup
-    organizations: {
-      // Default role for new organization members
-      defaultRole: 'member',
-      
-      // Available roles within organizations
-      roles: ['owner', 'admin', 'member'],
-      
-      // Maximum number of organizations a user can create
-      maxOrganizationsPerUser: 5,
-      
-      // Require invitation to join organizations
-      requireInvitation: true,
-    },
-    
-    // Organization invitations
-    invitations: {
-      // How long invitations are valid (in seconds)
-      expiresIn: 60 * 60 * 24 * 7, // 7 days
-      
-      // Maximum number of pending invitations
-      maxPending: 100,
-    },
-  }),
-],
-```
-
-### Organization Plugin Usage
-
-#### Create Organization
-
-```typescript
-// Server-side
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
-
-export async function createOrganization(
-  userId: string,
-  data: { name: string; slug?: string }
-) {
-  try {
-    const organization = await auth.organization.create({
-      name: data.name,
-      slug: data.slug || generateSlug(data.name),
-      creatorId: userId,
-    });
-    
-    return { success: true, organization };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-// Client-side form
-'use client'
-
-import { useState } from 'react';
-import { createOrg } from './actions';
-
-export function CreateOrganizationForm() {
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [loading, setLoading] = useState(false);
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    try {
-      const result = await createOrg({ name, slug });
-      // Handle successful creation
-    } catch (error) {
-      console.error('Failed to create organization:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Form JSX...
-}
-```
-
-#### Invite User to Organization
-
-```typescript
-// Server-side
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
-
-export async function inviteUserToOrganization(
-  organizationId: string,
-  email: string,
-  role: string = 'member'
-) {
-  try {
-    const invitation = await auth.organization.invite({
-      organizationId,
-      email,
-      role,
-    });
-    
-    return { success: true, invitation };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-```
-
-#### Accept Organization Invitation
-
-```typescript
-// Client-side
-import { acceptInvitation } from '@/lib/organization';
-
-export async function acceptOrgInvitation(token: string) {
-  try {
-    const result = await acceptInvitation(token);
-    return { success: true, organization: result.organization };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-
-// Server-side implementation
-'use server'
-
-import { BetterAuth } from 'better-auth';
-import { authConfig } from '@/lib/auth/config';
-
-const auth = new BetterAuth(authConfig);
-
-export async function acceptInvitation(token: string) {
-  try {
-    const result = await auth.organization.acceptInvitation(token);
-    return { success: true, organization: result.organization };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-}
-```
-
-## OpenAPI Plugin
-
-The OpenAPI plugin generates OpenAPI documentation for your authentication API endpoints.
-
-### OpenAPI Plugin Configuration
-
-```typescript
-import { openAPIPlugin } from 'better-auth/plugins';
-
-// In your auth config
-plugins: [
-  openAPIPlugin({
-    // Enable OpenAPI documentation
-    enabled: true,
-    
-    // Path where the OpenAPI documentation will be available
-    path: '/api/auth/docs',
-    
-    // OpenAPI info
-    info: {
-      title: 'Authentication API',
-      version: '1.0.0',
-      description: 'API documentation for authentication endpoints',
-    },
-    
-    // Server information
-    servers: [
-      {
-        url: process.env.NEXT_PUBLIC_APP_URL,
-        description: 'Production server',
-      },
-      {
-        url: 'http://localhost:3000',
-        description: 'Development server',
-      },
-    ],
-    
-    // Security definitions
-    security: {
-      bearerAuth: {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-      },
-    },
-    
-    // Exclude certain endpoints from documentation
-    exclude: [
-      '/api/auth/admin/*',
-    ],
-  }),
-],
-```
-
-### OpenAPI Plugin Usage
-
-The OpenAPI plugin automatically generates documentation for your BetterAuth endpoints. You can access the OpenAPI JSON at the configured path (e.g., `/api/auth/docs`).
-
-To view the documentation in a user-friendly format, you can use Swagger UI or Redoc:
+Then use it in your components:
 
 ```tsx
-// In app/api/docs/page.tsx
-'use client'
-
-import dynamic from 'next/dynamic';
+// Example component using the auth client
 import { useEffect, useState } from 'react';
+import { authClient } from '@/lib/auth/client';
 
-// Dynamically import Swagger UI to avoid SSR issues
-const SwaggerUI = dynamic(
-  () => import('swagger-ui-react').then((mod) => mod.default),
-  { ssr: false }
-);
-
-// Import CSS for Swagger UI
-import 'swagger-ui-react/swagger-ui.css';
-
-export default function ApiDocsPage() {
-  const [spec, setSpec] = useState(null);
+export function OrganizationsList() {
+  const [orgs, setOrgs] = useState([]);
   
   useEffect(() => {
-    async function fetchSpec() {
-      const response = await fetch('/api/auth/docs');
-      const data = await response.json();
-      setSpec(data);
+    async function fetchOrgs() {
+      const userOrgs = await authClient.organization.getUserOrganizations();
+      setOrgs(userOrgs);
     }
     
-    fetchSpec();
+    fetchOrgs();
   }, []);
   
-  if (!spec) {
-    return <div>Loading API documentation...</div>;
-  }
-  
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-2xl font-bold mb-4">API Documentation</h1>
-      <SwaggerUI spec={spec} />
+    <div>
+      <h2>Your Organizations</h2>
+      <ul>
+        {orgs.map(org => (
+          <li key={org.id}>{org.name}</li>
+        ))}
+      </ul>
     </div>
   );
 }
-```
-
-## Creating Custom Plugins
-
-You can create custom plugins to extend BetterAuth's functionality:
-
-```typescript
-// src/lib/auth/custom-plugin.ts
-import type { BetterAuthPlugin } from 'better-auth';
-
-interface CustomPluginOptions {
-  enabled?: boolean;
-  featureXConfig?: string;
-  // Other options...
-}
-
-export function customPlugin(options: CustomPluginOptions = {}): BetterAuthPlugin {
-  const { 
-    enabled = true,
-    featureXConfig = 'default',
-  } = options;
-  
-  return {
-    // Plugin name
-    name: 'custom-plugin',
-    
-    // Setup function - called during BetterAuth initialization
-    setup: ({ auth, config }) => {
-      if (!enabled) return;
-      
-      // Extend auth object with custom functionality
-      auth.custom = {
-        featureX: async (param1: string) => {
-          // Implementation
-          return { result: `${featureXConfig}: ${param1}` };
-        },
-        
-        featureY: async (param1: number) => {
-          // Implementation
-          return { result: param1 * 2 };
-        },
-      };
-      
-      // Register API routes
-      config.api.router.get('/custom-endpoint', async (req, res) => {
-        // Handle custom endpoint
-        return { message: 'Custom endpoint response' };
-      });
-      
-      // Register hooks
-      auth.hooks.register('beforeSignIn', async (data) => {
-        // Custom logic before sign in
-        console.log('Before sign in:', data.credentials.email);
-        return data;
-      });
-    },
-  };
-}
-```
-
-Then use your custom plugin:
-
-```typescript
-// src/lib/auth/config.ts
-import { customPlugin } from './custom-plugin';
-
-export const authConfig = {
-  // Core configuration...
-  
-  plugins: [
-    // Other plugins...
-    customPlugin({
-      enabled: true,
-      featureXConfig: 'customized',
-    }),
-  ],
-};
-```
-
-## Plugin Best Practices
-
-1. **Namespace Your Functionality**: Keep your plugin's functions under a descriptive namespace to avoid conflicts.
-
-2. **Respect BetterAuth's Core**: Enhance, don't override core functionality unless absolutely necessary.
-
-3. **Error Handling**: Implement proper error handling in your plugin functions.
-
-4. **Configuration Validation**: Validate plugin options early to prevent runtime errors.
-
-5. **Documentation**: Document your plugin's API and configuration options.
-
-6. **Testing**: Create tests for your plugin to ensure it works correctly.
-
-7. **Security**: Follow security best practices in your plugin implementation.
-
-8. **TypeScript**: Use TypeScript for type safety in your plugin.
-
-9. **Performance**: Be mindful of performance impact, especially for hooks that run frequently.
-
-10. **Compatibility**: Clearly specify which versions of BetterAuth your plugin supports.
