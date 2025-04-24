@@ -1,6 +1,12 @@
 /** Types and Interfaces */
 export type LogLevel = 'debug' | 'error' | 'info' | 'warn';
-export type LogModule = 'auth' | 'database' | 'general' | 'api' | 'ui';
+export type LogModule =
+  | 'auth'
+  | 'database'
+  | 'general'
+  | 'api'
+  | 'apiKey'
+  | 'ui';
 
 export interface LogContext {
   [key: string]: unknown;

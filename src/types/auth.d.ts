@@ -50,11 +50,27 @@ export interface AuthToken {
 }
 
 /**
+ * User interface for use throughout the application
+ */
+export interface User {
+  id: string;
+  name?: string | null;
+  email: string;
+  image?: string | null;
+  roles?: Role[];
+  isImpersonating?: boolean;
+  originalRoles?: Role[];
+  groups?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
  * Extended session type with our custom fields
  * Used to type the session object in client and server code
  */
 export type ExtendedSession = typeof auth.$Infer.Session & {
-  user: typeof auth.$Infer.User & {
+  user: User & {
     roles?: Role[];
     groups?: string[];
     originalRoles?: Role[];
@@ -86,6 +102,73 @@ export interface RoleAccessProps {
    * Default is false (any role is sufficient)
    */
   requireAll?: boolean;
+
+  /**
+   * If true, renders a loading skeleton while checking authentication
+   * If false (default), nothing is rendered during loading
+   */
+  showLoadingSkeleton?: boolean;
+}
+
+/**
+ * Props for the access denied alert component
+ */
+export interface AccessDeniedAlertProps {
+  /**
+   * Title for the alert
+   */
+  title?: string;
+
+  /**
+   * Description of why access is denied
+   */
+  description?: ReactNode;
+
+  /**
+   * Additional content to display below the description
+   */
+  children?: ReactNode;
+
+  /**
+   * Optional CSS class names
+   */
+  className?: string;
+}
+
+/**
+ * Props for the protected layout component
+ */
+export interface ProtectedLayoutProps {
+  /**
+   * The content to render if the user has access
+   */
+  children: ReactNode;
+
+  /**
+   * List of roles that are allowed to access this section
+   */
+  allowedRoles: Role[];
+
+  /**
+   * Custom title for the unauthorized view
+   */
+  unauthorizedTitle?: string;
+
+  /**
+   * Custom message for the unauthorized view
+   */
+  unauthorizedMessage?: string;
+
+  /**
+   * If true, the user must have all specified roles
+   * If false (default), having any of the specified roles is sufficient
+   */
+  requireAll?: boolean;
+
+  /**
+   * If true, shows a loading state while checking authentication
+   */
+  showLoading?: boolean;
 }
 
 // Add role information to the existing BetterAuth User type

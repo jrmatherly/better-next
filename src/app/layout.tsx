@@ -1,5 +1,6 @@
 import '../styles/globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/providers/auth-provider';
 import { Toaster } from '@/components/ui/sonner';
 import { createMetadata } from '@/lib/metadata';
 import { APP_NAME } from '@/lib/settings';
@@ -24,15 +25,17 @@ export default function RootLayout({
         <Analytics />
       </head>
       <body className={'antialiased'}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <AuthProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

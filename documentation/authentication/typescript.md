@@ -104,17 +104,188 @@ const authConfig = {
 } satisfies BetterAuthOptions;
 ```
 
-Using `satisfies` ensures TypeScript checks your configuration without forcing type narrowing.
-
 ### Centralized Type Definitions
 
-For consistency and maintainability, we centralize our auth-related type definitions in a dedicated `.d.ts` file:
+For consistency and maintainability, we centralize our auth-related type definitions in dedicated `.d.ts` files in the `/src/types` directory:
 
 ```typescript
 // src/types/auth.d.ts
 import { auth } from "@/lib/auth/server";
-import { type ReactNode } from "react";
+import type { Role } from "@/types/roles";
+import type { ReactNode } from "react";
 
+/**
+ * Session data structure explicitly defined for clarity
+ */
+export interface SessionData {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  expiresAt: Date;
+  token: string;
+  fresh: boolean;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+}
+
+/**
+ * Microsoft profile interface for OAuth provider data
+ */
+export interface MicrosoftProfile {
+  groups?: string[];
+  roles?: string[];
+  email?: string;
+  name?: string;
+}
+
+/**
+ * Extended token type for JWT with impersonation support
+ */
+export interface AuthToken {
+  id?: string;
+  email?: string;
+  name?: string | null;
+  picture?: string | null;
+  image?: string | null;
+  sub?: string;
+  roles?: string[] | Role[];
+  groups?: string[];
+  isImpersonating?: boolean;
+  originalRoles?: string[] | Role[];
+  iat?: number;
+  exp?: number;
+  jti?: string;
+}
+
+/**
+ * User interface for use throughout the application
+ */
+export interface User {
+  id: string;
+  name?: string | null;
+  email: string;
+  image?: string | null;
+  roles?: Role[];
+  isImpersonating?: boolean;
+  originalRoles?: Role[];
+  groups?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * Extended session type with our custom fields
+ */
+export interface ExtendedSession {
+  user: User & {
+    roles?: Role[];
+    groups?: string[];
+    originalRoles?: Role[];
+    isImpersonating?: boolean;
+  };
+  roles?: Role[];
+  groups?: string[];
+  originalRoles?: Role[];
+  isImpersonating?: boolean;
+}
+
+/**
+ * Props for components that conditionally render based on roles
+ */
+export interface RoleAccessProps {
+  /**
+   * List of roles that are allowed to access the content
+   */
+  allowedRoles: Role[];
+
+  /**
+   * The content to show if the user has the required roles
+   */
+  children: ReactNode;
+
+  /**
+   * Optional fallback content for unauthorized users
+   */
+  fallback?: ReactNode;
+
+  /**
+   * If true, the user must have all specified roles
+   * Default is false (any role is sufficient)
+   */
+  requireAll?: boolean;
+  
+  /**
+   * If true, renders a loading skeleton while checking authentication
+   * If false (default), nothing is rendered during loading
+   */
+  showLoadingSkeleton?: boolean;
+}
+
+/**
+ * Props for the access denied alert component
+ */
+export interface AccessDeniedAlertProps {
+  /**
+   * Title for the alert
+   */
+  title?: string;
+
+  /**
+   * Description of why access is denied
+   */
+  description?: ReactNode;
+
+  /**
+   * Additional content to display below the description
+   */
+  children?: ReactNode;
+
+  /**
+   * Optional CSS class names
+   */
+  className?: string;
+}
+
+/**
+ * Props for the protected layout component
+ */
+export interface ProtectedLayoutProps {
+  /**
+   * The content to render if the user has access
+   */
+  children: ReactNode;
+
+  /**
+   * List of roles that are allowed to access this section
+   */
+  allowedRoles: Role[];
+
+  /**
+   * Custom title for the unauthorized view
+   */
+  unauthorizedTitle?: string;
+
+  /**
+   * Custom message for the unauthorized view
+   */
+  unauthorizedMessage?: string;
+
+  /**
+   * If true, the user must have all specified roles
+   * If false (default), having any of the specified roles is sufficient
+   */
+  requireAll?: boolean;
+
+  /**
+   * If true, shows a loading state while checking authentication
+   */
+  showLoading?: boolean;
+}
+```
+
+```typescript
+// src/types/roles.ts
 /**
  * Application roles based on Azure AD app roles
  */
@@ -133,119 +304,120 @@ export const ROLES = {
  * Role type derived from the ROLES constant
  */
 export type Role = (typeof ROLES)[keyof typeof ROLES];
-
-// Base type from BetterAuth
-export type Session = typeof auth.$Infer.Session;
-export type User = typeof auth.$Infer.User;
-
-/**
- * Extended session type with roles and impersonation support
- */
-export type ExtendedSession = Session & {
-  user: Session['user'] & {
-    roles?: Role[];
-    groups?: string[];
-    originalRoles?: Role[];
-    isImpersonating?: boolean;
-  };
-};
-
-// Add UI component props types
-export interface RoleGateProps {
-  allowedRoles: Role[];
-  children: ReactNode;
-  fallback?: ReactNode;
-  requireAll?: boolean;
-  showFallbackOnLoading?: boolean;
-}
-
-// Add role information to the existing BetterAuth User type through module augmentation
-declare module '@/lib/auth/server' {
-  interface User {
-    roles?: Role[];
-    groups?: string[];
-    originalRoles?: Role[];
-    isImpersonating?: boolean;
-  }
-}
 ```
 
-### Module Augmentation
-
-When extending BetterAuth's types, use module augmentation to add new properties to existing types:
-
 ```typescript
-// src/types/auth.d.ts
-import { auth } from "@/lib/auth/server";
+// src/types/plugins.d.ts
+import type { User } from './auth';
+import type { Dispatch, SetStateAction } from 'react';
 
-// Augment BetterAuth's User interface
-declare module '@/lib/auth/server' {
-  interface User {
-    // Add custom user fields
-    roles?: string[];
-    department?: string;
-    permissions?: string[];
-  }
+/**
+ * Auth context for the application, provided by AuthProvider
+ */
+export interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: User | null;
 }
+
+/**
+ * API Key model for the API Keys plugin
+ */
+export interface ApiKey {
+  id: string;
+  name: string;
+  prefix: string;
+  createdAt: Date;
+  expiresAt: Date | null;
+  lastUsed: Date | null;
+  createdBy: string;
+  scopes: string[];
+  enabled: boolean;
+}
+
+// Additional plugin types and interfaces...
 ```
 
-This approach allows you to maintain type safety while adding custom fields to BetterAuth's User type.
+### Role-Based Authentication Components
 
-### Creating Role-Related Utility Functions
-
-Create strongly-typed utility functions in a dedicated file:
+Our application uses a set of reusable, type-safe components for role-based access control:
 
 ```typescript
-// src/lib/auth/roles.ts
-import { ROLES, type Role } from "@/types/roles";
+// RoleGuard component that conditionally renders content based on user roles
+import { Skeleton } from '@/components/ui/skeleton';
+import { useImpersonationAwareRole } from '@/hooks/use-impersonation-aware-role';
+import { useAuth } from '@/providers/auth-provider';
+import type { RoleAccessProps } from '@/types/auth';
 
 /**
- * Type guard to check if a value is a valid Role
+ * Component that conditionally renders content based on user roles
+ * Fully supports role impersonation for testing purposes
  */
-export function isValidRole(role: string): role is Role {
-  return Object.values(ROLES).includes(role as Role);
-}
-
-/**
- * Parse roles from token data, ensuring type safety
- */
-export function parseRoles(tokenRoles: unknown): Role[] {
-  if (!Array.isArray(tokenRoles)) {
-    return [ROLES.USER]; // Default to basic user role
-  }
+export function RoleGuard({
+  children,
+  allowedRoles,
+  fallback,
+  requireAll = false,
+  showLoadingSkeleton = false,
+}: RoleAccessProps) {
+  const { isLoading, isAuthenticated } = useAuth();
+  const { hasAnyRole, hasAllRoles } = useImpersonationAwareRole();
   
-  return tokenRoles
-    .filter((role): role is string => typeof role === 'string')
-    .filter(isValidRole);
+  // Check if user has required roles
+  const hasRequiredRoles = requireAll
+    ? hasAllRoles(allowedRoles)
+    : hasAnyRole(allowedRoles);
+  
+  // Render content or fallback based on role check
+  return hasRequiredRoles ? <>{children}</> : fallback ? <>{fallback}</> : null;
 }
-
-// Re-export ROLES for convenience
-export { ROLES };
 ```
 
-### Type-Safe Hooks
+### Impersonation-Aware Role Hooks
 
-Create strongly-typed custom hooks:
+For testing and debugging purposes, we've implemented impersonation-aware role hooks that respect both real and impersonated roles:
 
 ```typescript
-// src/hooks/use-role.ts
-import { useSession } from '@/lib/auth/client';
-import { ROLES } from '@/lib/auth/roles';
-import type { ExtendedSession, Role } from '@/types/auth.d';
-import { useState, useCallback } from 'react';
+// src/hooks/use-impersonation-aware-role.ts
+import { useAuth } from '@/providers/auth-provider';
+import { hasAnyRole as checkAnyRole, hasRole, ROLES } from '@/lib/auth/role-utils';
+import type { Role } from '@/types/roles';
+import { useCallback } from 'react';
 
-export function useRole() {
-  const sessionResponse = useSession();
-  const session = sessionResponse.data as ExtendedSession | null;
-  const roles = session?.user?.roles || [];
+/**
+ * Hook for checking role access with impersonation awareness
+ */
+export function useImpersonationAwareRole() {
+  const { user, isAuthenticated } = useAuth();
+  
+  const hasAnyRole = useCallback(
+    (roles: Role[]): boolean => {
+      if (!isAuthenticated || !user || !user.roles) return false;
+      return checkAnyRole(user.roles, roles);
+    },
+    [isAuthenticated, user]
+  );
+  
+  const isRealAdmin = useCallback((): boolean => {
+    if (!isAuthenticated || !user) return false;
+    
+    // If impersonating, check original roles, otherwise check current roles
+    const rolesToCheck = user.isImpersonating 
+      ? (user.originalRoles || [])
+      : user.roles || [];
+      
+    return hasRole(rolesToCheck as Role[], ROLES.ADMIN);
+  }, [isAuthenticated, user]);
+  
+  // Additional role checking methods...
   
   return {
-    roles,
-    hasRole: (role: Role) => roles.includes(role),
-    hasAnyRole: (checkRoles: Role[]) => checkRoles.some(role => roles.includes(role)),
-    hasAllRoles: (checkRoles: Role[]) => checkRoles.every(role => roles.includes(role)),
-    isAdmin: () => roles.includes(ROLES.ADMIN),
-    // ...other convenience methods
+    hasAnyRole,
+    hasAllRoles,
+    isImpersonating,
+    getOriginalRoles,
+    isAdmin,
+    isRealAdmin,
   };
 }
 ```

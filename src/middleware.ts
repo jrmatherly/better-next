@@ -1,11 +1,11 @@
 import { env } from '@/env';
+import { checkRoleAccess } from '@/lib/auth/guards';
 import { authLogger } from '@/lib/logger';
 import { AUTHENTICATED_URL } from '@/lib/settings';
+import type { ExtendedSession } from '@/types/auth.d';
+import { ROLES } from '@/types/roles';
 import { betterFetch } from '@better-fetch/fetch';
 import { type NextRequest, NextResponse } from 'next/server';
-import { ROLES } from '@/types/roles';
-import { checkRoleAccess } from '@/lib/auth/guards';
-import type { ExtendedSession } from '@/types/auth.d';
 
 const authRoutes = ['/login', '/sign-up'];
 const protectedRoutesPrefix = '/app';
@@ -17,6 +17,11 @@ const devopsRoutes = ['/dev', '/app/dev'];
 const dbaRoutes = ['/db', '/app/db'];
 const apiImpersonationRoutes = ['/api/impersonation'];
 
+// Plugin-specific routes that require protection
+const apiKeyRoutes = ['/settings/api-keys'];
+const jwtToolsRoutes = ['/tools/jwt'];
+const organizationRoutes = ['/organizations'];
+
 // Helper to check if any route prefix matches the path
 const pathStartsWith = (path: string, prefixes: string[]): boolean => {
   return prefixes.some(prefix => path.startsWith(prefix));
@@ -27,7 +32,9 @@ export default async function authMiddleware(request: NextRequest) {
   const pathName = request.nextUrl.pathname;
   const isAuthRoute = authRoutes.includes(pathName);
   const isProtectedRoute = pathName.startsWith(protectedRoutesPrefix);
-  const isImpersonationApi = apiImpersonationRoutes.some(route => pathName === route);
+  const isImpersonationApi = apiImpersonationRoutes.some(
+    route => pathName === route
+  );
   const cookies = request.headers.get('cookie');
 
   const startTime = Date.now();
@@ -88,6 +95,17 @@ export default async function authMiddleware(request: NextRequest) {
     // Database routes require dba role or admin
     if (pathStartsWith(pathName, dbaRoutes)) {
       if (!checkRoleAccess(session, [ROLES.DBA, ROLES.ADMIN], false)) {
+        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
+      }
+    }
+
+    // Plugin-specific routes require admin role
+    if (
+      pathStartsWith(pathName, apiKeyRoutes) ||
+      pathStartsWith(pathName, jwtToolsRoutes) ||
+      pathStartsWith(pathName, organizationRoutes)
+    ) {
+      if (!checkRoleAccess(session, [ROLES.ADMIN], false)) {
         return NextResponse.redirect(new URL('/unauthorized', nextUrl));
       }
     }

@@ -40,6 +40,7 @@ const MODULE_PREFIXES = {
   general: '📌 General',
   api: '🌐 API',
   ui: '🎨 UI',
+  apiKey: '🔑 API Key',
 } as const;
 
 /** Default sensitive data patterns */
@@ -259,6 +260,7 @@ export const logger = Logger.getInstance('general');
 export const dbLogger = Logger.getInstance('database');
 export const authLogger = Logger.getInstance('auth');
 export const apiLogger = Logger.getInstance('api');
+export const apiKeyLogger = Logger.getInstance('apiKey');
 export const uiLogger = Logger.getInstance('ui');
 
 /** Backward compatibility */

@@ -1,13 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import type { BetterAuthOptions } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { 
-  admin, 
-  apiKey, 
-  jwt, 
-  openAPI, 
-  organization 
-} from 'better-auth/plugins';
+import { admin, apiKey, jwt, openAPI, organization } from 'better-auth/plugins';
 
 const APP_NAME =
   process.env.NODE_ENV === 'development'
@@ -108,16 +102,16 @@ export const authConfig = {
   plugins: [
     // Admin plugin for user and session management
     admin(),
-    
+
     // API Key plugin for secure API access
     apiKey(),
-    
+
     // JWT plugin for token-based authentication
     jwt(),
-    
+
     // Organization plugin for multi-tenant support
     organization(),
-    
+
     // OpenAPI plugin for API documentation
     openAPI(),
   ],
