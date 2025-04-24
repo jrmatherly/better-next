@@ -21,6 +21,6 @@ export function createMetadata(override: Metadata): Metadata {
       images: '/og.jpg',
       ...override.twitter,
     },
-    metadataBase: override.metadataBase ?? new URL(env.NEXT_PUBLIC_APP_URL),
+    metadataBase: override.metadataBase ?? new URL(env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   };
 }

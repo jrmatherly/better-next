@@ -7,8 +7,8 @@ import Analytics from '@/script/analytics';
 
 export const metadata = createMetadata({
   title: {
-    template: `%s | ${APP_NAME}`,
-    default: APP_NAME,
+    template: `%s | ${APP_NAME || 'Better Next'}`,
+    default: APP_NAME || 'Better Next',
   },
   description: 'The easiest way to get started with your next project',
 });
