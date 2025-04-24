@@ -63,9 +63,9 @@ export const ProtectedLayout: FC<ProtectedLayoutProps> = ({
 
   // Check if user has required roles
   const hasRequiredRoles = requireAll
-    ? allowedRoles.every(role => user.roles?.includes(role))
+    ? allowedRoles.every(role => user.role?.includes(role))
     : allowedRoles.length === 0 ||
-      allowedRoles.some(role => user.roles?.includes(role));
+      allowedRoles.some(role => user.role?.includes(role));
 
   // Show unauthorized message if user doesn't have required roles
   if (!hasRequiredRoles) {

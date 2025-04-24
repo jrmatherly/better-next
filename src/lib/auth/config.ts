@@ -1,7 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import type { BetterAuthOptions } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { admin, apiKey, jwt, openAPI, organization } from 'better-auth/plugins';
+import {
+  admin as adminPlugin,
+  apiKey,
+  jwt,
+  openAPI,
+  organization,
+} from 'better-auth/plugins';
+import { ac, admin, user } from './permissions';
 
 const APP_NAME =
   process.env.NODE_ENV === 'development'
@@ -68,13 +75,6 @@ export const authConfig = {
     },
     // Add schema extensions for RBAC and impersonation
     additionalFields: {
-      // String array for roles (admin, security, devops, etc.)
-      roles: {
-        type: 'string[]',
-        required: false,
-        defaultValue: ['user'],
-        input: false, // Admin-only field, not user settable
-      },
       // For impersonation support
       originalRoles: {
         type: 'string[]',
@@ -101,7 +101,16 @@ export const authConfig = {
   },
   plugins: [
     // Admin plugin for user and session management
-    admin(),
+    adminPlugin({
+      // Specify which roles can access admin functionality
+      adminRoles: ['admin'],
+      // Import access control and roles from our permissions file
+      ac,
+      roles: {
+        admin,
+        user,
+      },
+    }),
 
     // API Key plugin for secure API access
     apiKey(),

@@ -8,6 +8,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { auth } from '@/lib/auth/server';
+import type { BetterAuthSession } from '@/types/auth.d';
 import { headers } from 'next/headers';
 import React from 'react';
 
@@ -19,7 +20,7 @@ export default async function DashboardLayout({
   });
   return (
     <SidebarProvider>
-      <AppSidebar session={session} />
+      <AppSidebar session={session as BetterAuthSession} />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 w-full shrink-0 items-center justify-between gap-2 border-b bg-background px-4">
           <div className="flex items-center gap-2">

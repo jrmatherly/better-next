@@ -42,20 +42,20 @@ async function getServerSession(): Promise<ExtendedSession | null> {
  * @param allowedRoles - Roles that are allowed to access the resource
  * @param requireAll - If true, requires all roles instead of any
  */
-export function checkRoleAccess(
-  session: ExtendedSession | null,
-  allowedRoles: Role[],
+export function hasRequiredRoles(
+  session: { user?: { role?: string } } | null | undefined,
+  allowedRoles: string[],
   requireAll = false
 ): boolean {
   // No session means no access
-  if (!session?.user?.roles) {
+  if (!session?.user?.role) {
     return false;
   }
 
-  // Check if user has the required roles
+  // Check against the allowed roles
   return requireAll
-    ? allowedRoles.every(role => session.user.roles?.includes(role))
-    : allowedRoles.some(role => session.user.roles?.includes(role));
+    ? allowedRoles.length === 1 && allowedRoles[0] === session.user.role
+    : allowedRoles.includes(session.user.role);
 }
 
 /**
@@ -68,7 +68,7 @@ export function checkRoleAccess(
  */
 export async function requireRole(
   req: NextRequest,
-  allowedRoles: Role[],
+  allowedRoles: string[],
   redirectTo = '/unauthorized',
   requireAll = false
 ): Promise<NextResponse> {
@@ -83,7 +83,7 @@ export async function requireRole(
   }
 
   // Check if user has required roles
-  const hasAccess = checkRoleAccess(session, allowedRoles, requireAll);
+  const hasAccess = hasRequiredRoles(session, allowedRoles, requireAll);
 
   // If no access, redirect to the specified URL
   if (!hasAccess) {
@@ -100,7 +100,7 @@ export async function requireRole(
  * @param allowedRoles - Roles that are allowed to access the API
  * @param requireAll - If true, requires all roles instead of any
  */
-export function withRoleGuard(allowedRoles: Role[], requireAll = false) {
+export function withRoleGuard(allowedRoles: string[], requireAll = false) {
   return async (req: Request) => {
     const session = await getServerSession();
 
@@ -113,7 +113,7 @@ export function withRoleGuard(allowedRoles: Role[], requireAll = false) {
     }
 
     // Check if user has required roles
-    const hasAccess = checkRoleAccess(session, allowedRoles, requireAll);
+    const hasAccess = hasRequiredRoles(session, allowedRoles, requireAll);
 
     // If no access, return forbidden response
     if (!hasAccess) {

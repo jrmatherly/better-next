@@ -47,16 +47,16 @@ export function NavUser({ session }: NavUserProps) {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage
-                  src={session.user.image ?? ''}
-                  alt={session.user.name}
+                  src={session.user.image || ''}
+                  alt={session.user.name || 'User'}
                 />
                 <AvatarFallback className="rounded-lg">
-                  {session.user.name.slice(0, 2).toUpperCase()}
+                  {session.user.name ? session.user.name.slice(0, 2).toUpperCase() : 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {session.user.name}
+                  {session.user.name || 'User'}
                 </span>
                 <span className="truncate text-xs">{session.user.email}</span>
               </div>
@@ -73,16 +73,16 @@ export function NavUser({ session }: NavUserProps) {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage
-                    src={session.user.image ?? ''}
-                    alt={session.user.name}
+                    src={session.user.image || ''}
+                    alt={session.user.name || 'User'}
                   />
                   <AvatarFallback className="rounded-lg">
-                    {session.user.name.slice(0, 2).toUpperCase()}
+                    {session.user.name ? session.user.name.slice(0, 2).toUpperCase() : 'U'}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">
-                    {session.user.name}
+                    {session.user.name || 'User'}
                   </span>
                   <span className="truncate text-xs">{session.user.email}</span>
                 </div>

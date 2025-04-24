@@ -97,7 +97,7 @@ export const UserManagement: FC = () => {
                 <TableRow>
                   <TableHead className="w-[150px]">Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Roles</TableHead>
+                  <TableHead>Role</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -110,21 +110,9 @@ export const UserManagement: FC = () => {
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {user.roles?.map(role => (
-                            <Badge key={role as string} variant="outline">
-                              {role as string}
-                            </Badge>
-                          ))}
-                          {!user.roles?.length && (
-                            <Badge
-                              variant="outline"
-                              className="text-muted-foreground"
-                            >
-                              No roles
-                            </Badge>
-                          )}
-                        </div>
+                        <Badge variant="outline">
+                          {user.role || 'user'}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

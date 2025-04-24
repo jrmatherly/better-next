@@ -1,5 +1,3 @@
-import { auth } from '@/lib/auth/server';
-import type { Role } from '@/types/roles';
 import type { ReactNode } from 'react';
 
 /**
@@ -16,6 +14,67 @@ export interface SessionData {
   fresh: boolean;
   ipAddress?: string | null;
   userAgent?: string | null;
+}
+
+/**
+ * BetterAuth's actual session return type from getSession()
+ * This matches the response structure from the BetterAuth library
+ */
+export interface BetterAuthSession {
+  user: {
+    id: string;
+    name?: string | null;
+    email: string;
+    image?: string | null;
+    role?: string;
+    isImpersonating?: boolean;
+    originalRoles?: string[];
+    groups?: string[];
+  };
+  session?: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    expiresAt: Date;
+    token: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    impersonatedBy?: string;
+    activeOrganizationId?: string;
+  };
+}
+
+/**
+ * Standard session type from BetterAuth
+ * This is the main session type used throughout the application
+ */
+export interface Session {
+  user: {
+    id: string;
+    name?: string | null;
+    email: string;
+    image?: string | null;
+    role?: string;
+    isImpersonating?: boolean;
+    originalRoles?: string[];
+    groups?: string[];
+  };
+  expires?: string;
+  expiresAt?: Date;
+  activeOrganizationId?: string;
+  session?: {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    expiresAt: Date;
+    token: string;
+    ipAddress?: string | null;
+    userAgent?: string | null;
+    impersonatedBy?: string;
+    activeOrganizationId?: string;
+  };
 }
 
 /**
@@ -40,10 +99,10 @@ export interface AuthToken {
   picture?: string | null;
   image?: string | null;
   sub?: string;
-  roles?: string[] | Role[];
+  role?: string;
   groups?: string[];
   isImpersonating?: boolean;
-  originalRoles?: string[] | Role[];
+  originalRoles?: string[];
   iat?: number;
   exp?: number;
   jti?: string;
@@ -57,9 +116,9 @@ export interface User {
   name?: string | null;
   email: string;
   image?: string | null;
-  roles?: Role[];
+  role: string;
   isImpersonating?: boolean;
-  originalRoles?: Role[];
+  originalRoles?: string[];
   groups?: string[];
   createdAt?: Date;
   updatedAt?: Date;
@@ -69,14 +128,17 @@ export interface User {
  * Extended session type with our custom fields
  * Used to type the session object in client and server code
  */
-export type ExtendedSession = typeof auth.$Infer.Session & {
+export interface ExtendedSession {
   user: User & {
-    roles?: Role[];
+    role: string;
     groups?: string[];
-    originalRoles?: Role[];
+    originalRoles?: string[];
     isImpersonating?: boolean;
   };
-};
+  groups?: string[];
+  originalRoles?: string[];
+  isImpersonating?: boolean;
+}
 
 /**
  * Props for components that conditionally render based on roles
@@ -85,7 +147,7 @@ export interface RoleAccessProps {
   /**
    * List of roles that are allowed to access the content
    */
-  allowedRoles: Role[];
+  allowedRoles: string[];
 
   /**
    * The content to show if the user has the required roles
@@ -108,6 +170,12 @@ export interface RoleAccessProps {
    * If false (default), nothing is rendered during loading
    */
   showLoadingSkeleton?: boolean;
+  
+  /**
+   * If true, shows the fallback content during loading
+   * If false, nothing is rendered during loading
+   */
+  showFallbackOnLoading?: boolean;
 }
 
 /**
@@ -147,7 +215,7 @@ export interface ProtectedLayoutProps {
   /**
    * List of roles that are allowed to access this section
    */
-  allowedRoles: Role[];
+  allowedRoles: string[];
 
   /**
    * Custom title for the unauthorized view
@@ -174,9 +242,9 @@ export interface ProtectedLayoutProps {
 // Add role information to the existing BetterAuth User type
 declare module '@/lib/auth/server' {
   interface User {
-    roles?: Role[];
+    role: string;
     groups?: string[];
-    originalRoles?: Role[];
+    originalRoles?: string[];
     isImpersonating?: boolean;
   }
 }

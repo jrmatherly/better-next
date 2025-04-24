@@ -32,7 +32,7 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { APP_NAME } from '@/lib/settings';
-import type { Session } from '@/types/auth.d';
+import type { BetterAuthSession } from '@/types/auth.d';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -68,7 +68,7 @@ const data = {
   ],
 };
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  session: Session | null;
+  session: BetterAuthSession | null;
 }
 export function AppSidebar({ session, ...props }: AppSidebarProps) {
   const path = usePathname();

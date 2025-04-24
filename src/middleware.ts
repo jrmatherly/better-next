@@ -1,5 +1,5 @@
 import { env } from '@/env';
-import { checkRoleAccess } from '@/lib/auth/guards';
+import { hasRequiredRoles } from '@/lib/auth/guards';
 import { authLogger } from '@/lib/logger';
 import { AUTHENTICATED_URL } from '@/lib/settings';
 import type { ExtendedSession } from '@/types/auth.d';
@@ -73,28 +73,28 @@ export default async function authMiddleware(request: NextRequest) {
   if (session) {
     // Admin routes require admin role
     if (pathStartsWith(pathName, adminRoutes)) {
-      if (!checkRoleAccess(session, [ROLES.ADMIN], false)) {
+      if (!hasRequiredRoles(session, [ROLES.ADMIN], false)) {
         return NextResponse.redirect(new URL('/unauthorized', nextUrl));
       }
     }
 
     // Security routes require security role or admin
     if (pathStartsWith(pathName, securityRoutes)) {
-      if (!checkRoleAccess(session, [ROLES.SECURITY, ROLES.ADMIN], false)) {
+      if (!hasRequiredRoles(session, [ROLES.SECURITY, ROLES.ADMIN], false)) {
         return NextResponse.redirect(new URL('/unauthorized', nextUrl));
       }
     }
 
     // DevOps routes require devops role or admin
     if (pathStartsWith(pathName, devopsRoutes)) {
-      if (!checkRoleAccess(session, [ROLES.DEVOPS, ROLES.ADMIN], false)) {
+      if (!hasRequiredRoles(session, [ROLES.DEVOPS, ROLES.ADMIN], false)) {
         return NextResponse.redirect(new URL('/unauthorized', nextUrl));
       }
     }
 
     // Database routes require dba role or admin
     if (pathStartsWith(pathName, dbaRoutes)) {
-      if (!checkRoleAccess(session, [ROLES.DBA, ROLES.ADMIN], false)) {
+      if (!hasRequiredRoles(session, [ROLES.DBA, ROLES.ADMIN], false)) {
         return NextResponse.redirect(new URL('/unauthorized', nextUrl));
       }
     }
@@ -105,7 +105,7 @@ export default async function authMiddleware(request: NextRequest) {
       pathStartsWith(pathName, jwtToolsRoutes) ||
       pathStartsWith(pathName, organizationRoutes)
     ) {
-      if (!checkRoleAccess(session, [ROLES.ADMIN], false)) {
+      if (!hasRequiredRoles(session, [ROLES.ADMIN], false)) {
         return NextResponse.redirect(new URL('/unauthorized', nextUrl));
       }
     }

@@ -45,8 +45,10 @@ const configWithCallbacks = {
             console.debug('[Auth] Found roles in Microsoft claims:', roles);
           }
 
-          // Return roles to be added to user model
-          return { roles };
+          // Use the highest priority role for the standard 'role' field
+          return { 
+            role: roles[0] || 'user',  // Use the first role as primary
+          };
         }
 
         if (process.env.NODE_ENV !== 'production') {
@@ -57,7 +59,9 @@ const configWithCallbacks = {
         }
 
         // Default to 'user' role if no roles found
-        return { roles: ['user'] };
+        return { 
+          role: 'user',
+        };
       },
     },
   },
@@ -74,7 +78,7 @@ const configWithCallbacks = {
       account: Account | null;
       user:
         | (BetterAuthUser & {
-            roles?: string[];
+            role?: string;
             isImpersonating?: boolean;
             originalRoles?: string[];
             groups?: string[];
@@ -96,8 +100,8 @@ const configWithCallbacks = {
           email: user.email,
           name: user.name,
           image: user.image,
-          // Only store essential data in the token
-          roles: parseRoles(msRoles.length > 0 ? msRoles : user.roles),
+          // Store the user's role
+          role: user.role || 'user',
           // Store minimal group data (only IDs or names, not full objects)
           groups: msGroups.filter(
             (group: unknown): group is string => typeof group === 'string'
@@ -130,8 +134,8 @@ const configWithCallbacks = {
           email: token.email as string,
           name: (token.name as string) || null,
           image: (token.image as string) || null,
-          // Only include essential role and impersonation data
-          roles: parseRoles(token.roles),
+          // Include the user's role for authorization
+          role: (token.role as string) || 'user',
           isImpersonating: !!token.isImpersonating,
           // Only include originalRoles if currently impersonating
           ...(token.isImpersonating

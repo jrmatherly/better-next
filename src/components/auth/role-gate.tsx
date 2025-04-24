@@ -1,5 +1,5 @@
 import { useRole } from '@/hooks/use-role';
-import { type RoleGateProps } from '@/types/auth.d';
+import { type RoleAccessProps } from '@/types/auth.d';
 
 /**
  * Component for conditional rendering based on user roles
@@ -20,7 +20,7 @@ export function RoleGate({
   fallback,
   requireAll = false,
   showFallbackOnLoading = true,
-}: RoleGateProps) {
+}: RoleAccessProps) {
   const { isLoading, hasAnyRole, hasAllRoles } = useRole();
   
   // Optional handling for loading state
