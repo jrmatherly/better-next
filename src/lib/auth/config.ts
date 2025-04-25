@@ -1,21 +1,26 @@
-import { PrismaClient } from '@prisma/client';
-import type { BetterAuthOptions } from 'better-auth';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import {
-  admin as adminPlugin,
-  apiKey,
-  jwt,
-  openAPI,
-  organization,
-} from 'better-auth/plugins';
-import { ac, admin, user } from './permissions';
+/* import { PrismaClient } from '../../../prisma/client'; */
+import { db } from '@/db';
+import { ROLES } from '@/types/roles';
+import type { BetterAuthOptions, User } from 'better-auth';
+/* import { prismaAdapter } from 'better-auth/adapters/prisma'; */
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { admin, apiKey, jwt, openAPI } from 'better-auth/plugins';
+import { createClient } from 'redis';
+import * as schema from '../../db/schema';
+
+interface SecondaryStorage {
+  get: (key: string) => Promise<string | null>;
+  set: (key: string, value: string, ttl?: number) => Promise<void>;
+  delete: (key: string) => Promise<void>;
+}
+
+const redis = createClient();
+await redis.connect();
 
 const APP_NAME =
   process.env.NODE_ENV === 'development'
     ? `DEV - ${process.env.NEXT_PUBLIC_APP_NAME}`
     : process.env.NEXT_PUBLIC_APP_NAME;
-
-const prisma = new PrismaClient();
 
 // Ensure environment variables for Microsoft provider are defined
 const MICROSOFT_CLIENT_ID = process.env.MICROSOFT_CLIENT_ID;
@@ -36,9 +41,25 @@ export const authConfig = {
     disabled: process.env.NODE_ENV === 'production',
     level: 'debug',
   },
-  database: prismaAdapter(prisma, {
-    provider: 'postgresql',
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema: schema,
   }),
+  secondaryStorage: {
+    get: async key => {
+      const value = await redis.get(key);
+      return value ? value : null;
+    },
+    set: async (key, value, ttl) => {
+      if (ttl) await redis.set(key, value, { EX: ttl });
+      // or for ioredis:
+      // if (ttl) await redis.set(key, value, 'EX', ttl)
+      else await redis.set(key, value);
+    },
+    delete: async key => {
+      await redis.del(key);
+    },
+  },
   socialProviders: {
     microsoft: {
       clientId: MICROSOFT_CLIENT_ID || '',
@@ -60,11 +81,23 @@ export const authConfig = {
     freshAge: 0,
     expiresIn: 60 * 60 * 24 * 3, // 3 days
     updateAge: 60 * 60 * 12, // 12 hours (every 12 hours the session expiration is updated)
-    // Disable cookie cache to prevent session data size issues with Microsoft auth
+    // Cookie settings for session data caching (minimal data)
     cookieCache: {
-      enabled: false, // Disabled to prevent "Session data too large" errors with Microsoft SSO
+      //enabled: true, // Re-enabled since we've optimized session data size
+      enabled: false, // Disable for now until we confirm session data size is small enough
     },
-    // BetterAuth automatically uses the database when cookieCache is disabled
+    // BetterAuth falls back to database storage for large session data
+  },
+  advanced: {
+    // Use secure cookies in all environments
+    useSecureCookies: process.env.NODE_ENV === 'production',
+    // Default attributes for all cookies
+    defaultCookieAttributes: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    },
   },
   user: {
     changeEmail: {
@@ -73,9 +106,7 @@ export const authConfig = {
     deleteUser: {
       enabled: true,
     },
-    // Add schema extensions for RBAC and impersonation
     additionalFields: {
-      // For impersonation support
       originalRoles: {
         type: 'string[]',
         required: false,
@@ -87,7 +118,6 @@ export const authConfig = {
         defaultValue: false,
         input: false,
       },
-      // For Azure AD groups
       groups: {
         type: 'string[]',
         required: false,
@@ -100,28 +130,14 @@ export const authConfig = {
     requireEmailVerification: true,
   },
   plugins: [
-    // Admin plugin for user and session management
-    adminPlugin({
-      // Specify which roles can access admin functionality
+    admin({
       adminRoles: ['admin'],
-      // Import access control and roles from our permissions file
-      ac,
-      roles: {
-        admin,
-        user,
-      },
+      impersonationSessionDuration: 60 * 60, // 1 hour
+      impersonationPermission: (user: User & { role?: string }) =>
+        user.role === ROLES.ADMIN || user.role === ROLES.SECURITY,
     }),
-
-    // API Key plugin for secure API access
     apiKey(),
-
-    // JWT plugin for token-based authentication
     jwt(),
-
-    // Organization plugin for multi-tenant support
-    organization(),
-
-    // OpenAPI plugin for API documentation
     openAPI(),
   ],
 } satisfies BetterAuthOptions;

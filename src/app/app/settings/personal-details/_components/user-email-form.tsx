@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { LoadingButton } from '@/components/ui/loading-button';
+/* import { LoadingButton } from '@/components/ui/loading-button'; */
 import { changeEmail } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import { updateEmailSchema } from '@/schema/user';
@@ -90,9 +90,9 @@ export function UserEmailForm({ session }: UserEmailFormProps) {
             </FormItem>
           )}
         />
-        <LoadingButton disabled={!isDirty} loading={isPending}>
+        {/* <LoadingButton disabled={!isDirty} loading={isPending}>
           Update email
-        </LoadingButton>
+        </LoadingButton> */}
       </form>
     </Form>
   );

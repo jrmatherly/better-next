@@ -6,37 +6,20 @@ import type {
   ApiKeyCreateParams,
   JwtClientMethods,
   JwtPayload,
-  Organization,
-  OrganizationClientMethods,
-  OrganizationCreateParams,
-  OrganizationInviteParams,
   UserStats,
 } from '@/types/plugins';
 import {
   adminClient,
   apiKeyClient,
   jwtClient,
-  organizationClient,
 } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 import { env } from '../../env';
-import { ac, admin, user } from './permissions';
 
 // Create the base auth client
 export const authClient = createAuthClient({
   baseURL: env.NEXT_PUBLIC_APP_URL,
-  plugins: [
-    adminClient({
-      ac,
-      roles: {
-        admin,
-        user,
-      },
-    }),
-    apiKeyClient(),
-    jwtClient(),
-    organizationClient(),
-  ],
+  plugins: [adminClient(), apiKeyClient(), jwtClient()],
 });
 
 // Export standard auth functions
@@ -78,11 +61,6 @@ export const getJwtClient = (): JwtClientMethods => {
   return authClient.jwt || {};
 };
 
-export const getOrganizationClient = (): OrganizationClientMethods => {
-  // @ts-expect-error - Will be properly implemented when plugin is added
-  return authClient.organization || {};
-};
-
 // Placeholder hooks
 export const useAdmin = () => {
   return {
@@ -116,18 +94,5 @@ export const useJwt = () => {
     refreshToken: async (
       token: string
     ): Promise<{ token: string; expires: Date } | null> => null,
-  };
-};
-
-export const useOrganizations = () => {
-  return {
-    // Organization placeholder functions
-    getOrganizations: async (): Promise<Organization[]> => [],
-    createOrganization: async (
-      data: OrganizationCreateParams
-    ): Promise<Organization | null> => null,
-    inviteUser: async (
-      data: OrganizationInviteParams
-    ): Promise<{ invitation: string } | null> => null,
   };
 };

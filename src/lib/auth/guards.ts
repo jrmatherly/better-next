@@ -2,13 +2,15 @@ import { authLogger } from '@/lib/logger';
 import type { ExtendedSession } from '@/types/auth.d';
 import type { Role } from '@/types/roles';
 import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
+import React from 'react';
 import { auth } from './server';
 
 /**
  * Get the server session using the official BetterAuth approach
  */
-async function getServerSession(): Promise<ExtendedSession | null> {
+export async function getServerSession(): Promise<ExtendedSession | null> {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
@@ -126,4 +128,56 @@ export function withRoleGuard(allowedRoles: string[], requireAll = false) {
     // Proceed with the request - implementation will depend on how you structure your API
     return null; // The actual handler should be called by the consumer of this guard
   };
+}
+
+/**
+ * Higher-order component for protecting server components with role-based access control
+ * 
+ * @param Component - The server component to protect
+ * @param allowedRoles - Roles that are allowed to access the component
+ * @param options - Optional configuration
+ * @param options.redirectTo - URL to redirect to if access is denied (default: /unauthorized)
+ * @param options.requireAll - If true, requires all roles instead of any (default: false)
+ * @param options.fallback - Component to render when loading the session (optional)
+ */
+export function withRoleProtection<P extends object>(
+  Component: React.ComponentType<P>,
+  allowedRoles: string[],
+  options: {
+    redirectTo?: string;
+    requireAll?: boolean;
+    fallback?: React.ReactNode;
+  } = {}
+) {
+  const {
+    redirectTo = '/unauthorized',
+    requireAll = false,
+    fallback = null,
+  } = options;
+
+  async function ProtectedComponent(props: P) {
+    const session = await getServerSession();
+
+    // Not authenticated - redirect to sign in
+    if (!session?.user) {
+      redirect('/api/auth/signin');
+    }
+
+    // Check if user has required roles
+    const hasAccess = hasRequiredRoles(session, allowedRoles, requireAll);
+
+    // If no access, redirect to the specified URL
+    if (!hasAccess) {
+      redirect(redirectTo);
+    }
+
+    // Render the protected component with its props
+    return React.createElement(Component, props);
+  }
+
+  // Update display name for better debugging
+  const displayName = Component.displayName || Component.name || 'Component';
+  ProtectedComponent.displayName = `withRoleProtection(${displayName})`;
+
+  return ProtectedComponent;
 }

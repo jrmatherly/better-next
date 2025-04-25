@@ -1,48 +1,89 @@
-import { env } from '@/env';
-import { hasRequiredRoles } from '@/lib/auth/guards';
-import { authLogger } from '@/lib/logger';
 import { AUTHENTICATED_URL } from '@/lib/settings';
-import type { ExtendedSession } from '@/types/auth.d';
-import { ROLES } from '@/types/roles';
+import type { Session } from '@/types/auth';
 import { betterFetch } from '@better-fetch/fetch';
 import { type NextRequest, NextResponse } from 'next/server';
 
-const authRoutes = ['/login', '/sign-up'];
-const protectedRoutesPrefix = '/app';
+/* import { useServerSession } from '@/hooks/use-server-session'; */
+/* import { useAuthSession } from '@/hooks/use-auth-session'; */
+/* import { getSessionCookie } from 'better-auth/cookies'; */
+/* import { auth } from '@/lib/auth/server';
+import { headers } from 'next/headers'; */
+
+// Define public routes
+const publicRoutes = ['/login', '/sign-up'];
+
+// Define protected route patterns
+//const authRoutes = ['/login', '/sign-up'];
+const protectedRoutes = ['/app', '/dashboard', '/account'];
+//const protectedRoutesPrefix = "/app";
 
 // Define role-protected routes
-const adminRoutes = ['/admin', '/app/admin'];
-const securityRoutes = ['/security', '/app/security'];
-const devopsRoutes = ['/dev', '/app/dev'];
-const dbaRoutes = ['/db', '/app/db'];
-const apiImpersonationRoutes = ['/api/impersonation'];
+const adminRoutes = ['/admin'];
+const securityRoutes = ['/security'];
+const devopsRoutes = ['/devops'];
+const dbaRoutes = ['/dba'];
+const collabRoutes = ['/collab'];
+const tccRoutes = ['/tcc'];
+const fieldtechRoutes = ['/fieldtech'];
+//const apiImpersonationRoutes = ['/api/impersonation'];
 
 // Plugin-specific routes that require protection
 const apiKeyRoutes = ['/settings/api-keys'];
 const jwtToolsRoutes = ['/tools/jwt'];
-const organizationRoutes = ['/organizations'];
 
 // Helper to check if any route prefix matches the path
 const pathStartsWith = (path: string, prefixes: string[]): boolean => {
   return prefixes.some(prefix => path.startsWith(prefix));
 };
 
-export default async function authMiddleware(request: NextRequest) {
+/**
+ * Middleware for session verification
+ * Uses the getSessionCookie helper from BetterAuth for optimized performance
+ * Defers role-based authorization to server components and layouts
+ */
+export async function middleware(request: NextRequest) {
   const { nextUrl } = request;
   const pathName = request.nextUrl.pathname;
-  const isAuthRoute = authRoutes.includes(pathName);
-  const isProtectedRoute = pathName.startsWith(protectedRoutesPrefix);
-  const isImpersonationApi = apiImpersonationRoutes.some(
-    route => pathName === route
-  );
+
+  // Skip middleware for home page
+  if (pathName === '/') {
+    return NextResponse.next();
+  }
+
+  // Define route patterns from pathName
+  //const isAuthRoute = authRoutes.includes(pathName);
+  const isPublicRoute = publicRoutes.includes(pathName);
+  //const isProtectedRoute = pathName.startsWith(protectedRoutesPrefix);
+  const isProtectedRoute = protectedRoutes.includes(pathName);
+  const isRoleProtectedRoute = pathStartsWith(pathName, [
+    ...adminRoutes,
+    ...securityRoutes,
+    ...devopsRoutes,
+    ...dbaRoutes,
+    ...fieldtechRoutes,
+    ...collabRoutes,
+    ...tccRoutes,
+    ...apiKeyRoutes,
+    ...jwtToolsRoutes,
+  ]);
+
+  // Check for session cookie existence (fast path)
+  /* const hasSessionCookie = getSessionCookie(request); */
   const cookies = request.headers.get('cookie');
 
   const startTime = Date.now();
 
-  const { data: session } = await betterFetch<ExtendedSession>(
+  // Get session from server hook component
+  /* const session = await useServerSession(); */
+  // Get session from server component
+  /* const session = await auth.api.getSession({
+    headers: await headers(),
+  }); */
+
+  const { data: session } = await betterFetch<Session>(
     '/api/auth/get-session',
     {
-      baseURL: env.NEXT_PUBLIC_APP_URL,
+      baseURL: process.env.NEXT_PUBLIC_APP_URL,
       headers: {
         cookie: cookies || '',
       },
@@ -52,69 +93,28 @@ export default async function authMiddleware(request: NextRequest) {
   const endTime = Date.now();
   const duration = endTime - startTime;
 
-  authLogger.info(`____Get Session Time: ${duration}ms`);
+  // biome-ignore lint/suspicious/noConsole: allow console in middleware
+  console.debug(`Session fetch time: ${duration}ms`);
+  // biome-ignore lint/suspicious/noConsole: allow console in middleware
+  console.log(cookies);
 
-  // For auth routes, redirect to app if already authenticated
-  if (isAuthRoute) {
+  if (isPublicRoute) {
     if (session) {
-      return NextResponse.redirect(new URL(AUTHENTICATED_URL, nextUrl));
+      return NextResponse.redirect(new URL(AUTHENTICATED_URL, request.url));
     }
     return NextResponse.next();
   }
+  if (!session && (isProtectedRoute || isRoleProtectedRoute)) {
+    let callbackUrl = nextUrl.pathname;
+    if (nextUrl.search) {
+      callbackUrl += nextUrl.search;
+    }
 
-  // For protected routes, redirect to login if not authenticated
-  if (isProtectedRoute && !session) {
-    return NextResponse.redirect(
-      new URL(`/login?callbackUrl=${encodeURIComponent(pathName)}`, nextUrl)
+    const encodedCallbackUrl = encodeURIComponent(callbackUrl);
+
+    return Response.redirect(
+      new URL(`/login?callbackUrl=${encodedCallbackUrl}`, nextUrl)
     );
-  }
-
-  // Handle role-based access control for specific routes
-  if (session) {
-    // Admin routes require admin role
-    if (pathStartsWith(pathName, adminRoutes)) {
-      if (!hasRequiredRoles(session, [ROLES.ADMIN], false)) {
-        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
-      }
-    }
-
-    // Security routes require security role or admin
-    if (pathStartsWith(pathName, securityRoutes)) {
-      if (!hasRequiredRoles(session, [ROLES.SECURITY, ROLES.ADMIN], false)) {
-        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
-      }
-    }
-
-    // DevOps routes require devops role or admin
-    if (pathStartsWith(pathName, devopsRoutes)) {
-      if (!hasRequiredRoles(session, [ROLES.DEVOPS, ROLES.ADMIN], false)) {
-        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
-      }
-    }
-
-    // Database routes require dba role or admin
-    if (pathStartsWith(pathName, dbaRoutes)) {
-      if (!hasRequiredRoles(session, [ROLES.DBA, ROLES.ADMIN], false)) {
-        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
-      }
-    }
-
-    // Plugin-specific routes require admin role
-    if (
-      pathStartsWith(pathName, apiKeyRoutes) ||
-      pathStartsWith(pathName, jwtToolsRoutes) ||
-      pathStartsWith(pathName, organizationRoutes)
-    ) {
-      if (!hasRequiredRoles(session, [ROLES.ADMIN], false)) {
-        return NextResponse.redirect(new URL('/unauthorized', nextUrl));
-      }
-    }
-
-    // Special handling for impersonation API - allow any authenticated user but
-    // actual authorization checks will happen in the API route handler
-    if (isImpersonationApi) {
-      return NextResponse.next();
-    }
   }
 
   return NextResponse.next();

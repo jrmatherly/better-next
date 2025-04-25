@@ -11,7 +11,6 @@ export enum PluginType {
   admin = 'admin',
   apiKey = 'apiKey',
   jwt = 'jwt',
-  organization = 'organization',
   openAPI = 'openAPI',
 }
 
@@ -55,14 +54,6 @@ export function usePluginAccess() {
             userRole === ROLES.ADMIN ||
             userRole === ROLES.SECURITY ||
             userRole === ROLES.DEVOPS
-          );
-
-        case PluginType.organization:
-          // Admin and collaboration roles can access organization features
-          return (
-            userRole === ROLES.ADMIN ||
-            userRole === ROLES.COLLAB ||
-            userRole === ROLES.TCC
           );
 
         case PluginType.openAPI:

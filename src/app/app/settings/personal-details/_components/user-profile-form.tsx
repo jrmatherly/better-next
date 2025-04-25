@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+/* import { Button } from '@/components/ui/button'; */
 import {
   Form,
   FormControl,
@@ -12,13 +12,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { LoadingButton } from '@/components/ui/loading-button';
+/* import { LoadingButton } from '@/components/ui/loading-button'; */
 import { updateUser } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import { updateProfileSchema } from '@/schema/user';
 import type { Session } from '@/types/auth.d';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { UploadIcon } from 'lucide-react';
+/* import { UploadIcon } from 'lucide-react'; */
 import { useRouter } from 'next/navigation';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import * as React from 'react';
@@ -89,10 +89,10 @@ export function UserProfileForm({ session }: UserProfileFormProps) {
                 {form.getValues('name').slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <Button variant="secondary" disabled>
+            {/* <Button variant="secondary" disabled>
               <UploadIcon className="h-5 w-5" />
               Upload New Image
-            </Button>
+            </Button> */}
           </div>
         </div>
         <FormField
@@ -112,9 +112,9 @@ export function UserProfileForm({ session }: UserProfileFormProps) {
             </FormItem>
           )}
         />
-        <LoadingButton disabled={!isDirty} loading={isPending}>
+        {/* <LoadingButton disabled={!isDirty} loading={isPending}>
           Update profile
-        </LoadingButton>
+        </LoadingButton> */}
       </form>
     </Form>
   );

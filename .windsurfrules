@@ -1,120 +1,256 @@
-# You are an expert in TypeScript, Next.js, and full-stack development, specializing in creating clean, modular code with modern best practices
+# Tech Stack
 
-## Tech Stack
+ • Next.js 15 with App Router
+ • TypeScript for type-safe development
+ • BetterAuth for authentication and RBAC
+ • tRPC for end-to-end typesafe APIs
+ • Prisma with PostgreSQL
+ • ShadcN UI + MagicUI + TailwindCSS
+ • Zod for schema validation
 
-- Next.js 15 with App Router for file-based routing
-- TypeScript for type-safe development
-- tRPC for end-to-end typesafe APIs
-- Prisma with PostgreSQL for database management
-- ShadcN UI for component library
-- MagicUI for enhanced UI components
-- TailwindCSS for styling
-- Umami for analytics
-- React Query (through tRPC) for data fetching
-- Zod for schema validation
+## Authentication Patterns
 
-## Project Structure
+### BetterAuth Configuration
 
-/src/app/**-> Next.js App Router pages and layouts
-/src/components/** -> Reusable UI components
-/src/hooks/**-> Custom React hooks
-/src/lib/** -> Core utilities and services
-/src/provider/**-> Context providers and wrappers
-/src/server/** -> Server-side logic
-/src/styles/**-> Global styles and Tailwind configurations
-/src/trpc/** -> tRPC router and procedures
-/src/types/**-> TypeScript types and interfaces
-/prisma/** -> Database schema and migrations
+ • Place auth configuration in /lib/auth/server.ts
+ • Setup API routes at /app/api/auth/[...all]/route.ts
+ • Implement custom types in /types/auth.d.ts
+ • Define role constants in /types/roles.ts
+ • Use BetterAuth hooks for auth lifecycle events
 
-## Coding Standards
+## Server Session Access
 
-- Use TypeScript for all files except configurations
-- Implement functional components with hooks
-- Keep components focused and small (< 200 lines)
-- Use Tailwind for styling with consistent design tokens
-- Follow mobile-first responsive design
-- Implement proper error handling with tRPC
-- Use React Query features through tRPC for data management
-
-## Import Patterns
-
-- Use absolute imports with @ prefix
-- Import UI components from @/components/ui
-- Import server procedures from @/server/api
-- Import types from @/types
-- Import hooks from @/hooks
-
-## Style Guidelines
-
-- Use ShadcN UI components from @/components/ui
-- Implement className="..." for Tailwind styling
-- Support dark mode with next-themes
-- Follow mobile-first responsive design
-- Use semantic class names and design tokens
-
-## Type Safety
-
-- Use interfaces for complex objects, type for simple ones
-- Use Zod for runtime validation
-- Leverage tRPC's type inference
-- Avoid any type unless absolutely necessary
-- Use strict TypeScript configurations
-
-## Component Pattern
+ • Always get session with headers in server components:
 
 ```typescript
-import { type ComponentProps } from 'react';
-import { cn } from '@/lib/utils';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth/server';
 
-interface Props extends ComponentProps<'div'> {
-  title: string;
+const session = await auth.api.getSession({
+  headers: await headers(),
+});
+```
+
+ • Create utility function for consistent session access:
+
+```typescript
+// src/lib/auth/session.ts
+export async function getServerSession() {
+  return auth.api.getSession({
+    headers: await headers(),
+  });
 }
+```
 
-export function Component({ 
-  title, 
-  className,
-  ...props 
-}: Props) {
-  return (
-    <div 
-      className={cn(
-        "base-styles",
-        className
-      )}
-      {...props}
-    >
-      {/* Component content */}
-    </div>
+## Role-Based Authorization
+
+ • Map social provider claims to application roles
+ • Define roles as string literals in TypeScript
+ • Check roles server-side in components and actions
+ • Create HOCs for protecting server components
+ • Use middleware for route protection
+
+### Component Patterns
+
+#### Protected Server Components
+
+```typescript
+// Higher-order component pattern
+function withRoleProtection(Component, allowedRoles, options = {}) {
+  return async function(props) {
+    const session = await getServerSession();
+
+    if (!session?.user) {
+      redirect('/api/auth/signin');
+    }
+
+    const hasAccess = checkRoleAccess(session, allowedRoles);
+
+    if (!hasAccess) {
+      redirect('/unauthorized');
+    }
+
+    return Component(props);
+  };
+}
+```
+
+```typescript
+// Usage
+export default withRoleProtection(
+  AdminComponent,
+  ['admin']
+);
+```
+
+## Role-Based UI Rendering
+
+```typescript
+// Conditional rendering based on roles
+{session?.user?.roles?.includes('admin') && (
+  <AdminPanel />
+)}
+```
+
+## Protected Server Actions
+
+```typescript
+"use server"
+
+import { getServerSession } from '@/lib/auth/session';
+
+export async function adminAction() {
+  const session = await getServerSession();
+
+  if (!session?.user?.roles?.includes('admin')) {
+    throw new Error('Unauthorized');
+  }
+
+  // Action implementation
+}
+```
+
+### tRPC Integration
+
+#### Protected Procedures
+
+```typescript
+// Create role-protected procedures
+const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
+  const session = await getServerSession();
+
+  if (!session?.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+
+  return next({
+    ctx: {
+      ...ctx,
+      session,
+      user: session.user,
+    },
+  });
+});
+```
+
+```typescript
+// Admin-only procedure
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!ctx.user.roles?.includes('admin')) {
+    throw new TRPCError({ code: 'FORBIDDEN' });
+  }
+
+  return next({ ctx });
+});
+```
+
+### Database Schema
+
+```typescript
+// User schema with role support
+model User {
+  id              String        @id @default(cuid())
+  email           String        @unique
+  name            String?
+  emailVerified   DateTime?
+  image           String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  roles           String[]      // Store roles as string array
+  isImpersonating Boolean?      // For impersonation tracking
+  originalRoles   String[]      // Store original roles during impersonation
+  sessions        Session[]
+}
+```
+
+```typescript
+// Track impersonation
+model Impersonation {
+  id            String    @id @default(cuid())
+  adminUserId   String
+  targetUserId  String
+  token         String    @unique
+  expiresAt     DateTime
+  createdAt     DateTime  @default(now())
+  usedAt        DateTime?
+  adminUser     User      @relation("adminUser", fields: [adminUserId], references: [id])
+  targetUser    User      @relation("targetUser", fields: [targetUserId], references: [id])
+}
+```
+
+### Extended Session Type
+
+```typescript
+// src/types/auth.d.ts
+export type ExtendedSession = Session & {
+  user: Session['user'] & {
+    roles?: string[];
+    isImpersonating?: boolean;
+    originalRoles?: string[];
+  };
+};
+```
+
+### User Impersonation
+
+ • Create impersonation endpoints:
+ ◦ /api/auth/startImpersonation
+ ◦ /api/auth/impersonate
+ ◦ /api/auth/endImpersonation
+ • Store original admin user ID and roles
+ • Set time-limited impersonation tokens (20 min)
+ • Show clear visual indicator during impersonation
+ • Open impersonation in a new tab to preserve admin session
+
+### Security Guidelines
+
+ • Validate all user input with Zod
+ • Add CSRF protection to all forms
+ • Follow principle of least privilege for roles
+ • Implement proper error handling for auth failures
+ • Use HTTP-only, secure cookies
+ • Store only necessary data in session
+ • Validate roles on every protected request
+ • Log authentication events and role changes
+ • Return appropriate status codes (401, 403)
+
+### Error Handling
+
+ • Create consistent error responses:
+
+```typescript
+// For API routes
+if (!session) {
+  return NextResponse.json(
+    { error: 'Unauthorized' },
+    { status: 401 }
   );
 }
 ```
 
-## tRPC Router Pattern
-
 ```typescript
-import { z } from 'zod';
-import { createTRPCRouter, publicProcedure, protectedProcedure } from '../trpc';
-
-export const router = createTRPCRouter({
-  create: protectedProcedure
-    .input(z.object({
-      // validation schema
-    }))
-    .mutation(async ({ ctx, input }) => {
-      // implementation
-    }),
-});
-```
-
-## Prisma Pattern
-
-```typescript
-// prisma/schema.prisma
-model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// For server components
+if (!session) {
+  redirect('/login');
 }
 ```
+
+```typescript
+// For server actions
+if (!session) {
+  return { success: false, error: 'Unauthorized' };
+}
+```
+
+### Project Organization
+
+ • /lib/auth/config.ts - BetterAuth configuration
+ • /lib/auth/server.ts - BetterAuth server configuration
+ • /lib/auth/client.ts - BetterAuth client configuration
+ • /lib/auth/session.ts - Session utilities
+ • /lib/auth/guards.ts - Role checking functions
+ • /types/roles.ts - Role constants and types
+ • /types/auth.d.ts - Auth type extensions
+ • /components/auth/ - Auth-related components
+ • /app/api/auth/[...all]/route.ts - Auth Catch-All API routes
+ • /middleware.ts - Route protection middleware

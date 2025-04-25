@@ -2,20 +2,21 @@
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/providers/auth-provider';
+import { useSession } from '@/lib/auth/client';
 import type { ProtectedLayoutProps } from '@/types/auth';
 import { Lock, ShieldAlert } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import type { FC } from 'react';
 
 /**
- * Layout component that enforces role-based access control
+ * Server-based layout component that enforces role-based access control
  * Used to protect entire sections/pages of the application
  *
- * This component checks user authentication and role permissions,
- * showing appropriate error states for unauthenticated or unauthorized users.
+ * This component uses a more reliable session approach for authentication
+ * across all routes in the application.
  */
-export const ProtectedLayout: FC<ProtectedLayoutProps> = ({
+export const ServerProtectedLayout: FC<ProtectedLayoutProps> = ({
   children,
   allowedRoles,
   unauthorizedTitle = 'Access Denied',
@@ -23,10 +24,40 @@ export const ProtectedLayout: FC<ProtectedLayoutProps> = ({
   requireAll = false,
   showLoading = true,
 }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
   const router = useRouter();
+  const session = useSession();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [hasRequiredRoles, setHasRequiredRoles] = useState(false);
 
-  // Show loading state if configured
+  // Check auth on component mount and whenever session data changes
+  useEffect(() => {
+    // Don't authenticate during SSR
+    if (typeof window === 'undefined') return;
+
+    if (session.isPending) {
+      setIsLoading(true);
+      return;
+    }
+
+    // Update authentication state based on session
+    const user = session.data?.user;
+    setIsAuthenticated(!!user);
+    setIsLoading(false);
+
+    // Check if user has required roles - only if authenticated
+    if (user?.role) {
+      const hasRoles = requireAll
+        ? allowedRoles.length === 1 && user.role === allowedRoles[0]
+        : allowedRoles.length === 0 || allowedRoles.includes(user.role);
+      
+      setHasRequiredRoles(hasRoles);
+    } else {
+      setHasRequiredRoles(false);
+    }
+  }, [session, allowedRoles, requireAll]);
+
+  // Loading state during data fetching
   if (isLoading && showLoading) {
     return (
       <div className="flex h-full min-h-[300px] items-center justify-center">
@@ -41,7 +72,7 @@ export const ProtectedLayout: FC<ProtectedLayoutProps> = ({
   }
 
   // Handle unauthenticated users
-  if (!isAuthenticated || !user) {
+  if (!isAuthenticated) {
     return (
       <div className="mx-auto max-w-md p-6">
         <div className="flex flex-col space-y-6">
@@ -61,11 +92,6 @@ export const ProtectedLayout: FC<ProtectedLayoutProps> = ({
     );
   }
 
-  // Check if user has required roles
-  const hasRequiredRoles = requireAll
-    ? allowedRoles.length === 1 && user.role === allowedRoles[0]
-    : allowedRoles.length === 0 || (user.role && allowedRoles.includes(user.role));
-
   // Show unauthorized message if user doesn't have required roles
   if (!hasRequiredRoles) {
     return (
@@ -77,8 +103,8 @@ export const ProtectedLayout: FC<ProtectedLayoutProps> = ({
             <AlertDescription>{unauthorizedMessage}</AlertDescription>
           </Alert>
           <div className="flex justify-center">
-            <Button variant="outline" onClick={() => router.push('/')}>
-              Return to Home
+            <Button onClick={() => router.push('/app')}>
+              Back to Dashboard
             </Button>
           </div>
         </div>
@@ -86,6 +112,6 @@ export const ProtectedLayout: FC<ProtectedLayoutProps> = ({
     );
   }
 
-  // User has access, render children
+  // User is authenticated and authorized, render children
   return <>{children}</>;
 };

@@ -2,9 +2,9 @@ import { FaUserLock } from 'react-icons/fa6';
 import { RiNextjsFill } from 'react-icons/ri';
 import {
   SiActix,
+  SiBiome,
   SiDarkreader,
-  SiPrettier,
-  SiPrisma,
+  SiDrizzle,
   SiReact,
   SiShadcnui,
   SiTailwindcss,
@@ -16,13 +16,13 @@ import { TbDeviceDesktopAnalytics } from 'react-icons/tb';
 const techList = [
   { icon: RiNextjsFill, label: 'Next.js 15 App Router' },
   { icon: SiReact, label: 'React Hook Form' },
-  { icon: SiPrettier, label: 'Prettier' },
+  { icon: SiBiome, label: 'Biome' },
   { icon: SiTypescript, label: 'Typescript' },
   { icon: SiTailwindcss, label: 'Tailwind CSS' },
   { icon: SiShadcnui, label: 'Shadcn UI Components' },
   { icon: SiDarkreader, label: 'Light / Dark Mode' },
   { icon: FaUserLock, label: 'Credentials Authentication' },
-  { icon: SiPrisma, label: 'Prisma ORM' },
+  { icon: SiDrizzle, label: 'Drizzle ORM' },
   { icon: SiZod, label: 'Zod Validation' },
   { icon: TbDeviceDesktopAnalytics, label: 'Analytics using Umami' },
   { icon: SiActix, label: 'And more!' },
@@ -42,7 +42,7 @@ export default function Features() {
       </p>
 
       <ul className="grid grid-cols-2 gap-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-        {techList.map((tech) => (
+        {techList.map(tech => (
           <li
             key={tech.label}
             className="flex flex-col items-center justify-center gap-4 rounded-xl bg-accent p-4 text-center leading-tight shadow shadow-primary drop-shadow-xl transition hover:scale-105"

@@ -2,30 +2,10 @@
 
 import { authClient } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
-import type { UserFilterOptions, UserStats } from '@/types/admin';
+import type { UserFilterOptions, UserStats, BetterAuthListUsersResponse, BetterAuthAdminClient } from '@/types/admin';
 import type { User } from '@/types/auth';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
-
-/**
- * BetterAuth response type definitions
- */
-interface BetterAuthListUsersResponse {
-  users: User[];
-  total: number;
-  limit?: number;
-  offset?: number;
-}
-
-/**
- * Admin client interface to improve type safety
- */
-interface BetterAuthAdminClient {
-  listUsers: (options: { query: Record<string, unknown> }) => Promise<unknown>;
-  getUser: (options: { userId: string }) => Promise<unknown>;
-  updateUser: (options: { userId: string; data: Partial<User> }) => Promise<unknown>;
-  removeUser: (options: { userId: string }) => Promise<unknown>;
-}
 
 /**
  * Hook for accessing admin plugin functionality

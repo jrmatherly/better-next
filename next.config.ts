@@ -13,6 +13,20 @@ const nextConfig: NextConfig = {
   },
   reactStrictMode: true,
   output: 'standalone',
+  experimental: {
+    optimizeCss: true, // Enable CSS optimization
+    optimizePackageImports: [
+      'framer-motion',
+      '@heroui/react',
+      'tailwind-merge',
+      'zod',
+    ],
+    //nodeMiddleware: true, // Enable Node.js runtime for middleware (currently only works with Next.js Canary)
+    // Improve page loading performance
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -59,20 +73,6 @@ const nextConfig: NextConfig = {
     // Optimize image quality and formats
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
-  },
-  // Enable aggressive code splitting
-  experimental: {
-    optimizeCss: true, // Enable CSS optimization
-    optimizePackageImports: [
-      'framer-motion',
-      '@heroui/react',
-      'tailwind-merge',
-      'zod',
-    ],
-    // Improve page loading performance
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
   },
   // Optimize production builds
   compiler: {

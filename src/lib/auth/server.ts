@@ -1,9 +1,10 @@
 import { authActions } from '@/lib/auth/actions';
 import { authConfig } from '@/lib/auth/config';
-import { parseRoles } from '@/lib/auth/role-utils';
+import { getHighestRole, parseRoles } from '@/lib/auth/role-utils';
 import type { AuthToken, MicrosoftProfile } from '@/types/auth';
 import { betterAuth } from 'better-auth';
 import type { Account, User as BetterAuthUser, Session } from 'better-auth';
+import { nextCookies } from 'better-auth/next-js';
 
 // Create auth configuration with session enhancement
 const configWithCallbacks = {
@@ -22,9 +23,12 @@ const configWithCallbacks = {
         }
 
         // Check all possible locations where Azure AD might store roles
+        // Our Azure AD Enterprise Application is configured with appRoles that match
+        // our application's ROLES enum values exactly (admin, security, devops, etc.)
+        // This enables a direct 1:1 mapping between Azure AD roles and our application roles
         const possibleRoleClaims = [
           profile.roles,
-          profile.appRoles,
+          profile.appRoles, // Primary expected location based on our Azure AD configuration
           profile.wids,
           profile[
             'http://schemas.microsoft.com/ws/2008/06/identity/claims/role'
@@ -38,6 +42,8 @@ const configWithCallbacks = {
 
         // Process roles if found
         if (rolesFromClaims) {
+          // parseRoles validates that the roles from Azure AD exist in our application's ROLES enum
+          // This ensures type safety and prevents invalid roles from being assigned
           const roles = parseRoles(rolesFromClaims);
 
           if (process.env.NODE_ENV !== 'production') {
@@ -45,9 +51,10 @@ const configWithCallbacks = {
             console.debug('[Auth] Found roles in Microsoft claims:', roles);
           }
 
-          // Use the highest priority role for the standard 'role' field
-          return { 
-            role: roles[0] || 'user',  // Use the first role as primary
+          // Return the validated roles, using the highest priority role as the primary
+          // The role priority is defined in getHighestRole() in role-utils.ts
+          return {
+            role: getHighestRole(roles), // Use highest priority role
           };
         }
 
@@ -59,7 +66,7 @@ const configWithCallbacks = {
         }
 
         // Default to 'user' role if no roles found
-        return { 
+        return {
           role: 'user',
         };
       },
@@ -133,24 +140,18 @@ const configWithCallbacks = {
           id: token.id as string,
           email: token.email as string,
           name: (token.name as string) || null,
-          image: (token.image as string) || null,
-          // Include the user's role for authorization
+          // Include only the user's role for authorization
           role: (token.role as string) || 'user',
+          // Only include isImpersonating flag (boolean takes minimal space)
           isImpersonating: !!token.isImpersonating,
-          // Only include originalRoles if currently impersonating
-          ...(token.isImpersonating
-            ? { originalRoles: (token.originalRoles as string[]) || [] }
-            : {}),
-          // Only include groups if they're needed for immediate authorization
-          ...(Array.isArray(token.groups) && token.groups.length > 0
-            ? {
-                groups: (token.groups as string[]).slice(0, 5), // Limit to top 5 groups if needed
-              }
-            : {}),
         },
       };
     },
   },
+  plugins: [
+    ...(authConfig.plugins || []),
+    nextCookies(), // Add Next.js cookie handling
+  ],
 };
 
 // Initialize BetterAuth with our enhanced configuration

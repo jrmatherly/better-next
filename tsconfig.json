@@ -36,6 +36,9 @@
       "@/*": [
         "./src/*"
       ],
+      "@/db/*": [
+        "./src/db/*"
+      ],
       "@/components/*": [
         "./src/components/*"
       ],

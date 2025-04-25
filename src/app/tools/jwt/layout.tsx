@@ -1,7 +1,7 @@
 'use client';
 
-import { ProtectedLayout } from '@/components/auth/protected-layout';
-import { ROLES } from '@/types/roles';
+/* import { ProtectedLayout } from '@/components/auth/protected-layout';
+import { ROLES } from '@/types/roles'; */
 import type { ReactNode } from 'react';
 
 /**
@@ -11,15 +11,15 @@ import type { ReactNode } from 'react';
  */
 export default function JwtToolsLayout({ children }: { children: ReactNode }) {
   return (
-    <ProtectedLayout
-      allowedRoles={[ROLES.ADMIN, ROLES.SECURITY, ROLES.DEVOPS]}
-      requireAll={false}
-      unauthorizedTitle="Security Access Required"
-      unauthorizedMessage="You need administrator, security, or devops privileges to access JWT tools."
-    >
-      <div className="flex flex-col min-h-screen">
-        <main className="flex-1">{children}</main>
-      </div>
-    </ProtectedLayout>
+    //<ProtectedLayout
+    //  allowedRoles={[ROLES.ADMIN, ROLES.SECURITY, ROLES.DEVOPS]}
+    //  requireAll={false}
+    //  unauthorizedTitle="Security Access Required"
+    //  unauthorizedMessage="You need administrator, security, or devops privileges to access JWT tools."
+    //>
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-1">{children}</main>
+    </div>
+    //</ProtectedLayout>
   );
 }

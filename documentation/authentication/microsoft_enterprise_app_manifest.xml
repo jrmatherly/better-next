@@ -1,0 +1,301 @@
+{
+	"id": "<<REDACTED>>",
+	"acceptMappedClaims": null,
+	"accessTokenAcceptedVersion": null,
+	"addIns": [],
+	"allowPublicClient": null,
+	"appId": "<<REDACTED>>",
+	"appRoles": [
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "Security users have increased permissions",
+			"displayName": "Security",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "security"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "Default user role for basic permissions",
+			"displayName": "User",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "user"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "DevOps users have increased permissions",
+			"displayName": "DevOps",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "devops"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "Collab users have increased permissions",
+			"displayName": "Collab",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "collab"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "DBA users have increased permissions",
+			"displayName": "DBA",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "dba"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "TCC users have increased permissions",
+			"displayName": "TCC",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "tcc"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "FieldTech users have increased permissions",
+			"displayName": "FieldTech",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "fieldtech"
+		},
+		{
+			"allowedMemberTypes": [
+				"User"
+			],
+			"description": "Admins have access to all resources",
+			"displayName": "Admin",
+			"id": "<<REDACTED>>",
+			"isEnabled": true,
+			"lang": null,
+			"origin": "Application",
+			"value": "admin"
+		}
+	],
+	"oauth2AllowUrlPathMatching": false,
+	"createdDateTime": "2024-10-28T21:02:37Z",
+	"description": null,
+	"certification": null,
+	"disabledByMicrosoftStatus": null,
+	"groupMembershipClaims": "ApplicationGroup",
+	"identifierUris": [],
+	"informationalUrls": {
+		"termsOfService": null,
+		"support": null,
+		"privacy": null,
+		"marketing": null
+	},
+	"keyCredentials": [],
+	"knownClientApplications": [],
+	"logoUrl": null,
+	"logoutUrl": null,
+	"name": "AAN WLH Auth DEV",
+	"notes": null,
+	"oauth2AllowIdTokenImplicitFlow": true,
+	"oauth2AllowImplicitFlow": true,
+	"oauth2Permissions": [],
+	"oauth2RequirePostResponse": false,
+	"optionalClaims": {
+		"idToken": [
+			{
+				"name": "auth_time",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "sid",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "verified_primary_email",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "fwd",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "email",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "acct",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "upn",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "groups",
+				"source": null,
+				"essential": false,
+				"additionalProperties": [
+					"sam_account_name"
+				]
+			},
+			{
+				"name": "ipaddr",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "family_name",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "given_name",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "preferred_username",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			}
+		],
+		"accessToken": [
+			{
+				"name": "acct",
+				"source": null,
+				"essential": false,
+				"additionalProperties": []
+			},
+			{
+				"name": "groups",
+				"source": null,
+				"essential": false,
+				"additionalProperties": [
+					"sam_account_name"
+				]
+			},
+			{
+				"name": "aud",
+				"source": null,
+				"essential": false,
+				"additionalProperties": [
+					"use_guid"
+				]
+			}
+		],
+		"saml2Token": [
+			{
+				"name": "groups",
+				"source": null,
+				"essential": false,
+				"additionalProperties": [
+					"sam_account_name"
+				]
+			}
+		]
+	},
+	"orgRestrictions": [],
+	"parentalControlSettings": {
+		"countriesBlockedForMinors": [],
+		"legalAgeGroupRule": "Allow"
+	},
+	"passwordCredentials": [
+		{
+			"customKeyIdentifier": null,
+			"endDate": "2026-10-28T21:05:17.784Z",
+			"keyId": "<<REDACTED>>",
+			"startDate": "2024-10-28T21:05:17.784Z",
+			"value": null,
+			"createdOn": "2024-10-28T21:05:41.6830637Z",
+			"hint": "<<REDACTED>>",
+			"displayName": "<<REDACTED>>",
+		}
+	],
+	"preAuthorizedApplications": [],
+	"publisherDomain": "<<REDACTED>>",
+	"replyUrlsWithType": [
+		{
+			"url": "http://localhost:3000/api/auth/callback/microsoft",
+			"type": "Web"
+		},
+	],
+	"requiredResourceAccess": [
+		{
+			"resourceAppId": "<<REDACTED>>",
+			"resourceAccess": [
+				{
+					"id": "<<REDACTED>>",
+					"type": "Scope"
+				},
+				{
+					"id": "<<REDACTED>>",
+					"type": "Scope"
+				},
+				{
+					"id": "<<REDACTED>>",
+					"type": "Scope"
+				},
+				{
+					"id": "<<REDACTED>>",
+					"type": "Scope"
+				},
+				{
+					"id": "<<REDACTED>>",
+					"type": "Scope"
+				}
+			]
+		}
+	],
+	"samlMetadataUrl": null,
+	"signInUrl": null,
+	"signInAudience": "AzureADMyOrg",
+	"tags": [
+		"apiConsumer",
+		"webApp"
+	],
+	"tokenEncryptionKeyId": null
+}

@@ -1,4 +1,5 @@
-import prisma from '@/lib/prisma';
+import { db } from '@/db';
+import { user } from '@/db/schema';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -6,7 +7,8 @@ export const metadata: Metadata = {
 };
 
 export default async function DashboardPage() {
-  const userList = await prisma.user.findMany();
+  const userList = await db.select().from(user);
+  
   return (
     <div className="space-y-4 p-4">
       <h1 className="text-2xl font-bold">Dashboard</h1>

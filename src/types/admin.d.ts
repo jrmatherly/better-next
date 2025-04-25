@@ -1,3 +1,5 @@
+import type { User } from './auth';
+
 /**
  * Filter options for user queries in the admin panel
  */
@@ -51,4 +53,24 @@ export interface UserStats {
    * Number of new users registered this month
    */
   newUsersThisMonth: number;
+}
+
+/**
+ * BetterAuth response type definitions for user listing
+ */
+export interface BetterAuthListUsersResponse {
+  users: User[];
+  total: number;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Admin client interface to improve type safety
+ */
+export interface BetterAuthAdminClient {
+  listUsers: (options: { query: Record<string, unknown> }) => Promise<unknown>;
+  getUser: (options: { userId: string }) => Promise<unknown>;
+  updateUser: (options: { userId: string; data: Partial<User> }) => Promise<unknown>;
+  removeUser: (options: { userId: string }) => Promise<unknown>;
 }

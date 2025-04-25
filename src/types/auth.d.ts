@@ -41,7 +41,6 @@ export interface BetterAuthSession {
     ipAddress?: string | null;
     userAgent?: string | null;
     impersonatedBy?: string;
-    activeOrganizationId?: string;
   };
 }
 
@@ -62,7 +61,6 @@ export interface Session {
   };
   expires?: string;
   expiresAt?: Date;
-  activeOrganizationId?: string;
   session?: {
     id: string;
     createdAt: Date;
@@ -73,7 +71,6 @@ export interface Session {
     ipAddress?: string | null;
     userAgent?: string | null;
     impersonatedBy?: string;
-    activeOrganizationId?: string;
   };
 }
 
@@ -237,6 +234,28 @@ export interface ProtectedLayoutProps {
    * If true, shows a loading state while checking authentication
    */
   showLoading?: boolean;
+}
+
+/**
+ * Options for role-based protection of components and routes
+ */
+export interface ProtectOptions {
+  /**
+   * URL to redirect to if access is denied
+   * Default: '/unauthorized'
+   */
+  redirectTo?: string;
+  
+  /**
+   * If true, requires all specified roles instead of any one of them
+   * Default: false
+   */
+  requireAll?: boolean;
+  
+  /**
+   * Optional message to display instead of redirecting
+   */
+  fallbackMessage?: string;
 }
 
 // Add role information to the existing BetterAuth User type
