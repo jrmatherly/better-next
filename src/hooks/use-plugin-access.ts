@@ -43,25 +43,25 @@ export function usePluginAccess() {
         case PluginType.apiKey:
           // Admin and technical roles can access API keys
           return (
-            userRole === ROLES.ADMIN ||
+            userRole === ROLES.ADMIN /* ||
             userRole === ROLES.DEVOPS ||
-            userRole === ROLES.SECURITY
+            userRole === ROLES.SECURITY */
           );
 
         case PluginType.jwt:
           // Admin, security, and technical roles can access JWT tools
           return (
-            userRole === ROLES.ADMIN ||
+            userRole === ROLES.ADMIN /* ||
             userRole === ROLES.SECURITY ||
-            userRole === ROLES.DEVOPS
+            userRole === ROLES.DEVOPS */
           );
 
         case PluginType.openAPI:
           // Admin and technical roles can access OpenAPI documentation
           return (
-            userRole === ROLES.ADMIN ||
+            userRole === ROLES.ADMIN /* ||
             userRole === ROLES.DEVOPS ||
-            userRole === ROLES.SECURITY
+            userRole === ROLES.SECURITY */
           );
 
         default:

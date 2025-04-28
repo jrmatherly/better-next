@@ -8,7 +8,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { auth } from '@/lib/auth/server';
-import type { BetterAuthSession } from '@/types/auth';
+import type { BetterAuthSession } from '@/types/auth.d';
 import { headers } from 'next/headers';
 import React from 'react';
 
@@ -22,17 +22,19 @@ export default async function DashboardLayout({
     <SidebarProvider>
       <UserSidebar session={session as BetterAuthSession} />
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 w-full shrink-0 items-center justify-between gap-2 border-b bg-background px-4">
-          <div className="flex items-center gap-2">
+        <header className="sticky top-0 z-10 flex h-16 w-full shrink-0 items-center justify-between gap-2 border-b border-border bg-background/80 backdrop-blur-sm px-4">
+          <div className="flex items-center gap-3">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator orientation="vertical" className="h-5 bg-border/50" />
             <BreadcrumbDasboard />
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ModeToggle />
           </div>
         </header>
-        <div className="flex flex-1 flex-col p-4 pt-0">{children}</div>
+        <div className="flex flex-1 flex-col p-4 md:p-6 lg:p-8 pt-0">
+          {children}
+        </div>
       </SidebarInset>
     </SidebarProvider>
   );

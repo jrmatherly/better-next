@@ -39,7 +39,7 @@ function MobileNav({ menus }: { menus: { name: string; href: string }[] }) {
               </Link>
             ))}
             <Button asChild onClick={() => setIsOpen(false)}>
-              <Link href="/sign-in">Login</Link>
+              <Link href="/login">Login</Link>
             </Button>
           </nav>
         </SheetContent>

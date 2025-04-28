@@ -4,7 +4,7 @@ import { getServerSession } from '@/lib/auth/guards';
 import { cn } from '@/lib/utils';
 import type { BetterAuthSession } from '@/types/auth';
 
-export default async function DebugPage() {
+export default async function AuthDebugServerPage() {
   const session = await getServerSession();
 
   if (!session?.user) {

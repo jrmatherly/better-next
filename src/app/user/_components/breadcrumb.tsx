@@ -31,13 +31,15 @@ const BreadcrumbDashboard = () => {
       <BreadcrumbList>
         {pathSegments.length > 0 ? (
           pathSegments.map((segment, index) => {
-            const href = `/app/${pathSegments.slice(0, index + 1).join('/')}`;
+            const href = `/user/${pathSegments.slice(0, index + 1).join('/')}`;
             const displayText = transformSegment(segment);
             const segmentPath = pathSegments.slice(0, index + 1).join('-');
 
             return (
               <React.Fragment key={`breadcrumb-${segmentPath}`}>
-                {index > 0 && <BreadcrumbSeparator key={`separator-${segmentPath}`} />}
+                {index > 0 && (
+                  <BreadcrumbSeparator key={`separator-${segmentPath}`} />
+                )}
                 <BreadcrumbItem key={`item-${segmentPath}`}>
                   {index !== pathSegments.length - 1 ? (
                     <BreadcrumbLink

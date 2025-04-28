@@ -1,89 +1,147 @@
 import type { User } from '@/types/auth';
 import type { Role } from '@/types/roles';
+import type { UserStats } from '@/types/admin';
+
+/**
+ * Common types used by BetterAuth plugins
+ */
+export type FetchOptions = {
+  method?: string;
+  headers?: Record<string, string>;
+  cache?: RequestCache;
+  referrerPolicy?: ReferrerPolicy;
+  credentials?: RequestCredentials;
+  mode?: RequestMode;
+  redirect?: RequestRedirect;
+  signal?: AbortSignal;
+  disableValidation?: boolean;
+  [key: string]: unknown;
+};
 
 /**
  * Admin plugin type definitions
+ * These match the actual BetterAuth admin plugin implementation
  */
 export interface AdminClientMethods {
   /**
-   * Get a list of users with optional filtering
+   * List users with pagination and filtering
+   * Uses BetterAuth's native parameter structure
    */
-  getUsers: () => Promise<User[]>;
+  listUsers(
+    params?: AdminListUsersParams,
+    options?: FetchOptions
+  ): Promise<AdminListUsersResponse>;
   
   /**
    * Get a specific user by ID
    */
-  getUserById: (id: string) => Promise<User | null>;
+  getUserById?(id: string): Promise<User | null>;
   
   /**
    * Update a user's information
    */
-  updateUser: (id: string, data: Partial<User>) => Promise<User>;
+  updateUser?(id: string, data: Partial<User>): Promise<User>;
   
   /**
    * Delete a user
    */
-  deleteUser: (id: string) => Promise<void>;
+  deleteUser?(id: string): Promise<void>;
   
   /**
    * Get user statistics
    */
-  getUserStats: () => Promise<UserStats>;
+  getUserStats?(): Promise<UserStats>;
 }
 
 /**
- * User statistics information
+ * Utility type to clean up complex types
  */
-export interface UserStats {
-  /**
-   * Total number of users in the system
-   */
-  totalUsers: number;
-  
-  /**
-   * Number of active users (logged in within last 30 days)
-   */
-  activeUsers: number;
-  
-  /**
-   * Number of new users registered today
-   */
-  newUsersToday: number;
-  
-  /**
-   * Number of new users registered this week
-   */
-  newUsersThisWeek: number;
-  
-  /**
-   * Number of new users registered this month
-   */
-  newUsersThisMonth: number;
+export type Prettify<T> = {
+  [K in keyof T]: T[K];
+} & {};
+
+/**
+ * Parameters for listing users as expected by BetterAuth
+ */
+export interface AdminListUsersParams {
+  query?: {
+    searchValue?: string;
+    searchField?: "email" | "name";
+    searchOperator?: "contains" | "starts_with" | "ends_with";
+    limit?: string | number;
+    page?: string | number;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+    filter?: Record<string, unknown>;
+    filterOperator?: "eq" | "neq" | "gt" | "gte" | "lt" | "lte" | "in";
+  };
+  fetchOptions?: FetchOptions;
+}
+
+/**
+ * Response from listing users
+ */
+export interface AdminListUsersResponse {
+  users: User[];
+  total: number;
+  page: number;
+  pageCount: number;
+  hasMore: boolean;
 }
 
 /**
  * API Key plugin type definitions
+ * These match the actual BetterAuth API Key plugin implementation
  */
 export interface ApiKeyClientMethods {
   /**
    * Create a new API key
    */
-  createKey: (data: ApiKeyCreateParams) => Promise<ApiKey | null>;
+  create?(
+    params?: ApiKeyClientCreateParams,
+    options?: FetchOptions
+  ): Promise<ApiKey>;
   
   /**
-   * Get all API keys for the current user
+   * List API keys
    */
-  getKeys: () => Promise<ApiKey[]>;
+  list?(
+    params?: Record<string, unknown>,
+    options?: FetchOptions
+  ): Promise<ApiKey[]>;
   
   /**
-   * Delete an API key
+   * Remove an API key
    */
-  deleteKey: (id: string) => Promise<void>;
+  remove?(
+    id: string,
+    options?: FetchOptions
+  ): Promise<void>;
   
   /**
    * Validate an API key
    */
-  validateKey: (key: string) => Promise<boolean>;
+  validate?(
+    key: string,
+    options?: FetchOptions
+  ): Promise<boolean>;
+}
+
+/**
+ * API Key client create parameters as expected by BetterAuth
+ */
+export interface ApiKeyClientCreateParams {
+  metadata?: unknown;
+  name?: string;
+  userId?: string;
+  prefix?: string;
+  expiresIn?: number | null;
+  permissions?: Record<string, string[]>;
+  description?: string;
+  enablePersonalApiKey?: boolean;
+  disablePersonalApiKey?: boolean;
+  limit?: number;
+  remaining?: number | null;
 }
 
 /**
@@ -96,12 +154,12 @@ export interface ApiKey {
   id: string;
   
   /**
-   * User-friendly name for the API key
+   * Human-readable name for the API key
    */
   name: string;
   
   /**
-   * The actual API key value (only available on creation)
+   * The actual API key value (only returned upon creation)
    */
   value?: string;
   
@@ -111,7 +169,7 @@ export interface ApiKey {
   createdAt: Date;
   
   /**
-   * When the API key expires (null if never)
+   * When the API key expires (if applicable)
    */
   expiresAt?: Date | null;
   
@@ -119,6 +177,21 @@ export interface ApiKey {
    * When the API key was last used
    */
   lastUsed?: Date | null;
+  
+  /**
+   * Optional description
+   */
+  description?: string;
+  
+  /**
+   * User who created the API key
+   */
+  userId?: string;
+  
+  /**
+   * Optional permissions associated with the API key
+   */
+  permissions?: Record<string, string[]>;
 }
 
 /**
@@ -126,44 +199,59 @@ export interface ApiKey {
  */
 export interface ApiKeyCreateParams {
   /**
-   * User-friendly name for the API key
+   * Human-readable name for the API key
    */
   name: string;
   
   /**
-   * When the API key should expire
+   * When the API key expires (if applicable)
    */
   expiresAt?: Date;
   
   /**
-   * The user ID to associate the key with (defaults to current user)
+   * User the API key belongs to (admin only)
    */
   userId?: string;
   
   /**
-   * Description of the API key's purpose
+   * Optional description
    */
   description?: string;
+  
+  /**
+   * Optional permissions to associate with the API key
+   */
+  permissions?: Record<string, string[]>;
 }
 
 /**
  * JWT plugin type definitions
+ * These match the actual BetterAuth JWT plugin implementation
  */
 export interface JwtClientMethods {
   /**
-   * Generate a new JWT token
+   * Generate a new JWT token with the specified payload
    */
-  generateToken: (payload: JwtPayload) => Promise<string | null>;
+  generate?(
+    payload: JwtPayload,
+    options?: FetchOptions
+  ): Promise<string>;
   
   /**
-   * Verify a JWT token
+   * Verify and decode a token
    */
-  verifyToken: (token: string) => Promise<JwtPayload | null>;
+  verify?(
+    token: string,
+    options?: FetchOptions
+  ): Promise<JwtPayload | null>;
   
   /**
-   * Refresh a JWT token
+   * Refresh a token
    */
-  refreshToken: (token: string) => Promise<{ token: string; expires: Date } | null>;
+  refresh?(
+    token: string,
+    options?: FetchOptions
+  ): Promise<{ token: string; expires: Date } | null>;
 }
 
 /**
@@ -171,17 +259,17 @@ export interface JwtClientMethods {
  */
 export interface JwtPayload {
   /**
-   * Subject (usually user ID)
+   * Subject of the token (usually user ID)
    */
   sub: string;
   
   /**
-   * Issued at timestamp
+   * Token issued at timestamp
    */
   iat?: number;
   
   /**
-   * Expiration timestamp
+   * Token expiration timestamp
    */
   exp?: number;
   
@@ -201,7 +289,17 @@ export interface JwtPayload {
   roles?: Role[];
   
   /**
-   * Additional custom claims
+   * User's full name
+   */
+  name?: string;
+  
+  /**
+   * User's email
+   */
+  email?: string;
+  
+  /**
+   * Custom claims
    */
   [key: string]: unknown;
 }
@@ -216,12 +314,12 @@ export interface OrganizationClientMethods {
   createOrganization: (data: OrganizationCreateParams) => Promise<Organization | null>;
   
   /**
-   * Get all organizations the current user belongs to
+   * Get a list of organizations
    */
   getOrganizations: () => Promise<Organization[]>;
   
   /**
-   * Get an organization by ID
+   * Get a specific organization by ID
    */
   getOrganizationById: (id: string) => Promise<Organization | null>;
   
@@ -231,7 +329,7 @@ export interface OrganizationClientMethods {
   inviteUser: (data: OrganizationInviteParams) => Promise<{ invitation: string } | null>;
   
   /**
-   * Accept an organization invitation
+   * Accept an invitation to join an organization
    */
   acceptInvitation: (token: string) => Promise<{ organization: Organization } | null>;
 }
@@ -246,12 +344,12 @@ export interface Organization {
   id: string;
   
   /**
-   * Organization name
+   * Name of the organization
    */
   name: string;
   
   /**
-   * URL-friendly slug
+   * URL-friendly identifier
    */
   slug?: string;
   
@@ -266,7 +364,7 @@ export interface Organization {
   updatedAt: Date;
   
   /**
-   * The user's role in this organization
+   * Current user's role in the organization
    */
   role?: string;
   
@@ -274,6 +372,16 @@ export interface Organization {
    * Number of members in the organization
    */
   memberCount?: number;
+  
+  /**
+   * Owner of the organization
+   */
+  ownerId?: string;
+  
+  /**
+   * Organization-specific settings
+   */
+  settings?: Record<string, unknown>;
 }
 
 /**
@@ -281,19 +389,24 @@ export interface Organization {
  */
 export interface OrganizationCreateParams {
   /**
-   * Organization name
+   * Name of the organization
    */
   name: string;
   
   /**
-   * URL-friendly slug (optional, will be generated if not provided)
+   * URL-friendly identifier (optional, will be generated if not provided)
    */
   slug?: string;
   
   /**
-   * User ID of the organization owner
+   * Owner of the organization (defaults to current user)
    */
   ownerId?: string;
+  
+  /**
+   * Organization-specific settings
+   */
+  settings?: Record<string, unknown>;
 }
 
 /**
@@ -301,12 +414,12 @@ export interface OrganizationCreateParams {
  */
 export interface OrganizationInviteParams {
   /**
-   * Organization ID to invite the user to
+   * ID of the organization to invite to
    */
   organizationId: string;
   
   /**
-   * Email address of the user to invite
+   * Email of the user to invite
    */
   email: string;
   
@@ -316,9 +429,14 @@ export interface OrganizationInviteParams {
   role?: string;
   
   /**
-   * Invitation expiration time in seconds
+   * How long the invitation should be valid for (in seconds)
    */
   expiresIn?: number;
+  
+  /**
+   * Custom message to include in the invitation
+   */
+  message?: string;
 }
 
 /**
@@ -331,12 +449,17 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   
   /**
-   * Whether authentication state is loading
+   * Whether authentication state is being loaded
    */
   isLoading: boolean;
   
   /**
-   * Current user information if authenticated
+   * The authenticated user, if any
    */
   user: User | null;
+  
+  /**
+   * Error during authentication, if any
+   */
+  error?: Error | null;
 }

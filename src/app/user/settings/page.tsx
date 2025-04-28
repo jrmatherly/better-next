@@ -13,14 +13,14 @@ function SettingsPage() {
   const menu = [
     {
       name: 'Personal Details',
-      href: '/app/settings/personal-details',
+      href: '/user/settings/personal-details',
       description:
         'Change your personal details setting such as name, avatar, phone and email',
       icon: User2Icon,
     },
     {
       name: 'Password and Security',
-      href: '/app/settings/password-and-security',
+      href: '/user/settings/password-and-security',
       description:
         'Change your password and security setting and account deletion',
       icon: LockIcon,

@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { getServerSession } from '@/lib/auth/guards';
 import { createMetadata } from '@/lib/metadata';
 import { APP_NAME } from '@/lib/settings';
+import { Wrapper, WrapperWithQuery } from '@/providers/query-provider';
 import Analytics from '@/script/analytics';
 import type { BetterAuthSession } from '@/types/auth';
 import React from 'react';
@@ -41,8 +42,10 @@ export default async function RootLayout({
           {session?.user?.isImpersonating && (
             <ImpersonationBanner isImpersonating={true} />
           )}
-          {children}
-          <Toaster />
+          <Wrapper>
+            <WrapperWithQuery>{children}</WrapperWithQuery>
+          </Wrapper>
+          <Toaster richColors closeButton />
         </ThemeProvider>
       </body>
     </html>

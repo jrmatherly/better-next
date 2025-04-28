@@ -15,7 +15,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { auth } from '@/lib/auth/server';
-import { CogIcon, HomeIcon, LockIcon, LogOut, UserIcon } from 'lucide-react';
+import {
+  CogIcon,
+  /* HomeIcon, */ LockIcon,
+  LogOut,
+  UserIcon,
+} from 'lucide-react';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
@@ -103,34 +108,37 @@ export default async function Header() {
                         </span>
                         <span className="truncate text-xs">
                           {session.user.email}
+                          <span className="truncate text-xs">
+                            {session.user.role}
+                          </span>
                         </span>
                       </div>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <Link href="/app">
-                      <DropdownMenuItem>
-                        <HomeIcon />
-                        Dashboard
-                      </DropdownMenuItem>
-                    </Link>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <Link href="/app/settings">
-                      <DropdownMenuItem>
-                        <CogIcon />
-                        Settings
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/app/settings/personal-details">
+                    <Link href="/user/profile">
                       <DropdownMenuItem>
                         <UserIcon />
                         Profile
                       </DropdownMenuItem>
                     </Link>
-                    <Link href="/app/settings/password-and-security">
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <Link href="/user/settings">
+                      <DropdownMenuItem>
+                        <CogIcon />
+                        Settings
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/user/settings/personal-details">
+                      <DropdownMenuItem>
+                        <LockIcon />
+                        Security
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/user/settings/password-and-security">
                       <DropdownMenuItem>
                         <LockIcon />
                         Change Password

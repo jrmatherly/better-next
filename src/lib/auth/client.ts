@@ -1,4 +1,6 @@
+import type { auth } from '@/lib/auth/server';
 import type { User } from '@/types/auth';
+import type { UserStats } from '@/types/admin';
 import type {
   AdminClientMethods,
   ApiKey,
@@ -6,20 +8,35 @@ import type {
   ApiKeyCreateParams,
   JwtClientMethods,
   JwtPayload,
-  UserStats,
 } from '@/types/plugins';
 import {
   adminClient,
   apiKeyClient,
+  inferAdditionalFields,
   jwtClient,
+  multiSessionClient,
 } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
+import { toast } from 'sonner';
 import { env } from '../../env';
 
 // Create the base auth client
 export const authClient = createAuthClient({
   baseURL: env.NEXT_PUBLIC_APP_URL,
-  plugins: [adminClient(), apiKeyClient(), jwtClient()],
+  plugins: [
+    adminClient(),
+    apiKeyClient(),
+    jwtClient(),
+    multiSessionClient(),
+    inferAdditionalFields<typeof auth>(),
+  ],
+  fetchOptions: {
+    onError(e) {
+      if (e.error.status === 429) {
+        toast.error('Too many requests. Please try again later.');
+      }
+    },
+  },
 });
 
 // Export standard auth functions
@@ -43,23 +60,33 @@ export const {
   listSessions,
   revokeOtherSessions,
   revokeSessions,
+  /* organization,
+	useListOrganizations,
+	useActiveOrganization, */
 } = authClient;
+
+authClient.$store.listen('$sessionSignal', async () => {});
 
 // Export typed plugin accessors
 export const getAdminClient = (): AdminClientMethods => {
-  // @ts-expect-error - Will be properly implemented when plugin is added
-  return authClient.admin || {};
+  // Use type assertion to match our interface definition
+  return authClient.admin as unknown as AdminClientMethods;
 };
 
 export const getApiKeyClient = (): ApiKeyClientMethods => {
-  // @ts-expect-error - Will be properly implemented when plugin is added
-  return authClient.apiKey || {};
+  // Use type assertion to match our interface definition
+  return authClient.apiKey as unknown as ApiKeyClientMethods;
 };
 
 export const getJwtClient = (): JwtClientMethods => {
-  // @ts-expect-error - Will be properly implemented when plugin is added
-  return authClient.jwt || {};
+  // Use type assertion to match our interface definition
+  return (authClient as Record<string, unknown>).jwt as unknown as JwtClientMethods;
 };
+
+/* export const getMultiSessionClient = (): MultiSessionClientMethods => {
+  // @ts-expect-error - Will be properly implemented when plugin is added
+  return authClient.multiSession || {};
+}; */
 
 // Placeholder hooks
 export const useAdmin = () => {

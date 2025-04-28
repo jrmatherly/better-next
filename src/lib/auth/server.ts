@@ -107,15 +107,13 @@ const configWithCallbacks = {
           email: user.email,
           name: user.name,
           image: user.image,
-          // Store the user's role
-          role: user.role || 'user',
+          role: user.role || 'user', // Store the user's role
           // Store minimal group data (only IDs or names, not full objects)
           groups: msGroups.filter(
             (group: unknown): group is string => typeof group === 'string'
           ),
-          // Impersonation state
-          isImpersonating: user.isImpersonating || false,
-          originalRoles: user.originalRoles || [],
+          isImpersonating: user.isImpersonating || false, // Impersonation state
+          originalRoles: user.originalRoles || [], // Store original roles for impersonation
         };
       }
 

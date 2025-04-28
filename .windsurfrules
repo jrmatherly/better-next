@@ -4,7 +4,7 @@
  • TypeScript for type-safe development
  • BetterAuth for authentication and RBAC
  • tRPC for end-to-end typesafe APIs
- • Prisma with PostgreSQL
+ • Drizzle ORM with PostgreSQL
  • ShadcN UI + MagicUI + TailwindCSS
  • Zod for schema validation
 

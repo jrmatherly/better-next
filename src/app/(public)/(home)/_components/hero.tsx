@@ -50,7 +50,7 @@ export default function Hero() {
               </div>
             </div>
           </div>
-          <Link href="/app" id="about">
+          <Link href="/" id="about">
             <div className="relative h-full w-full rounded-xl outline outline-8 outline-primary/20 hover:outline-primary">
               <Image
                 src={HeroLight}

@@ -1,10 +1,8 @@
-/* import { PrismaClient } from '../../../prisma/client'; */
 import { db } from '@/db';
 import { ROLES } from '@/types/roles';
 import type { BetterAuthOptions, User } from 'better-auth';
-/* import { prismaAdapter } from 'better-auth/adapters/prisma'; */
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin, apiKey, jwt, openAPI } from 'better-auth/plugins';
+import { admin, apiKey, jwt, multiSession, openAPI } from 'better-auth/plugins';
 import { createClient } from 'redis';
 import * as schema from '../../db/schema';
 
@@ -86,9 +84,14 @@ export const authConfig = {
       //enabled: true, // Re-enabled since we've optimized session data size
       enabled: false, // Disable for now until we confirm session data size is small enough
     },
-    // BetterAuth falls back to database storage for large session data
+    storeSessionInDatabase: true, // Store session in database when secondary storage is provided (default: `false`)
+    preserveSessionInDatabase: false, // Preserve session records in database when deleted from secondary storage (default: `false`)
   },
   advanced: {
+    ipAddress: {
+      ipAddressHeaders: ['x-client-ip', 'x-forwarded-for', 'remote-addr'],
+      disableIpTracking: false,
+    },
     // Use secure cookies in all environments
     useSecureCookies: process.env.NODE_ENV === 'production',
     // Default attributes for all cookies
@@ -134,10 +137,11 @@ export const authConfig = {
       adminRoles: ['admin'],
       impersonationSessionDuration: 60 * 60, // 1 hour
       impersonationPermission: (user: User & { role?: string }) =>
-        user.role === ROLES.ADMIN || user.role === ROLES.SECURITY,
+        user.role === ROLES.ADMIN /*  || user.role === ROLES.SECURITY */,
     }),
     apiKey(),
     jwt(),
+    multiSession(),
     openAPI(),
   ],
 } satisfies BetterAuthOptions;

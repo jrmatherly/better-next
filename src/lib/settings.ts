@@ -11,9 +11,9 @@ export const APP_LOGO = env.NEXT_PUBLIC_APP_LOGO || '/logo.png';
 export const APP_NAME =
   process.env.NODE_ENV === 'development'
     ? `DEV - ${process.env.NEXT_PUBLIC_APP_NAME || 'Better Next'}`
-    : (process.env.NEXT_PUBLIC_APP_NAME || 'Better Next');
+    : process.env.NEXT_PUBLIC_APP_NAME || 'Better Next';
 export const UNAUTHENTICATED_URL = '/login';
-export const AUTHENTICATED_URL = '/app';
+export const AUTHENTICATED_URL = '/user/profile';
 
 /*
  * Define default viewport settings

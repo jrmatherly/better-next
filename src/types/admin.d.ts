@@ -71,6 +71,9 @@ export interface BetterAuthListUsersResponse {
 export interface BetterAuthAdminClient {
   listUsers: (options: { query: Record<string, unknown> }) => Promise<unknown>;
   getUser: (options: { userId: string }) => Promise<unknown>;
-  updateUser: (options: { userId: string; data: Partial<User> }) => Promise<unknown>;
+  updateUser: (options: {
+    userId: string;
+    data: Partial<User>;
+  }) => Promise<unknown>;
   removeUser: (options: { userId: string }) => Promise<unknown>;
 }

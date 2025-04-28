@@ -34,20 +34,21 @@ export const UserManagement: FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   // Fetch users function that doesn't depend on any props or state
   const fetchUsers = useCallback(() => {
     setIsLoading(true);
-    
+
     // This uses the ref's current value, not a render-dependent prop
-    adminRef.current.getUsers()
+    adminRef.current
+      .getUsers()
       .then(fetchedUsers => {
         if (fetchedUsers) {
           setUsers(fetchedUsers);
         }
       })
       .catch(error => {
-        console.error("Failed to fetch users:", error);
+        console.error('Failed to fetch users:', error);
       })
       .finally(() => {
         setIsLoading(false);
@@ -61,7 +62,7 @@ export const UserManagement: FC = () => {
 
   const handleDeleteUser = async (userId: string) => {
     setIsDeleting(userId);
-    
+
     try {
       const success = await adminRef.current.deleteUser(userId);
       if (success) {
@@ -110,9 +111,7 @@ export const UserManagement: FC = () => {
                       </TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {user.role || 'user'}
-                        </Badge>
+                        <Badge variant="outline">{user.role || 'user'}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

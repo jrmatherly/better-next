@@ -14,8 +14,8 @@ const publicRoutes = ['/login', '/sign-up'];
 
 // Define protected route patterns
 //const authRoutes = ['/login', '/sign-up'];
-const protectedRoutes = ['/app', '/dashboard', '/account'];
-//const protectedRoutesPrefix = "/app";
+const protectedRoutes = ['/user', '/dashboard'];
+//const protectedRoutesPrefix = "/user";
 
 // Define role-protected routes
 const adminRoutes = ['/admin'];

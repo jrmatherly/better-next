@@ -1,4 +1,13 @@
+import type { auth } from '@/lib/auth/server';
 import type { ReactNode } from 'react';
+
+/**
+ * Inferred Session type directly from BetterAuth
+ * This provides the most accurate and up-to-date session type definition
+ */
+export type InferredSession = typeof auth.$Infer.Session;
+/* export type InferredActiveOrganization = typeof authClient.$Infer.ActiveOrganization;
+export type InferredInvitation = typeof authClient.$Infer.Invitation; */
 
 /**
  * Session data structure explicitly defined for clarity
@@ -117,6 +126,7 @@ export interface User {
   isImpersonating?: boolean;
   originalRoles?: string[];
   groups?: string[];
+  emailVerified: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -167,7 +177,7 @@ export interface RoleAccessProps {
    * If false (default), nothing is rendered during loading
    */
   showLoadingSkeleton?: boolean;
-  
+
   /**
    * If true, shows the fallback content during loading
    * If false, nothing is rendered during loading
@@ -245,13 +255,13 @@ export interface ProtectOptions {
    * Default: '/unauthorized'
    */
   redirectTo?: string;
-  
+
   /**
    * If true, requires all specified roles instead of any one of them
    * Default: false
    */
   requireAll?: boolean;
-  
+
   /**
    * Optional message to display instead of redirecting
    */

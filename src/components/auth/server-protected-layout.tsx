@@ -50,7 +50,7 @@ export const ServerProtectedLayout: FC<ProtectedLayoutProps> = ({
       const hasRoles = requireAll
         ? allowedRoles.length === 1 && user.role === allowedRoles[0]
         : allowedRoles.length === 0 || allowedRoles.includes(user.role);
-      
+
       setHasRequiredRoles(hasRoles);
     } else {
       setHasRequiredRoles(false);
@@ -103,8 +103,8 @@ export const ServerProtectedLayout: FC<ProtectedLayoutProps> = ({
             <AlertDescription>{unauthorizedMessage}</AlertDescription>
           </Alert>
           <div className="flex justify-center">
-            <Button onClick={() => router.push('/app')}>
-              Back to Dashboard
+            <Button onClick={() => router.push('/user/profile')}>
+              Back to User Profile
             </Button>
           </div>
         </div>
