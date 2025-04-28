@@ -119,7 +119,7 @@ export function withRoleProtection<T>(
     
     // Not authenticated, redirect to sign in
     if (!session?.user) {
-      redirect('/api/auth/signin');
+      redirect('/login');
     }
     
     // Check if user has the required roles

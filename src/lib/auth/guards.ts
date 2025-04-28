@@ -79,7 +79,7 @@ export async function requireRole(
 
   // Not authenticated - redirect to sign in
   if (!session?.user) {
-    const signInUrl = new URL('/api/auth/signin', req.url);
+    const signInUrl = new URL('/login', req.url);
     signInUrl.searchParams.set('callbackUrl', req.nextUrl.pathname);
     return NextResponse.redirect(signInUrl);
   }
@@ -132,7 +132,7 @@ export function withRoleGuard(allowedRoles: string[], requireAll = false) {
 
 /**
  * Higher-order component for protecting server components with role-based access control
- * 
+ *
  * @param Component - The server component to protect
  * @param allowedRoles - Roles that are allowed to access the component
  * @param options - Optional configuration
@@ -160,7 +160,7 @@ export function withRoleProtection<P extends object>(
 
     // Not authenticated - redirect to sign in
     if (!session?.user) {
-      redirect('/api/auth/signin');
+      redirect('/login');
     }
 
     // Check if user has required roles

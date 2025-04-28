@@ -24,7 +24,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -45,19 +44,35 @@ const data = {
     },
     {
       title: 'Settings',
-      url: '#/user/settings',
+      url: '#/',
       icon: Settings2,
       items: [
         {
           title: 'API Keys',
           url: '/user/settings/api-keys',
         },
-        /* {
-          title: 'Password and security',
-          url: '#/user/settings/password-and-security',
-        }, */
       ],
     },
+    /* {
+      title: 'NEW LINK HERE',
+      url: '/url-here',
+      icon: SquareTerminal,
+    }, */
+    /* {
+      title: 'NEW NESTED DROPDOWN HEERE',
+      url: '#/',
+      icon: Settings2,
+      items: [
+        {
+          title: 'LINK1',
+          url: '/url-here',
+        },
+        {
+          title: 'LINK2',
+          url: '/url-here',
+        },
+      ],
+    }, */
   ],
   navSecondary: [
     {
@@ -103,57 +118,71 @@ export function UserSidebar({ session, ...props }: UserSidebarProps) {
             Platform
           </SidebarGroupLabel>
           <SidebarMenu>
-            {data.navMain.map(item => (
-              <Collapsible
-                asChild
-                key={item.title}
-                open={
-                  path === item.url ||
-                  item.items?.some(subItem => path === subItem.url)
-                }
-              >
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.title}
-                    isActive={path === item.url}
-                    className="text-foreground/80 hover:text-foreground"
-                  >
-                    <Link href={item.url}>
-                      <item.icon className="opacity-80" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                  {item.items?.length ? (
-                    <>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuAction className="data-[state=open]:rotate-90 text-muted-foreground">
-                          <ChevronRight />
-                          <span className="sr-only">Toggle</span>
-                        </SidebarMenuAction>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.items?.map(subItem => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={path === subItem.url}
-                                className="text-foreground/80 hover:text-foreground"
-                              >
-                                <Link href={subItem.url}>
-                                  <span>{subItem.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </>
-                  ) : null}
-                </SidebarMenuItem>
-              </Collapsible>
-            ))}
+            {data.navMain.map(item => {
+              // Check if this is a dropdown parent (has items)
+              const hasDropdown = Boolean(item.items && item.items.length > 0);
+
+              return (
+                <Collapsible
+                  key={item.title}
+                  defaultOpen={item.items?.some(
+                    subItem => path === subItem.url
+                  )}
+                  className="w-full"
+                >
+                  <SidebarMenuItem className="w-full">
+                    {hasDropdown ? (
+                      <>
+                        <CollapsibleTrigger asChild className="w-full">
+                          <SidebarMenuButton
+                            tooltip={item.title}
+                            isActive={item.items?.some(
+                              subItem => path === subItem.url
+                            )}
+                            className="text-foreground/80 hover:text-foreground w-full justify-between group"
+                          >
+                            <div className="flex items-center">
+                              <item.icon className="opacity-80" />
+                              <span>{item.title}</span>
+                            </div>
+                            <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-90" />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="w-full">
+                          <SidebarMenuSub>
+                            {item.items?.map(subItem => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={path === subItem.url}
+                                  className="text-foreground/80 hover:text-foreground"
+                                >
+                                  <Link href={subItem.url}>
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </>
+                    ) : (
+                      <SidebarMenuButton
+                        asChild
+                        tooltip={item.title}
+                        isActive={path === item.url}
+                        className="text-foreground/80 hover:text-foreground"
+                      >
+                        <Link href={item.url}>
+                          <item.icon className="opacity-80" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    )}
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            })}
           </SidebarMenu>
         </SidebarGroup>
         <SidebarGroup className="mt-auto">

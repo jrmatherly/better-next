@@ -27,7 +27,7 @@ This single route handler will handle all BetterAuth API endpoints under the `/a
 
 #### Sign In
 
-- **URL**: `/api/auth/signin`
+- **URL**: `/login`
 - **Method**: `POST`
 - **Request Body**:
 
@@ -70,7 +70,7 @@ This single route handler will handle all BetterAuth API endpoints under the `/a
 
 #### Sign Up
 
-- **URL**: `/api/auth/signup`
+- **URL**: `/sign-up`
 - **Method**: `POST`
 - **Request Body**:
 

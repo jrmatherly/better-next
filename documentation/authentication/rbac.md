@@ -417,7 +417,7 @@ export async function requireRole(
   
   // Not authenticated - redirect to sign in
   if (!session?.user) {
-    const signInUrl = new URL('/api/auth/signin', req.url);
+    const signInUrl = new URL('/login', req.url);
     signInUrl.searchParams.set('callbackUrl', req.nextUrl.pathname);
     return NextResponse.redirect(signInUrl);
   }

@@ -22,7 +22,7 @@ export const metadata: Metadata = {
 
 /**
  * Admin page for managing user impersonation
- * Protected for admin and security roles only
+ * Protected for admin roles only
  * Provides interface to select users and start impersonation
  */
 export default async function ImpersonationPage() {
@@ -33,13 +33,16 @@ export default async function ImpersonationPage() {
 
   // Redirect if not authenticated or no admin/security role
   if (!session?.user) {
-    redirect('/api/auth/signin');
+    redirect('/login');
   }
 
   // Use hasAnyRole to check if user has any of the specified admin roles
   if (
     !session.user.role ||
-    !hasAnyRole([session.user.role as Role], [ROLES.ADMIN, ROLES.SECURITY])
+    !hasAnyRole(
+      [session.user.role as Role],
+      [ROLES.ADMIN /* , ROLES.SECURITY */]
+    )
   ) {
     redirect('/unauthorized');
   }

@@ -1,7 +1,7 @@
-import SignUpForm from '@/app/(auth-api)/sign-up/sign-up-form';
 import { Spinner } from '@/components/ui/spinner';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import SignUpForm from './sign-up-form';
 
 export const metadata: Metadata = {
   title: 'Sign Up',

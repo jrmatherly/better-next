@@ -107,7 +107,7 @@ export const {
 
 ### Create Auth API Route Handler
 
-Create a route handler at `/app/api/auth/[...better-auth]/route.ts`:
+Create a route handler at `/app/api/auth/[...all]/route.ts`:
 
 ```typescript
 import { createNextAppRouter } from 'better-auth/integrations/next';
