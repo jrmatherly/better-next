@@ -1,4 +1,4 @@
-import UserCard from '@/components/user/user-card';
+import UserCard from '@/components/auth/user/user-card';
 import { auth } from '@/lib/auth/server';
 import { authLogger } from '@/lib/logger';
 import { headers } from 'next/headers';

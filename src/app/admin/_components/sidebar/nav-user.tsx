@@ -8,7 +8,7 @@ import {
   /* UserIcon, */
 } from 'lucide-react';
 
-import LogoutButton from '@/components/logout-button';
+import LogoutButton from '@/components/auth/logout-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -87,7 +87,9 @@ export function NavUser({ session }: NavUserProps) {
                   <span className="truncate font-semibold text-foreground">
                     {session.user.name || 'User'}
                   </span>
-                  <span className="truncate text-xs text-muted-foreground">{session.user.email}</span>
+                  <span className="truncate text-xs text-muted-foreground">
+                    {session.user.email}
+                  </span>
                   <span className="truncate text-xs bg-green-600 text-white px-2 py-0.5 rounded-full w-fit flex items-center gap-1 mt-0.5">
                     {session.user.role}
                   </span>

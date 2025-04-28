@@ -1,11 +1,11 @@
 import '../styles/globals.css';
-import { ImpersonationBanner } from '@/components/admin/impersonation-banner';
-import { ThemeProvider } from '@/components/theme-provider';
+import { ImpersonationBanner } from '@/components/auth/admin/impersonation-banner';
 import { Toaster } from '@/components/ui/sonner';
 import { getServerSession } from '@/lib/auth/guards';
 import { createMetadata } from '@/lib/metadata';
 import { APP_NAME } from '@/lib/settings';
 import { Wrapper, WrapperWithQuery } from '@/providers/query-provider';
+import { ThemeProvider } from '@/providers/theme-provider';
 import Analytics from '@/script/analytics';
 import type { BetterAuthSession } from '@/types/auth';
 import React from 'react';

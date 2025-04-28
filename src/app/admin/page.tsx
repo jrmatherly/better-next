@@ -1,5 +1,5 @@
-import { UserManagement } from '@/components/admin/user-management';
-import { UserStatsPanel } from '@/components/admin/user-stats-panel';
+import { UserManagement } from '@/components/auth/admin/user-management';
+import { UserStatsPanel } from '@/components/auth/admin/user-stats-panel';
 import {
   Card,
   CardContent,

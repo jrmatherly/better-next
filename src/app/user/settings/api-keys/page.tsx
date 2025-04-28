@@ -1,4 +1,4 @@
-import { ApiKeyManager } from '@/components/api-keys/api-key-manager';
+import { ApiKeyManager } from '@/components/auth/api-keys/api-key-manager';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {

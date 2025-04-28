@@ -1,4 +1,4 @@
-import { ImpersonateButton } from '@/components/admin/impersonate-button';
+import { ImpersonateButton } from '@/components/auth/admin/impersonate-button';
 import {
   Card,
   CardContent,

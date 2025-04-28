@@ -1,6 +1,6 @@
 import MobileNav from '@/app/(public)/_components/mobile-nav';
+import LogoutButton from '@/components/auth/logout-button';
 import Logo from '@/components/logo';
-import LogoutButton from '@/components/logout-button';
 import { ModeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';

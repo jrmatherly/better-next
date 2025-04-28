@@ -1,4 +1,4 @@
-import { JwtDebugger } from '@/components/jwt/jwt-debugger';
+import { JwtDebugger } from '@/components/auth/jwt/jwt-debugger';
 import {
   Card,
   CardContent,
