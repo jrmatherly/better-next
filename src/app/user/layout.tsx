@@ -7,20 +7,20 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { auth } from '@/lib/auth/server';
+import { withAuthProtection } from '@/lib/auth/protect-server';
+import { getServerSession } from '@/lib/auth/guards';
 import type { BetterAuthSession } from '@/types/auth.d';
-import { headers } from 'next/headers';
 import React from 'react';
 
-export default async function DashboardLayout({
+/**
+ * Layout wrapper for the user section that ensures only authenticated users can access these pages
+ */
+function UserLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
   return (
     <SidebarProvider>
-      <UserSidebar session={session as BetterAuthSession} />
+      <UserSidebarWrapper />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 w-full shrink-0 items-center justify-between gap-2 border-b border-border bg-background/80 backdrop-blur-sm px-4">
           <div className="flex items-center gap-3">
@@ -39,3 +39,19 @@ export default async function DashboardLayout({
     </SidebarProvider>
   );
 }
+
+/**
+ * Wrapper component to fetch session and pass it to UserSidebar
+ * This allows us to handle async operations separately from the main layout
+ */
+async function UserSidebarWrapper() {
+  // Get the user's session
+  const session = await getServerSession();
+  return <UserSidebar session={session as BetterAuthSession} />;
+}
+
+// Apply authentication protection to the layout
+export default withAuthProtection(UserLayout, {
+  redirectTo: '/unauthorized',
+  fallbackMessage: "You need to be logged in to access the user dashboard."
+});

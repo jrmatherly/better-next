@@ -61,7 +61,7 @@ function getErrorMessage(error: unknown): string {
   return 'An unexpected error occurred';
 }
 
-export default function AdminDashboard() {
+export default function AdminPage() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
     try {
       await authClient.admin.impersonateUser({ userId: id });
       toast.success('Impersonated user');
-      router.push('/dashboard');
+      router.push('/user/profile');
       //router.push('/');
     } catch (error) {
       toast.error(getErrorMessage(error) || 'Failed to impersonate user');

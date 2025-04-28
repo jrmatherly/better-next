@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 
-import { NavUser } from '@/app/user/_components/sidebar/nav-user';
+import { NavUser } from '@/app/admin/_components/sidebar/nav-user';
 import {
   Collapsible,
   CollapsibleContent,
@@ -39,22 +39,31 @@ import { usePathname } from 'next/navigation';
 const data = {
   navMain: [
     {
-      title: 'Profile',
-      url: '/user/profile',
+      title: 'Dashboard',
+      url: '/admin',
       icon: SquareTerminal,
     },
+    /* {
+      title: 'User Management',
+      url: '/admin',
+      icon: SquareTerminal,
+    }, */
     {
-      title: 'Settings',
-      url: '#/user/settings',
+      title: 'Admin Tools',
+      url: '/admin/tools/jwt',
       icon: Settings2,
       items: [
         {
-          title: 'API Keys',
-          url: '/user/settings/api-keys',
+          title: 'Admin Tools - JWT',
+          url: '/admin/tools/jwt',
+        },
+        {
+          title: 'Impersonate User',
+          url: '#/admin/impersonation',
         },
         /* {
-          title: 'Password and security',
-          url: '#/user/settings/password-and-security',
+          title: 'Admin Settings - API Keys',
+          url: '/admin/settings/api-keys',
         }, */
       ],
     },
@@ -67,10 +76,10 @@ const data = {
     },
   ],
 };
-interface UserSidebarProps extends React.ComponentProps<typeof Sidebar> {
+interface AdminSidebarProps extends React.ComponentProps<typeof Sidebar> {
   session: BetterAuthSession | null;
 }
-export function UserSidebar({ session, ...props }: UserSidebarProps) {
+export function AdminSidebar({ session, ...props }: AdminSidebarProps) {
   const path = usePathname();
   if (!session) return <div>Loading...</div>;
   return (

@@ -31,6 +31,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useApiKeys } from '@/hooks/use-api-keys';
+import { apiLogger } from '@/lib/logger';
 import type { ApiKey, ApiKeyCreateParams } from '@/types/plugins';
 import { formatDistanceToNow } from 'date-fns';
 import { AlertTriangle, Copy } from 'lucide-react';
@@ -49,7 +50,17 @@ export const ApiKeyManager: FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  /**
+   * Fetch API keys when the component mounts and refresh when triggered
+   *
+   * Note: We're splitting this into two separate effects:
+   * 1. Initial fetch on mount with getKeys dependency
+   * 2. Refreshes based on the refreshTrigger state
+   *
+   * This avoids the lint warning about unnecessary dependencies.
+   */
   useEffect(() => {
     const fetchKeys = async () => {
       const fetchedKeys = await getKeys();
@@ -57,7 +68,20 @@ export const ApiKeyManager: FC = () => {
     };
 
     fetchKeys();
-  }, [getKeys]);
+  }, [getKeys]); // This effect depends only on getKeys
+
+  // Separate effect to handle manual refreshes
+  useEffect(() => {
+    // Skip the initial render (when refreshTrigger is 0)
+    if (refreshTrigger === 0) return;
+
+    const fetchKeys = async () => {
+      const fetchedKeys = await getKeys();
+      setKeys(fetchedKeys);
+    };
+
+    fetchKeys();
+  }, [refreshTrigger, getKeys]); // This effect triggers on refreshTrigger changes
 
   const handleCreateKey = async () => {
     if (!newKeyName.trim()) {
@@ -74,10 +98,20 @@ export const ApiKeyManager: FC = () => {
 
     const newKey = await createKey(params);
 
+    // Log the result to help with debugging
+    apiLogger.info('New key created:', newKey);
+
     if (newKey?.value) {
+      // Set the key value to display in the dialog
       setNewKeyValue(newKey.value);
-      setKeys([...keys, newKey]);
+      // Don't close the dialog - we want to show the key
+      setRefreshTrigger(prev => prev + 1);
       setNewKeyName('');
+    } else {
+      // If no key value, something went wrong with the key creation
+      toast.error(
+        'Created API key but no key value was returned. Please try again.'
+      );
     }
 
     setIsCreating(false);
@@ -85,11 +119,25 @@ export const ApiKeyManager: FC = () => {
 
   const handleDeleteKey = async (keyId: string) => {
     setIsDeleting(keyId);
-    const success = await deleteKey(keyId);
-    if (success) {
-      setKeys(keys.filter(key => key.id !== keyId));
+    try {
+      apiLogger.debug(`Attempting to delete API key with ID: ${keyId}`);
+      const success = await deleteKey(keyId);
+      if (success) {
+        setKeys(prevKeys => prevKeys.filter(key => key.id !== keyId));
+        apiLogger.debug(`API key deleted successfully: ${keyId}`);
+        // Don't need toast here since it's handled in the hook
+        setTimeout(() => {
+          setRefreshTrigger(prev => prev + 1);
+        }, 500);
+      } else {
+        apiLogger.warn(`API key deletion returned false for ID: ${keyId}`);
+        // Don't need toast here since it's handled in the hook
+      }
+    } catch (error) {
+      apiLogger.error(`Error when deleting API key ${keyId}:`, error);
+    } finally {
+      setIsDeleting(null);
     }
-    setIsDeleting(null);
   };
 
   const handleCopyKey = (keyValue: string) => {
@@ -129,7 +177,13 @@ export const ApiKeyManager: FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {keys.length === 0 ? (
+              {!Array.isArray(keys) ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center py-8">
+                    Error loading API keys. Please try again.
+                  </TableCell>
+                </TableRow>
+              ) : keys.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={4} className="text-center py-8">
                     No API keys found. Create one to get started.
@@ -138,7 +192,14 @@ export const ApiKeyManager: FC = () => {
               ) : (
                 keys.map(key => (
                   <TableRow key={key.id}>
-                    <TableCell className="font-medium">{key.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {key.name}
+                      {(key.prefix || key.start) && (
+                        <span className="ml-2 text-xs text-muted-foreground font-mono">
+                          {key.prefix || key.start}...
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       {formatDistanceToNow(new Date(key.createdAt), {
                         addSuffix: true,

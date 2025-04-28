@@ -100,7 +100,7 @@ export interface ApiKeyClientMethods {
   create?(
     params?: ApiKeyClientCreateParams,
     options?: FetchOptions
-  ): Promise<ApiKey>;
+  ): Promise<{ data: ApiKey; error: Error | null }>;
   
   /**
    * List API keys
@@ -108,15 +108,15 @@ export interface ApiKeyClientMethods {
   list?(
     params?: Record<string, unknown>,
     options?: FetchOptions
-  ): Promise<ApiKey[]>;
+  ): Promise<{ data: ApiKey[]; error: Error | null }>;
   
   /**
-   * Remove an API key
+   * Delete an API key
    */
-  remove?(
-    id: string,
+  delete?(
+    params: { keyId: string },
     options?: FetchOptions
-  ): Promise<void>;
+  ): Promise<{ data: { success: boolean }; error: Error | null }>;
   
   /**
    * Validate an API key
@@ -124,7 +124,7 @@ export interface ApiKeyClientMethods {
   validate?(
     key: string,
     options?: FetchOptions
-  ): Promise<boolean>;
+  ): Promise<{ valid: boolean; error: { message: string; code: string } | null; key: Omit<ApiKey, "value"> | null }>;
 }
 
 /**
@@ -159,9 +159,24 @@ export interface ApiKey {
   name: string;
   
   /**
-   * The actual API key value (only returned upon creation)
+   * The actual API key value - referred to as 'key' in some BetterAuth responses
    */
   value?: string;
+  
+  /**
+   * Alternative field name used in some BetterAuth responses
+   */
+  key?: string;
+  
+  /**
+   * Prefix displayed to identify the API key
+   */
+  prefix?: string;
+  
+  /**
+   * Beginning portion of the key used for visual identification
+   */
+  start?: string;
   
   /**
    * When the API key was created
@@ -192,6 +207,41 @@ export interface ApiKey {
    * Optional permissions associated with the API key
    */
   permissions?: Record<string, string[]>;
+  
+  /**
+   * Whether the API key is enabled
+   */
+  enabled?: boolean;
+  
+  /**
+   * Remaining uses for the API key
+   */
+  remaining?: number | null;
+  
+  /**
+   * Amount to refill the API key by
+   */
+  refillAmount?: number | null;
+  
+  /**
+   * Interval to refill the API key
+   */
+  refillInterval?: number | null;
+  
+  /**
+   * Whether rate limiting is enabled for the API key
+   */
+  rateLimitEnabled?: boolean;
+  
+  /**
+   * Time window for rate limiting
+   */
+  rateLimitTimeWindow?: number;
+  
+  /**
+   * Maximum rate limit
+   */
+  rateLimitMax?: number;
 }
 
 /**

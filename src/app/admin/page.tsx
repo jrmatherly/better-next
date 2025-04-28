@@ -1,4 +1,5 @@
 import { UserManagement } from '@/components/admin/user-management';
+import { UserStatsPanel } from '@/components/admin/user-stats-panel';
 import {
   Card,
   CardContent,
@@ -36,17 +37,7 @@ export default function AdminDashboardPage() {
         </TabsContent>
 
         <TabsContent value="stats" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>System Statistics</CardTitle>
-              <CardDescription>
-                Overview of system usage and activity
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p>Statistics coming soon...</p>
-            </CardContent>
-          </Card>
+          <UserStatsPanel />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-4">

@@ -54,8 +54,8 @@ export function useImpersonation(): UseImpersonationReturn {
         description: 'You are now viewing the application as the selected user',
       });
 
-      // Redirect to dashboard and refresh routes
-      router.push('/dashboard');
+      // Redirect to user profile and refresh routes
+      router.push('/user/profile');
       router.refresh();
     } catch (error) {
       toast.error('Impersonation failed', {

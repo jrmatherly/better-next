@@ -16,8 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { auth } from '@/lib/auth/server';
 import {
-  CogIcon,
-  /* HomeIcon, */ LockIcon,
+  /* CogIcon,
+  HomeIcon, LockIcon, */
   LogOut,
   UserIcon,
 } from 'lucide-react';
@@ -125,7 +125,7 @@ export default async function Header() {
                     </Link>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
+                  {/* <DropdownMenuGroup>
                     <Link href="/user/settings">
                       <DropdownMenuItem>
                         <CogIcon />
@@ -145,7 +145,7 @@ export default async function Header() {
                       </DropdownMenuItem>
                     </Link>
                   </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator /> */}
                   <LogoutButton>
                     <DropdownMenuItem>
                       <LogOut />
