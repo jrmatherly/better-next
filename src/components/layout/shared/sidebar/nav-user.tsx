@@ -1,19 +1,12 @@
 'use client';
 
-import {
-  ChevronsUpDown,
-  /* CogIcon,
-  LockIcon, */
-  LogOut,
-  /* UserIcon, */
-} from 'lucide-react';
+import { ChevronsUpDown, LogOut } from 'lucide-react';
 
 import LogoutButton from '@/components/auth/logout-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  /* DropdownMenuGroup, */
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -26,16 +19,23 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import type { Session } from '@/types/auth';
-/* import Link from 'next/link'; */
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import * as React from 'react';
 
 interface NavUserProps {
+  /** User session data */
   session: Session | null;
 }
+
+/**
+ * User navigation component used in sidebar footer
+ * Displays user profile and logout options
+ */
 export function NavUser({ session }: NavUserProps) {
   const { isMobile } = useSidebar();
+
   if (!session) return null;
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -101,7 +101,7 @@ export function NavUser({ session }: NavUserProps) {
             <LogoutButton>
               <DropdownMenuItem className="text-foreground hover:text-foreground focus:text-foreground hover:bg-accent focus:bg-accent">
                 <LogOut className="mr-2 size-4 text-muted-foreground" />
-                Log out
+                <span>Logout</span>
               </DropdownMenuItem>
             </LogoutButton>
           </DropdownMenuContent>

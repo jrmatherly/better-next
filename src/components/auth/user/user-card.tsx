@@ -77,7 +77,9 @@ export default function UserCard(props: {
   return (
     <Card className="border-border bg-card/60 backdrop-blur-sm">
       <CardHeader>
-        <CardTitle className="text-xl font-medium text-foreground">User</CardTitle>
+        <CardTitle className="text-xl font-medium text-foreground">
+          User Profile
+        </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-8 grid-cols-1">
         <div className="flex flex-col gap-2">
@@ -99,8 +101,10 @@ export default function UserCard(props: {
                     {session?.user?.name}
                   </p>
                 </div>
-                <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
-                <Badge 
+                <p className="text-sm text-muted-foreground">
+                  {session?.user?.email}
+                </p>
+                <Badge
                   variant="secondary"
                   className="mt-1 text-xs px-2 py-0.5 bg-green-600 hover:bg-green-700 text-white inline-flex items-center gap-1 w-fit rounded-full"
                 >
@@ -117,7 +121,9 @@ export default function UserCard(props: {
           'emailVerified' in session.user &&
           session.user.emailVerified === false && (
             <Alert className="border border-amber-500/20 bg-amber-500/10">
-              <AlertTitle className="font-semibold text-amber-400">Verify Your Email Address</AlertTitle>
+              <AlertTitle className="font-semibold text-amber-400">
+                Verify Your Email Address
+              </AlertTitle>
               <AlertDescription className="text-amber-200/90">
                 Please verify your email address. Check your inbox for the
                 verification email. If you haven't received the email, click the
@@ -158,7 +164,9 @@ export default function UserCard(props: {
           )}
 
         <div className="border-l-2 border-l-border px-4 w-max gap-1 flex flex-col">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Active Sessions</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">
+            Active Sessions
+          </p>
           {props.activeSessions
             .filter(sessionItem => sessionItem?.userAgent)
             .map(sessionItem => {
@@ -176,7 +184,8 @@ export default function UserCard(props: {
                         )}
                       </span>
                       <span>
-                        {new UAParser(sessionItem.userAgent || '').getOS().name},{' '}
+                        {new UAParser(sessionItem.userAgent || '').getOS().name}
+                        ,{' '}
                         {
                           new UAParser(sessionItem.userAgent || '').getBrowser()
                             .name
@@ -190,8 +199,8 @@ export default function UserCard(props: {
                         }
                         size="sm"
                         className={`ml-auto rounded-full transition-all shadow-sm ${
-                          sessionItem.id === props.session?.session?.id 
-                            ? 'bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 min-w-[90px] flex items-center justify-center' 
+                          sessionItem.id === props.session?.session?.id
+                            ? 'bg-orange-500 hover:bg-orange-600 text-white font-medium px-4 min-w-[90px] flex items-center justify-center'
                             : 'text-red-600 hover:text-red-700 border-red-200'
                         }`}
                         onClick={async () => {
@@ -238,7 +247,7 @@ export default function UserCard(props: {
               await authClient.admin.stopImpersonating();
               setIsSignOut(false);
               toast.info('Impersonation stopped successfully');
-              router.push('/admin');
+              router.push('/admin/dashboard');
             }}
             disabled={isSignOut}
           >

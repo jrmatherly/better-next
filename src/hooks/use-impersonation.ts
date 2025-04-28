@@ -87,7 +87,7 @@ export function useImpersonation(): UseImpersonationReturn {
       });
 
       // Redirect to admin dashboard and refresh routes
-      router.push('/admin');
+      router.push('/admin/dashboard');
       router.refresh();
     } catch (error) {
       toast.error('Error ending impersonation', {

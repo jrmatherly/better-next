@@ -1,5 +1,5 @@
-import BreadcrumbDasboard from '@/app/admin/_components/breadcrumb';
-import { AdminSidebar } from '@/app/admin/_components/sidebar';
+import SharedBreadcrumb from '@/components/layout/shared/breadcrumb';
+import { AdminSidebarWrapper } from '@/components/layout/shared/admin-sidebar-wrapper';
 import { ModeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -20,13 +20,13 @@ import type { ReactNode } from 'react';
 function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
-      <AdminSidebarWrapper />
+      <AdminSidebarSessionFetcher />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 w-full shrink-0 items-center justify-between gap-2 border-b border-border bg-background/80 backdrop-blur-sm px-4">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="h-5 bg-border/50" />
-            <BreadcrumbDasboard />
+            <SharedBreadcrumb section="admin" />
           </div>
           <div className="flex items-center gap-3">
             <ModeToggle />
@@ -41,13 +41,13 @@ function AdminLayout({ children }: { children: ReactNode }) {
 }
 
 /**
- * Wrapper component to fetch session and pass it to UserSidebar
+ * Wrapper component to fetch session and pass it to AdminSidebar
  * This allows us to handle async operations separately from the main layout
  */
-async function AdminSidebarWrapper() {
+async function AdminSidebarSessionFetcher() {
   // Get the user's session
   const session = await getServerSession();
-  return <AdminSidebar session={session as BetterAuthSession} />;
+  return <AdminSidebarWrapper session={session as BetterAuthSession} />;
 }
 
 // Apply admin-only protection to the layout

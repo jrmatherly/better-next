@@ -1,5 +1,5 @@
-import BreadcrumbDasboard from '@/app/user/_components/breadcrumb';
-import { UserSidebar } from '@/app/user/_components/sidebar';
+import SharedBreadcrumb from '@/components/layout/shared/breadcrumb';
+import { UserSidebarWrapper } from '@/components/layout/shared/user-sidebar-wrapper';
 import { ModeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -20,13 +20,13 @@ function UserLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <SidebarProvider>
-      <UserSidebarWrapper />
+      <UserSidebarSessionFetcher />
       <SidebarInset>
         <header className="sticky top-0 z-10 flex h-16 w-full shrink-0 items-center justify-between gap-2 border-b border-border bg-background/80 backdrop-blur-sm px-4">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="h-5 bg-border/50" />
-            <BreadcrumbDasboard />
+            <SharedBreadcrumb section="user" />
           </div>
           <div className="flex items-center gap-3">
             <ModeToggle />
@@ -44,10 +44,10 @@ function UserLayout({
  * Wrapper component to fetch session and pass it to UserSidebar
  * This allows us to handle async operations separately from the main layout
  */
-async function UserSidebarWrapper() {
+async function UserSidebarSessionFetcher() {
   // Get the user's session
   const session = await getServerSession();
-  return <UserSidebar session={session as BetterAuthSession} />;
+  return <UserSidebarWrapper session={session as BetterAuthSession} />;
 }
 
 // Apply authentication protection to the layout

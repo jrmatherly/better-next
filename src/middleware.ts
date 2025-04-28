@@ -14,7 +14,7 @@ const publicRoutes = ['/login', '/sign-up'];
 
 // Define protected route patterns
 //const authRoutes = ['/login', '/sign-up'];
-const protectedRoutes = ['/user', '/dashboard'];
+const protectedRoutes = ['/user'];
 //const protectedRoutesPrefix = "/user";
 
 // Define role-protected routes
@@ -28,8 +28,8 @@ const fieldtechRoutes = ['/fieldtech'];
 //const apiImpersonationRoutes = ['/api/impersonation'];
 
 // Plugin-specific routes that require protection
-const apiKeyRoutes = ['/settings/api-keys'];
-const jwtToolsRoutes = ['/tools/jwt'];
+const apiKeyRoutes = ['/user/settings/api-keys'];
+const jwtToolsRoutes = ['/admin/tools/jwt'];
 
 // Helper to check if any route prefix matches the path
 const pathStartsWith = (path: string, prefixes: string[]): boolean => {
