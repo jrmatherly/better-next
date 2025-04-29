@@ -3,12 +3,6 @@ import type { Session } from '@/types/auth';
 import { betterFetch } from '@better-fetch/fetch';
 import { type NextRequest, NextResponse } from 'next/server';
 
-/* import { useServerSession } from '@/hooks/use-server-session'; */
-/* import { useAuthSession } from '@/hooks/use-auth-session'; */
-/* import { getSessionCookie } from 'better-auth/cookies'; */
-/* import { auth } from '@/lib/auth/server';
-import { headers } from 'next/headers'; */
-
 // Define public routes
 const publicRoutes = ['/login', '/sign-up'];
 
@@ -72,13 +66,6 @@ export async function middleware(request: NextRequest) {
   const cookies = request.headers.get('cookie');
 
   const startTime = Date.now();
-
-  // Get session from server hook component
-  /* const session = await useServerSession(); */
-  // Get session from server component
-  /* const session = await auth.api.getSession({
-    headers: await headers(),
-  }); */
 
   const { data: session } = await betterFetch<Session>(
     '/api/auth/get-session',
