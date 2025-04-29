@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth/server';
 import { authLogger } from '@/lib/logger';
 import type { ExtendedSession } from '@/types/auth';
 import { headers } from 'next/headers';
+
 /**
  * Get the server session with proper typing
  */

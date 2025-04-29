@@ -3,7 +3,7 @@
 import { useProfileContext } from '@/hooks/use-profile';
 import { Button, Divider, Input } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const PersonalInfoTab = () => {
   const { profile, updateProfile } = useProfileContext();
@@ -121,10 +121,11 @@ export const PersonalInfoTab = () => {
             errorMessage={errors.firstName}
             variant="bordered"
             classNames={{
-              label: "text-foreground/90 font-medium text-sm mb-1",
-              input: "text-foreground font-medium",
-              inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-              base: "w-full"
+              label: 'text-foreground/90 font-medium text-sm mb-1',
+              input: 'text-foreground font-medium',
+              inputWrapper:
+                'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+              base: 'w-full',
             }}
             startContent={
               <Icon icon="lucide:user" className="text-primary/80" />
@@ -141,10 +142,11 @@ export const PersonalInfoTab = () => {
             errorMessage={errors.lastName}
             variant="bordered"
             classNames={{
-              label: "text-foreground/90 font-medium text-sm mb-1",
-              input: "text-foreground font-medium",
-              inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-              base: "w-full"
+              label: 'text-foreground/90 font-medium text-sm mb-1',
+              input: 'text-foreground font-medium',
+              inputWrapper:
+                'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+              base: 'w-full',
             }}
             startContent={
               <Icon icon="lucide:user" className="text-primary/80" />
@@ -160,14 +162,13 @@ export const PersonalInfoTab = () => {
           isDisabled
           variant="bordered"
           classNames={{
-            label: "text-foreground/90 font-medium text-sm mb-1",
-            input: "text-foreground font-medium",
-            inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-            base: "w-full"
+            label: 'text-foreground/90 font-medium text-sm mb-1',
+            input: 'text-foreground font-medium',
+            inputWrapper:
+              'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+            base: 'w-full',
           }}
-          startContent={
-            <Icon icon="lucide:mail" className="text-primary/80" />
-          }
+          startContent={<Icon icon="lucide:mail" className="text-primary/80" />}
         />
 
         <Input
@@ -177,10 +178,11 @@ export const PersonalInfoTab = () => {
           onValueChange={value => handleChange('phone', value)}
           variant="bordered"
           classNames={{
-            label: "text-foreground/90 font-medium text-sm mb-1",
-            input: "text-foreground font-medium",
-            inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-            base: "w-full"
+            label: 'text-foreground/90 font-medium text-sm mb-1',
+            input: 'text-foreground font-medium',
+            inputWrapper:
+              'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+            base: 'w-full',
           }}
           startContent={
             <Icon icon="lucide:phone" className="text-primary/80" />
@@ -203,10 +205,11 @@ export const PersonalInfoTab = () => {
             onValueChange={value => handleChange('jobTitle', value)}
             variant="bordered"
             classNames={{
-              label: "text-foreground/90 font-medium text-sm mb-1",
-              input: "text-foreground font-medium",
-              inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-              base: "w-full"
+              label: 'text-foreground/90 font-medium text-sm mb-1',
+              input: 'text-foreground font-medium',
+              inputWrapper:
+                'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+              base: 'w-full',
             }}
             startContent={
               <Icon icon="lucide:briefcase" className="text-primary/80" />
@@ -220,10 +223,11 @@ export const PersonalInfoTab = () => {
             onValueChange={value => handleChange('company', value)}
             variant="bordered"
             classNames={{
-              label: "text-foreground/90 font-medium text-sm mb-1",
-              input: "text-foreground font-medium",
-              inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-              base: "w-full"
+              label: 'text-foreground/90 font-medium text-sm mb-1',
+              input: 'text-foreground font-medium',
+              inputWrapper:
+                'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+              base: 'w-full',
             }}
             startContent={
               <Icon icon="lucide:building" className="text-primary/80" />
@@ -238,10 +242,11 @@ export const PersonalInfoTab = () => {
           onValueChange={value => handleChange('location', value)}
           variant="bordered"
           classNames={{
-            label: "text-foreground/90 font-medium text-sm mb-1",
-            input: "text-foreground font-medium",
-            inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-            base: "w-full"
+            label: 'text-foreground/90 font-medium text-sm mb-1',
+            input: 'text-foreground font-medium',
+            inputWrapper:
+              'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+            base: 'w-full',
           }}
           startContent={
             <Icon icon="lucide:map-pin" className="text-primary/80" />

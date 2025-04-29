@@ -1,5 +1,5 @@
-import MobileNav from '@/app/(public)/_components/mobile-nav';
 import LogoutButton from '@/components/auth/logout-button';
+import MobileNav from '@/components/layout/shared/mobile-nav';
 import Logo from '@/components/logo';
 import { ModeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
