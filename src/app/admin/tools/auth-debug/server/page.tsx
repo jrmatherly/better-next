@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getServerSession } from '@/lib/auth/guards';
+import { getRoleBadgeStyles } from '@/lib/role-styles';
 import { cn } from '@/lib/utils';
 import type { BetterAuthSession } from '@/types/auth';
 
@@ -72,26 +73,8 @@ export default async function AuthDebugServerPage() {
               </h3>
               <div className="flex items-center gap-2">
                 <Badge
-                  variant={
-                    session.user.role === 'admin' ? 'destructive' : 'secondary'
-                  }
-                  className={cn(
-                    session.user.role === 'security'
-                      ? 'bg-purple-500'
-                      : session.user.role === 'devops'
-                        ? 'bg-blue-500'
-                        : session.user.role === 'dba'
-                          ? 'bg-green-500'
-                          : session.user.role === 'tcc'
-                            ? 'bg-orange-500'
-                            : session.user.role === 'fieldtech'
-                              ? 'bg-yellow-500'
-                              : session.user.role === 'endpoint'
-                                ? 'bg-pink-500'
-                                : session.user.role === 'collab'
-                                  ? 'bg-teal-500'
-                                  : ''
-                  )}
+                  variant={getRoleBadgeStyles(session.user.role).variant}
+                  className={cn(getRoleBadgeStyles(session.user.role).className)}
                 >
                   {session.user.role}
                 </Badge>

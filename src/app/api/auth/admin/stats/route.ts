@@ -1,4 +1,4 @@
-import { getServerSession } from '@/lib/auth/guards';
+import { getServerSession, hasRequiredRoles } from '@/lib/auth/guards';
 import { apiLogger } from '@/lib/logger';
 import { type UserStats } from '@/types/admin';
 import { NextResponse } from 'next/server';
@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!userSession.user.role?.includes('admin')) {
+    if (!hasRequiredRoles(userSession, ['admin'])) {
       return NextResponse.json(
         { error: 'Forbidden - requires admin role' },
         { status: 403 }

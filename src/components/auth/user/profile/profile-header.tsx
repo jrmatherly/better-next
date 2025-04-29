@@ -49,8 +49,8 @@ export const ProfileHeader = () => {
     <div className="p-8 bg-content1/50 shadow-sm rounded-t-lg border-b border-content3 flex flex-col md:flex-row gap-6 items-center md:items-start">
       <div className="relative group">
         <Avatar
-          src={profile.avatarUrl || undefined}
-          name={`${profile.firstName} ${profile.lastName}`}
+          src={profile?.avatarUrl || undefined}
+          name={`${profile?.firstName || ''} ${profile?.lastName || ''}`}
           className="w-24 h-24 text-large shadow-md"
           isBordered
           color="primary"
@@ -77,10 +77,15 @@ export const ProfileHeader = () => {
 
       <div className="flex flex-col items-center md:items-start">
         <h2 className="text-xl font-semibold text-foreground">
-          {profile.firstName} {profile.lastName}
+          {profile?.firstName || ''} {profile?.lastName || ''}
         </h2>
-        <p className="text-foreground/70 mt-1">{profile.email}</p>
-        <p className="text-foreground/60 text-sm mt-1">Member since {profile.memberSince}</p>
+        <p className="text-foreground/70 mt-1">{profile?.email || ''}</p>
+        <p className="text-foreground/65 text-sm mt-1">
+          User Role: {profile?.role || ''}
+        </p>
+        <p className="text-foreground/60 text-sm mt-1">
+          Member since {profile?.memberSince || ''}
+        </p>
       </div>
     </div>
   );

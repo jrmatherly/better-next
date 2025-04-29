@@ -1,9 +1,9 @@
 'use client';
 
-import { useSession as useBetterAuthSession } from '@/lib/auth/client';
+import { getSession } from '@/lib/auth/client';
 import { type Role } from '@/types/roles';
 import { type ReactNode } from 'react';
-import { createContext, useCallback, useContext } from 'react';
+import { createContext, useCallback, useContext, useState, useEffect } from 'react';
 import type { AuthContextType } from '@/types/plugins';
 import type { User } from '@/types/auth';
 
@@ -25,12 +25,37 @@ const AuthContext = createContext<AuthContextType>({
  * This provider makes all auth functions and plugin features available to child components
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Use the session from BetterAuth client
-  const { data: session, isPending } = useBetterAuthSession();
+  // State for session data
+  const [session, setSession] = useState<{ user?: User | null } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Fetch session data using getSession for better performance
+  useEffect(() => {
+    const fetchSessionData = async () => {
+      try {
+        setIsLoading(true);
+        const result = await getSession();
+        
+        if (result?.data) {
+          setSession({
+            user: result.data.user as User | null
+          });
+        } else {
+          setSession(null);
+        }
+      } catch (error) {
+        console.error('Error fetching auth session:', error);
+        setSession(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchSessionData();
+  }, []);
   
   // Parse auth information into a consistent format
   const isAuthenticated = !!session?.user;
-  const isLoading = isPending;
   const user = session?.user as User | null || null;
   
   // Role-related properties

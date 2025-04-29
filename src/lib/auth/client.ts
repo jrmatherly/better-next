@@ -61,9 +61,6 @@ export const {
   listSessions,
   revokeOtherSessions,
   revokeSessions,
-  /* organization,
-	useListOrganizations,
-	useActiveOrganization, */
 } = authClient;
 
 authClient.$store.listen('$sessionSignal', async () => {});
@@ -84,11 +81,6 @@ export const getJwtClient = (): JwtClientMethods => {
   return (authClient as Record<string, unknown>)
     .jwt as unknown as JwtClientMethods;
 };
-
-/* export const getMultiSessionClient = (): MultiSessionClientMethods => {
-  // @ts-expect-error - Will be properly implemented when plugin is added
-  return authClient.multiSession || {};
-}; */
 
 // Placeholder hooks
 export const useAdmin = () => {

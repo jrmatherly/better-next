@@ -1,6 +1,6 @@
 'use client';
 
-import { updateUser, useSession, getSession } from '@/lib/auth/client';
+import { updateUser, getSession } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import type { Profile, ProfileContextType } from '@/types/profile';
 import { useRouter } from 'next/navigation';
@@ -159,10 +159,10 @@ export function mapSessionToProfile(
   }
 
   return {
-    firstName,
-    lastName,
-    email: user.email,
-    avatarUrl: user.image || existingProfile?.avatarUrl,
+    firstName: firstName || existingProfile?.firstName || '',
+    lastName: lastName || existingProfile?.lastName || '',
+    email: user.email || existingProfile?.email || '',
+    avatarUrl: user.image || existingProfile?.avatarUrl || '',
     memberSince:
       existingProfile?.memberSince ||
       new Date().toLocaleDateString('en-US', {
@@ -183,6 +183,7 @@ export function mapSessionToProfile(
     jobTitle: jobTitle || existingProfile?.jobTitle || '',
     company: company || existingProfile?.company || '',
     location: location || existingProfile?.location || '',
+    role: user.role || existingProfile?.role || '',
   };
 }
 
@@ -193,54 +194,114 @@ export function mapSessionToProfile(
 export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { data: session, isPending } = useSession();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  // Initialize with a default empty profile to prevent null reference errors
+  const [profile, setProfile] = useState<Profile>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    avatarUrl: '',
+    memberSince: new Date().toLocaleDateString('en-US', {
+      month: 'long',
+      year: 'numeric',
+    }),
+    preferences: {
+      emailNotifications: true,
+      marketingEmails: false,
+      securityAlerts: true,
+      productUpdates: true,
+      twoFactorAuth: false,
+      sessionTimeout: false,
+      dataSharing: true,
+    },
+    socialLinks: {},
+    phone: '',
+    jobTitle: '',
+    company: '',
+    location: '',
+    role: '',
+  });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Initialize profile data from session when it becomes available
+  // Initialize profile data from session when component mounts
   useEffect(() => {
-    if (!isPending) {
+    const fetchProfileData = async () => {
+      setIsLoading(true);
+      
       try {
-        // Get session data from the client-side hook
-        if (session) {
-          // For initial quick load, use basic session data from useSession
-          const basicProfile = mapSessionToProfile(session);
-          setProfile(basicProfile);
-          
-          // Then fetch the complete user data using getSession()
-          // This will include all extended fields from the database
-          getSession().then(fullSessionData => {
-            authLogger.debug('Complete session data from getSession():', fullSessionData);
-            
-            // Check for data property structure from BetterAuth's getSession()
-            if (fullSessionData?.data?.user) {
-              // Convert returned data to the expected format for mapSessionToProfile
-              const fullSession = { user: fullSessionData.data.user };
-              
-              // Map the full session data to our profile structure
-              const fullProfile = mapSessionToProfile(fullSession);
-              setProfile(fullProfile);
+        const sessionResult = await getSession();
+        
+        if (sessionResult?.data) {
+          // First set basic profile structure
+          const sessionData = { 
+            user: {
+              ...sessionResult.data.user,
+              // Force profile image property to be properly mapped
+              image: sessionResult.data.user?.image || undefined
             }
-          }).catch(error => {
-            authLogger.error('Error fetching complete session data:', error);
+          };
+          
+          // Map initial basic profile from session data without referencing profile state
+          const initialProfile = mapSessionToProfile(sessionData, {
+            firstName: '',
+            lastName: '',
+            email: '',
+            avatarUrl: '',
+            memberSince: new Date().toLocaleDateString('en-US', {
+              month: 'long',
+              year: 'numeric',
+            }),
+            preferences: {
+              emailNotifications: true,
+              marketingEmails: false,
+              securityAlerts: true,
+              productUpdates: true,
+              twoFactorAuth: false,
+              sessionTimeout: false,
+              dataSharing: true,
+            },
+            socialLinks: {},
+            phone: '',
+            jobTitle: '',
+            company: '',
+            location: '',
+            role: '',
           });
           
-          setError(null);
-        } else {
-          // No session yet, use minimal profile
-          const mappedProfile = mapSessionToProfile(null);
-          setProfile(mappedProfile);
+          setProfile(initialProfile);
+          
+          // Then fetch the complete profile with all extended fields
+          try {
+            const fullSessionData = await getSession();
+            
+            if (fullSessionData?.data?.user) {
+              const fullSession = { 
+                user: {
+                  ...fullSessionData.data.user,
+                  // Ensure image property is properly set
+                  image: fullSessionData.data.user?.image || undefined
+                }
+              };
+              
+              // Map full profile based on the full session data
+              const fullProfile = mapSessionToProfile(fullSession, initialProfile);
+              setProfile(fullProfile);
+            }
+          } catch (err) {
+            authLogger.error('Error fetching full session data', err);
+          }
         }
       } catch (err) {
-        setError('Failed to load profile data');
-        authLogger.error('Profile mapping error:', err);
+        authLogger.error('Error fetching session data', err);
+        setError('Failed to load session data');
       } finally {
         setIsLoading(false);
       }
-    }
-  }, [session, isPending]);
+    };
+
+    fetchProfileData();
+  }, []);
 
   /**
    * Update profile data using BetterAuth's updateUser function
@@ -292,6 +353,10 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
         updateData.location = data.location;
       }
 
+      if (data.role !== undefined) {
+        updateData.role = data.role;
+      }
+
       // Handle complex objects by serializing to JSON strings
       if (data.preferences) {
         updateData.preferences = JSON.stringify(data.preferences);
@@ -304,8 +369,11 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
       // Call updateUser with our prepared data
       await updateUser(updateData, {
         onSuccess: () => {
-          // Update local profile state
-          setProfile(prev => (prev ? { ...prev, ...data } : null));
+          // Update local profile state with merged data
+          setProfile(prev => ({
+            ...prev,
+            ...data
+          }));
           router.refresh();
         },
         onError: err => {

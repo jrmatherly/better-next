@@ -177,7 +177,7 @@ export const authConfig = {
       adminRoles: ['admin'],
       impersonationSessionDuration: 60 * 60, // 1 hour
       impersonationPermission: (user: User & { role?: string }) =>
-        user.role === ROLES.ADMIN /*  || user.role === ROLES.SECURITY */,
+        user.role === ROLES.ADMIN,
     }),
     apiKey(),
     jwt(),

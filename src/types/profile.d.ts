@@ -50,10 +50,12 @@ export const profileSchema = z.object({
   avatarUrl: z.string().optional(),
   /** When the user joined the platform */
   memberSince: z.string(),
-  /** User preference settings */
-  preferences: preferencesSchema.optional(),
-  /** User's social media profile links */
+  /** User's preferences and settings */
+  preferences: z.custom<Preferences>((val) => true).default({}),
+  /** User's connected social accounts */
   socialLinks: z.record(z.string()).optional(),
+  /** User's role in the system */
+  role: z.string().optional(),
 });
 
 /**

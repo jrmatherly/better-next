@@ -4,10 +4,11 @@
  * Custom hook for accessing and managing user profile data
  * Integrates with BetterAuth session and provides profile management functionality
  */
-import { changeEmail, changePassword, useSession } from '@/lib/auth/client';
+import { changeEmail, changePassword, getSession } from '@/lib/auth/client';
 import { ProfileContext } from '@/providers/profile-provider';
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import type { Session } from '@/types/auth';
 
 /**
  * Hook for accessing the profile context
@@ -124,17 +125,45 @@ export const useEmailUpdate = () => {
  * @returns Combined profile and session data with update methods
  */
 export const useProfile = () => {
-  const { data: session, isPending: isSessionLoading } = useSession();
+  const [sessionData, setSessionData] = useState<Session | null>(null);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
   const profileContext = useProfileContext();
   const passwordUpdate = usePasswordUpdate();
   const emailUpdate = useEmailUpdate();
+
+  // Fetch session data using getSession for better performance
+  useEffect(() => {
+    setIsSessionLoading(true);
+    getSession()
+      .then((result) => {
+        if (result?.data) {
+          // Process session data to ensure types match our Session interface
+          // This ensures role is string or undefined, never null
+          const processedData = {
+            ...result.data,
+            user: {
+              ...result.data.user,
+              role: result.data.user?.role || undefined
+            }
+          };
+          setSessionData(processedData as Session);
+        } else {
+          setSessionData(null);
+        }
+        setIsSessionLoading(false);
+      })
+      .catch(() => {
+        setSessionData(null);
+        setIsSessionLoading(false);
+      });
+  }, []);
 
   return {
     // Profile data and updates
     ...profileContext,
 
     // Auth session
-    session,
+    session: sessionData,
     isSessionLoading,
 
     // Password management
