@@ -21,6 +21,14 @@ export const user = pgTable('user', {
   originalRoles: text('original_roles').array(),
   isImpersonating: boolean('is_impersonating'),
   groups: text('groups').array(),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
+  phone: text('phone'),
+  jobTitle: text('job_title'),
+  company: text('company'),
+  location: text('location'),
+  preferences: text('preferences'),
+  socialLinks: text('social_links'),
 });
 
 export const session = pgTable('session', {

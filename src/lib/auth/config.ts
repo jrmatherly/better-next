@@ -126,6 +126,46 @@ export const authConfig = {
         required: false,
         input: false,
       },
+      firstName: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
+      lastName: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
+      phone: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
+      jobTitle: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
+      company: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
+      location: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
+      preferences: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
+      socialLinks: {
+        type: 'string',
+        required: false,
+        input: true,
+      },
     },
   },
   emailAndPassword: {
