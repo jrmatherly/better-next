@@ -1,7 +1,7 @@
 'use client';
 
-import { ROLES, type Role } from '@/types/roles';
 import { useAuth } from '@/providers/auth-provider';
+import { ROLES, type Role } from '@/types/roles';
 import { useCallback } from 'react';
 
 /**
@@ -51,12 +51,12 @@ export function useImpersonationAwareRole() {
   }, [isAuthenticated, user]);
 
   /**
-   * Get the user's original roles (before impersonation)
-   * @returns array of original roles or empty array if not available
+   * Get the user's original role (before impersonation)
+   * @returns the original role string or empty string if not available
    */
-  const getOriginalRoles = useCallback(() => {
-    if (!isAuthenticated || !user) return [];
-    return (user.originalRoles || []) as Role[];
+  const getoriginalRole = useCallback(() => {
+    if (!isAuthenticated || !user) return '';
+    return (user.originalRole || '') as string;
   }, [isAuthenticated, user]);
 
   /**
@@ -75,11 +75,11 @@ export function useImpersonationAwareRole() {
   const isRealAdmin = useCallback((): boolean => {
     if (!isAuthenticated || !user) return false;
 
-    // If impersonating, check original roles, otherwise check current role
-    if (user.isImpersonating && user.originalRoles && user.originalRoles.length > 0) {
-      return user.originalRoles.includes(ROLES.ADMIN);
+    // If impersonating, check original role, otherwise check current role
+    if (user.isImpersonating && user.originalRole) {
+      return user.originalRole === ROLES.ADMIN;
     }
-    
+
     return user.role === ROLES.ADMIN;
   }, [isAuthenticated, user]);
 
@@ -87,7 +87,7 @@ export function useImpersonationAwareRole() {
     hasAnyRole,
     hasAllRoles,
     isImpersonating,
-    getOriginalRoles,
+    getoriginalRole,
     isAdmin,
     isRealAdmin,
   };

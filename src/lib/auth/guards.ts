@@ -1,6 +1,5 @@
 import { authLogger } from '@/lib/logger';
 import type { ExtendedSession } from '@/types/auth.d';
-import type { Role } from '@/types/roles';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
@@ -19,16 +18,13 @@ export async function getServerSession(): Promise<ExtendedSession | null> {
     // If no session, return null
     if (!session) return null;
 
-    // Map the BetterAuth session to include roles
-    // This is safe because we're just adding the roles property if it doesn't exist
+    // Map the BetterAuth session to ensure role property is set
     return {
       ...session,
       user: {
         ...session.user,
-        // Ensure roles property exists, default to empty array if not present
-        roles: Array.isArray((session.user as Record<string, unknown>)?.roles)
-          ? ((session.user as Record<string, unknown>).roles as Role[])
-          : [],
+        // Ensure role property exists, default to user if not present
+        role: (session.user as Record<string, unknown>)?.role as string || 'user',
       },
     } as ExtendedSession;
   } catch (error) {

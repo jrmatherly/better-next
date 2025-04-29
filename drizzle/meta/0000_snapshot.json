@@ -1,5 +1,5 @@
 {
-  "id": "3cf24ef8-7c92-4659-9145-6cc3c07cb188",
+  "id": "1893dea2-518d-4f69-b075-af94920d626c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -458,9 +458,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "original_roles": {
-          "name": "original_roles",
-          "type": "text[]",
+        "original_role": {
+          "name": "original_role",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -473,6 +473,54 @@
         "groups": {
           "name": "groups",
           "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "first_name": {
+          "name": "first_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "last_name": {
+          "name": "last_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "phone": {
+          "name": "phone",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "job_title": {
+          "name": "job_title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "company": {
+          "name": "company",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "location": {
+          "name": "location",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "preferences": {
+          "name": "preferences",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "social_links": {
+          "name": "social_links",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         }

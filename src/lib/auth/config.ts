@@ -110,8 +110,8 @@ export const authConfig = {
       enabled: true,
     },
     additionalFields: {
-      originalRoles: {
-        type: 'string[]',
+      originalRole: {
+        type: 'string',
         required: false,
         input: false,
       },

@@ -7,17 +7,15 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { withAuthProtection } from '@/lib/auth/protect-server';
 import { getServerSession } from '@/lib/auth/guards';
+import { withAuthProtection } from '@/lib/auth/protect-server';
 import type { BetterAuthSession } from '@/types/auth.d';
 import React from 'react';
 
 /**
  * Layout wrapper for the user section that ensures only authenticated users can access these pages
  */
-function UserLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+function UserLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <SidebarProvider>
       <UserSidebarSessionFetcher />
@@ -52,6 +50,6 @@ async function UserSidebarSessionFetcher() {
 
 // Apply authentication protection to the layout
 export default withAuthProtection(UserLayout, {
-  redirectTo: '/unauthorized',
-  fallbackMessage: "You need to be logged in to access the user dashboard."
+  redirectTo: '/login',
+  fallbackMessage: 'You need to be logged in to access the user dashboard.',
 });

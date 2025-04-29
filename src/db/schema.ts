@@ -18,7 +18,7 @@ export const user = pgTable('user', {
   banned: boolean('banned'),
   banReason: text('ban_reason'),
   banExpires: timestamp('ban_expires'),
-  originalRoles: text('original_roles').array(),
+  originalRole: text('original_role'),
   isImpersonating: boolean('is_impersonating'),
   groups: text('groups').array(),
   firstName: text('first_name'),

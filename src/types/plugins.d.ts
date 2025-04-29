@@ -512,4 +512,36 @@ export interface AuthContextType {
    * Error during authentication, if any
    */
   error?: Error | null;
+
+  /**
+   * The user's current role
+   */
+  userRole?: string;
+
+  /**
+   * The user's original role (before impersonation)
+   */
+  originalRole?: string;
+
+  /**
+   * Whether the user is currently impersonating another role
+   */
+  isImpersonating?: boolean;
+
+  /**
+   * Check if the user has a specific role
+   */
+  hasRole?: (role: Role | string) => boolean;
+
+  /**
+   * Check if the user has any of the specified roles
+   */
+  hasAnyRole?: (roles: (Role | string)[]) => boolean;
+
+  /**
+   * Check if the user has all of the specified roles
+   * With singular role model, this is true only if there's exactly one role in the list
+   * and it matches the user's role
+   */
+  hasAllRoles?: (roles: (Role | string)[]) => boolean;
 }

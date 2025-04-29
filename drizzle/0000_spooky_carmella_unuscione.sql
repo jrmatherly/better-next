@@ -70,9 +70,17 @@ CREATE TABLE "user" (
 	"banned" boolean,
 	"ban_reason" text,
 	"ban_expires" timestamp,
-	"original_roles" text[],
+	"original_role" text,
 	"is_impersonating" boolean,
 	"groups" text[],
+	"first_name" text,
+	"last_name" text,
+	"phone" text,
+	"job_title" text,
+	"company" text,
+	"location" text,
+	"preferences" text,
+	"social_links" text,
 	CONSTRAINT "user_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint

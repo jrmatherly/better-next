@@ -91,7 +91,7 @@ export function useRole() {
     endImpersonation,
     isAuthenticated,
     userRole,
-    originalRoles: session?.user?.originalRoles || [],
+    originalRole: session?.user?.originalRole || '',
 
     // Role checking functions
     hasRole: (role: Role | string) => userRole === role,

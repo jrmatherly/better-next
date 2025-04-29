@@ -87,7 +87,7 @@ const configWithCallbacks = {
         | (BetterAuthUser & {
             role?: string;
             isImpersonating?: boolean;
-            originalRoles?: string[];
+            originalRole?: string;
             groups?: string[];
           })
         | null;
@@ -113,7 +113,7 @@ const configWithCallbacks = {
             (group: unknown): group is string => typeof group === 'string'
           ),
           isImpersonating: user.isImpersonating || false, // Impersonation state
-          originalRoles: user.originalRoles || [], // Store original roles for impersonation
+          originalRole: user.originalRole || '', // Store original role for impersonation
         };
       }
 

@@ -104,26 +104,22 @@ export default async function AuthDebugServerPage() {
                   Impersonation Status
                 </h3>
                 <Badge
-                  variant="outline"
                   className="bg-amber-100 text-amber-800 border-amber-300"
                 >
                   Impersonating Role
                 </Badge>
-                {session.user.originalRoles &&
-                  session.user.originalRoles.length > 0 && (
-                    <div className="mt-2">
-                      <h4 className="text-xs text-muted-foreground">
-                        Original Roles:
-                      </h4>
-                      <div className="flex flex-wrap gap-1 mt-1">
-                        {session.user.originalRoles.map(role => (
-                          <Badge key={role} variant="outline">
-                            {role}
-                          </Badge>
-                        ))}
-                      </div>
+                {session.user.originalRole && (
+                  <div className="mt-2">
+                    <h4 className="text-xs text-muted-foreground">
+                      Original Role:
+                    </h4>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <Badge variant="outline">
+                        {session.user.originalRole}
+                      </Badge>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             )}
 

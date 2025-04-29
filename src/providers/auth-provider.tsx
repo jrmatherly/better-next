@@ -1,8 +1,9 @@
 'use client';
 
 import { useSession as useBetterAuthSession } from '@/lib/auth/client';
+import { type Role } from '@/types/roles';
 import { type ReactNode } from 'react';
-import { createContext, useContext } from 'react';
+import { createContext, useCallback, useContext } from 'react';
 import type { AuthContextType } from '@/types/plugins';
 import type { User } from '@/types/auth';
 
@@ -11,6 +12,12 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   user: null,
+  userRole: 'user',
+  originalRole: '',
+  isImpersonating: false,
+  hasRole: () => false,
+  hasAnyRole: () => false,
+  hasAllRoles: () => false,
 });
 
 /**
@@ -26,11 +33,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isLoading = isPending;
   const user = session?.user as User | null || null;
   
+  // Role-related properties
+  const userRole = session?.user?.role || 'user';
+  const originalRole = session?.user?.originalRole || '';
+  const isImpersonating = !!session?.user?.isImpersonating;
+  
+  // Role checking methods
+  const hasRole = useCallback(
+    (role: Role | string) => userRole === role,
+    [userRole]
+  );
+  
+  const hasAnyRole = useCallback(
+    (roles: (Role | string)[]) => roles.includes(userRole as Role | string),
+    [userRole]
+  );
+  
+  const hasAllRoles = useCallback(
+    (roles: (Role | string)[]) => 
+      roles.length === 1 && roles[0] === userRole,
+    [userRole]
+  );
+  
   // Context value with auth state
   const value: AuthContextType = {
     isAuthenticated,
     isLoading,
     user,
+    userRole,
+    originalRole,
+    isImpersonating,
+    hasRole,
+    hasAnyRole,
+    hasAllRoles,
   };
   
   return (

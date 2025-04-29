@@ -37,7 +37,7 @@ export interface BetterAuthSession {
     image?: string | null;
     role?: string;
     isImpersonating?: boolean;
-    originalRoles?: string[];
+    originalRole?: string;
     groups?: string[];
   };
   session?: {
@@ -65,7 +65,7 @@ export interface Session {
     image?: string | null;
     role?: string;
     isImpersonating?: boolean;
-    originalRoles?: string[];
+    originalRole?: string;
     groups?: string[];
   };
   expires?: string;
@@ -108,7 +108,7 @@ export interface AuthToken {
   role?: string;
   groups?: string[];
   isImpersonating?: boolean;
-  originalRoles?: string[];
+  originalRole?: string;
   iat?: number;
   exp?: number;
   jti?: string;
@@ -124,7 +124,7 @@ export interface User {
   image?: string | null;
   role: string;
   isImpersonating?: boolean;
-  originalRoles?: string[];
+  originalRole?: string;
   groups?: string[];
   emailVerified: boolean;
   createdAt?: Date;
@@ -139,11 +139,11 @@ export interface ExtendedSession {
   user: User & {
     role: string;
     groups?: string[];
-    originalRoles?: string[];
+    originalRole?: string;
     isImpersonating?: boolean;
   };
   groups?: string[];
-  originalRoles?: string[];
+  originalRole?: string;
   isImpersonating?: boolean;
 }
 
@@ -273,7 +273,7 @@ declare module '@/lib/auth/server' {
   interface User {
     role: string;
     groups?: string[];
-    originalRoles?: string[];
+    originalRole?: string;
     isImpersonating?: boolean;
   }
 }

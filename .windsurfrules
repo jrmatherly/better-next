@@ -44,9 +44,9 @@ export async function getServerSession() {
 
 ## Role-Based Authorization
 
- • Map social provider claims to application roles
- • Define roles as string literals in TypeScript
- • Check roles server-side in components and actions
+ • Map social provider claims to application role
+ • Define role as string literal in TypeScript
+ • Check role server-side in components and actions
  • Create HOCs for protecting server components
  • Use middleware for route protection
 
@@ -87,7 +87,7 @@ export default withRoleProtection(
 
 ```typescript
 // Conditional rendering based on roles
-{session?.user?.roles?.includes('admin') && (
+{session?.user?.role?.includes('admin') && (
   <AdminPanel />
 )}
 ```
@@ -102,7 +102,7 @@ import { getServerSession } from '@/lib/auth/session';
 export async function adminAction() {
   const session = await getServerSession();
 
-  if (!session?.user?.roles?.includes('admin')) {
+  if (!session?.user?.role?.includes('admin')) {
     throw new Error('Unauthorized');
   }
 
@@ -136,7 +136,7 @@ const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 ```typescript
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (!ctx.user.roles?.includes('admin')) {
+  if (!ctx.user.role?.includes('admin')) {
     throw new TRPCError({ code: 'FORBIDDEN' });
   }
 
@@ -156,9 +156,9 @@ model User {
   image           String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  roles           String[]      // Store roles as string array
+  role            String      // Store role as string
   isImpersonating Boolean?      // For impersonation tracking
-  originalRoles   String[]      // Store original roles during impersonation
+  originalRole    String      // Store original role during impersonation
   sessions        Session[]
 }
 ```
@@ -184,9 +184,9 @@ model Impersonation {
 // src/types/auth.d.ts
 export type ExtendedSession = Session & {
   user: Session['user'] & {
-    roles?: string[];
+    role?: string;
     isImpersonating?: boolean;
-    originalRoles?: string[];
+    originalRole?: string;
   };
 };
 ```
@@ -197,7 +197,7 @@ export type ExtendedSession = Session & {
  ◦ /api/auth/startImpersonation
  ◦ /api/auth/impersonate
  ◦ /api/auth/endImpersonation
- • Store original admin user ID and roles
+ • Store original admin user ID and role
  • Set time-limited impersonation tokens (20 min)
  • Show clear visual indicator during impersonation
  • Open impersonation in a new tab to preserve admin session
@@ -206,11 +206,11 @@ export type ExtendedSession = Session & {
 
  • Validate all user input with Zod
  • Add CSRF protection to all forms
- • Follow principle of least privilege for roles
+ • Follow principle of least privilege for role
  • Implement proper error handling for auth failures
  • Use HTTP-only, secure cookies
  • Store only necessary data in session
- • Validate roles on every protected request
+ • Validate role on every protected request
  • Log authentication events and role changes
  • Return appropriate status codes (401, 403)
 
