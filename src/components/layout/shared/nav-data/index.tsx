@@ -4,7 +4,7 @@ import { adminNavItems } from './admin-links';
 import { supportNavItems } from './support-links';
 import type { NavItemType } from '@/types/navigation';
 import { userNavItems } from './user-links';
-import { useRole } from '@/hooks/use-role';
+import { useAuth } from '@/providers/auth-provider';
 
 /**
  * Hook that provides navigation items based on user role permissions
@@ -15,7 +15,7 @@ export function useNavigation() {
   const { 
     isAuthenticated, 
     hasAnyRole 
-  } = useRole();
+  } = useAuth();
   
   // Include different navigation items based on user's role permissions
   const mainNavItems = [
@@ -23,7 +23,7 @@ export function useNavigation() {
     ...(isAuthenticated ? userNavItems : []),
     
     // Include admin items only if the user has admin role
-    ...(hasAnyRole(['admin']) ? adminNavItems : [])
+    ...(hasAnyRole?.(['admin']) ? adminNavItems : [])
   ];
   
   return {

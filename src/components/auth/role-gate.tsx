@@ -1,4 +1,4 @@
-import { useRole } from '@/hooks/use-role';
+import { useAuth } from '@/providers/auth-provider';
 import { type RoleAccessProps } from '@/types/auth.d';
 
 /**
@@ -21,7 +21,7 @@ export function RoleGate({
   requireAll = false,
   showFallbackOnLoading = true,
 }: RoleAccessProps) {
-  const { isLoading, hasAnyRole, hasAllRoles } = useRole();
+  const { isLoading, hasAnyRole, hasAllRoles } = useAuth();
   
   // Optional handling for loading state
   if (isLoading) {
@@ -30,8 +30,8 @@ export function RoleGate({
   
   // Check permission based on required access pattern
   const hasAccess = requireAll
-    ? hasAllRoles(allowedRoles)
-    : hasAnyRole(allowedRoles);
+    ? hasAllRoles?.(allowedRoles) ?? false
+    : hasAnyRole?.(allowedRoles) ?? false;
     
   // Render based on access check
   return hasAccess ? <>{children}</> : <>{fallback}</>;

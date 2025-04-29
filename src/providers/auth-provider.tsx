@@ -35,8 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   // Role-related properties
   const userRole = session?.user?.role || 'user';
-  const originalRole = session?.user?.originalRole || '';
-  const isImpersonating = !!session?.user?.isImpersonating;
+  // Type safe approach to access extended session properties
+  const originalRole = (session?.user as User & { originalRole?: string })?.originalRole || '';
+  const isImpersonating = !!(session?.user as User & { isImpersonating?: boolean })?.isImpersonating;
   
   // Role checking methods
   const hasRole = useCallback(
