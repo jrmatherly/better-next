@@ -8,7 +8,7 @@ export const ROLES = {
   DBA: 'dba',
   COLLAB: 'collab',
   TCC: 'tcc',
-  FIELDTECH: 'fieldtech', 
+  FIELDTECH: 'fieldtech',
   USER: 'user',
 } as const;
 

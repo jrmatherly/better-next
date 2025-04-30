@@ -29,7 +29,12 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import type { VM } from '@/types/vmware';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CpuIcon, HardDrive, MemoryStick as Memory, Network } from 'lucide-react';
+import {
+  CpuIcon,
+  HardDrive,
+  MemoryStick as Memory,
+  Network,
+} from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -58,17 +63,17 @@ interface VmConfigFormProps {
    * VM to edit, if not provided defaults will be used for a new VM
    */
   vm?: VM;
-  
+
   /**
    * Callback for when the form is submitted
    */
   onSubmitAction: (updatedVm: VM) => void;
-  
+
   /**
    * Callback for when the form is cancelled
    */
   onCancelAction: () => void;
-  
+
   /**
    * Whether the form dialog is open
    */
@@ -129,12 +134,13 @@ export function VmConfigForm({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(open) => !open && onCancelAction()}>
+    <Dialog open={open} onOpenChange={open => !open && onCancelAction()}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit VM Configuration</DialogTitle>
           <DialogDescription>
-            Update the configuration of your virtual machine. Click save when you're done.
+            Update the configuration of your virtual machine. Click save when
+            you're done.
           </DialogDescription>
         </DialogHeader>
 
@@ -277,9 +283,15 @@ export function VmConfigForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Ubuntu 24.04 LTS">Ubuntu 24.04 LTS</SelectItem>
-                      <SelectItem value="Windows Server 2025">Windows Server 2025</SelectItem>
-                      <SelectItem value="RedHat Enterprise Linux 9">RHEL 9</SelectItem>
+                      <SelectItem value="Ubuntu 24.04 LTS">
+                        Ubuntu 24.04 LTS
+                      </SelectItem>
+                      <SelectItem value="Windows Server 2025">
+                        Windows Server 2025
+                      </SelectItem>
+                      <SelectItem value="RedHat Enterprise Linux 9">
+                        RHEL 9
+                      </SelectItem>
                       <SelectItem value="Debian 12">Debian 12</SelectItem>
                       <SelectItem value="macOS Sonoma">macOS Sonoma</SelectItem>
                     </SelectContent>

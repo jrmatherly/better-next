@@ -1,48 +1,48 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { 
-  PlusCircle, 
-  HardDrive, 
-  Database, 
-  Network, 
-  UserPlus, 
-  FileText, 
-  LifeBuoy
-} from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Database,
+  FileText,
+  HardDrive,
+  LifeBuoy,
+  Network,
+  PlusCircle,
+  UserPlus,
+} from 'lucide-react';
 
 export function QuickActionsWidget() {
   const quickActions = [
     {
-      name: "Create VM",
+      name: 'Create VM',
       icon: <HardDrive className="h-4 w-4" />,
-      href: "/resources/create?type=vm",
+      href: '/resources/create?type=vm',
     },
     {
-      name: "Create Database",
+      name: 'Create Database',
       icon: <Database className="h-4 w-4" />,
-      href: "/resources/create?type=database",
+      href: '/resources/create?type=database',
     },
     {
-      name: "Network Config",
+      name: 'Network Config',
       icon: <Network className="h-4 w-4" />,
-      href: "/resources/network",
+      href: '/resources/network',
     },
     {
-      name: "Invite User",
+      name: 'Invite User',
       icon: <UserPlus className="h-4 w-4" />,
-      href: "/teams/invite",
+      href: '/teams/invite',
     },
     {
-      name: "Add Document",
+      name: 'Add Document',
       icon: <FileText className="h-4 w-4" />,
-      href: "/documentation/create",
+      href: '/documentation/create',
     },
     {
-      name: "Get Support",
+      name: 'Get Support',
       icon: <LifeBuoy className="h-4 w-4" />,
-      href: "/support",
+      href: '/support',
     },
   ];
 
@@ -53,7 +53,7 @@ export function QuickActionsWidget() {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-2">
-          {quickActions.map((action) => (
+          {quickActions.map(action => (
             <Button
               key={action.name}
               variant="outline"

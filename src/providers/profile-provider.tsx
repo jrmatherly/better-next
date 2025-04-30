@@ -1,6 +1,6 @@
 'use client';
 
-import { updateUser, getSession } from '@/lib/auth/client';
+import { getSession, updateUser } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import type { Profile, ProfileContextType } from '@/types/profile';
 import { useRouter } from 'next/navigation';
@@ -228,20 +228,20 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const fetchProfileData = async () => {
       setIsLoading(true);
-      
+
       try {
         const sessionResult = await getSession();
-        
+
         if (sessionResult?.data) {
           // First set basic profile structure
-          const sessionData = { 
+          const sessionData = {
             user: {
               ...sessionResult.data.user,
               // Force profile image property to be properly mapped
-              image: sessionResult.data.user?.image || undefined
-            }
+              image: sessionResult.data.user?.image || undefined,
+            },
           };
-          
+
           // Map initial basic profile from session data without referencing profile state
           const initialProfile = mapSessionToProfile(sessionData, {
             firstName: '',
@@ -268,24 +268,27 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
             location: '',
             role: '',
           });
-          
+
           setProfile(initialProfile);
-          
+
           // Then fetch the complete profile with all extended fields
           try {
             const fullSessionData = await getSession();
-            
+
             if (fullSessionData?.data?.user) {
-              const fullSession = { 
+              const fullSession = {
                 user: {
                   ...fullSessionData.data.user,
                   // Ensure image property is properly set
-                  image: fullSessionData.data.user?.image || undefined
-                }
+                  image: fullSessionData.data.user?.image || undefined,
+                },
               };
-              
+
               // Map full profile based on the full session data
-              const fullProfile = mapSessionToProfile(fullSession, initialProfile);
+              const fullProfile = mapSessionToProfile(
+                fullSession,
+                initialProfile
+              );
               setProfile(fullProfile);
             }
           } catch (err) {
@@ -372,7 +375,7 @@ export const ProfileProvider: React.FC<{ children: React.ReactNode }> = ({
           // Update local profile state with merged data
           setProfile(prev => ({
             ...prev,
-            ...data
+            ...data,
           }));
           router.refresh();
         },

@@ -27,10 +27,10 @@ interface UserDropdownProps {
  */
 export default function UserDropdown({ session }: UserDropdownProps) {
   const pathname = usePathname();
-  
+
   // Only show dashboard link when on the root path
   const isOnHomePage = pathname === '/';
-  
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

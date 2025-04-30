@@ -384,10 +384,14 @@ export function EndpointInventory({ searchQuery }: EndpointInventoryProps) {
                     }
                     labelLine={false}
                   >
-                    {osDistributionData.map((entry) => (
+                    {osDistributionData.map(entry => (
                       <Cell
                         key={`cell-${entry.name}`}
-                        fill={COLORS[osDistributionData.indexOf(entry) % COLORS.length]}
+                        fill={
+                          COLORS[
+                            osDistributionData.indexOf(entry) % COLORS.length
+                          ]
+                        }
                       />
                     ))}
                   </Pie>
@@ -405,11 +409,14 @@ export function EndpointInventory({ searchQuery }: EndpointInventoryProps) {
             </div>
 
             <div className="mt-2 grid grid-cols-2 gap-2">
-              {osDistributionData.map((os) => (
+              {osDistributionData.map(os => (
                 <div key={os.name} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[osDistributionData.indexOf(os) % COLORS.length] }}
+                    style={{
+                      backgroundColor:
+                        COLORS[osDistributionData.indexOf(os) % COLORS.length],
+                    }}
                   />
                   <span className="text-sm">
                     {os.name}: {os.value}

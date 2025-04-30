@@ -46,7 +46,7 @@ import {
 } from 'lucide-react';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 interface RequestWizardProps {
@@ -54,7 +54,10 @@ interface RequestWizardProps {
   onCancelAction: () => void;
 }
 
-export function RequestWizard({ onSubmitAction, onCancelAction }: RequestWizardProps) {
+export function RequestWizard({
+  onSubmitAction,
+  onCancelAction,
+}: RequestWizardProps) {
   const { user } = useAuth();
   const [step, setStep] = useState(0);
   const [requestData, setRequestData] = useState<Partial<ServiceRequest>>({});
@@ -226,7 +229,9 @@ export function RequestWizard({ onSubmitAction, onCancelAction }: RequestWizardP
                             <SelectItem value="access_request">
                               Access Request
                             </SelectItem>
-                            <SelectItem value="maintenance">Maintenance</SelectItem>
+                            <SelectItem value="maintenance">
+                              Maintenance
+                            </SelectItem>
                             <SelectItem value="software_installation">
                               Software Installation
                             </SelectItem>

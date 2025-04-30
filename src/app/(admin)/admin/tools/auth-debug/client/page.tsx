@@ -1,14 +1,28 @@
-"use client";
+'use client';
 
-import { authClient } from "@/lib/auth/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { authClient } from '@/lib/auth/client';
+import { useEffect, useState } from 'react';
 
 // Function prototype properties to filter out
 const COMMON_FUNCTION_PROPS = [
-  'length', 'name', 'arguments', 'caller', 'apply', 
-  'bind', 'call', 'constructor', 'toString', 'prototype'
+  'length',
+  'name',
+  'arguments',
+  'caller',
+  'apply',
+  'bind',
+  'call',
+  'constructor',
+  'toString',
+  'prototype',
 ];
 
 export default function AuthDebugPage() {
@@ -17,17 +31,19 @@ export default function AuthDebugPage() {
     apiKey: [] as string[],
     jwt: [] as string[],
     multiSession: [] as string[],
-    base: [] as string[]
+    base: [] as string[],
   });
 
   useEffect(() => {
     // Better function to extract methods from objects
-    const extractMethods = (obj: Record<string, unknown> | null | undefined): string[] => {
+    const extractMethods = (
+      obj: Record<string, unknown> | null | undefined
+    ): string[] => {
       if (!obj) return [];
-      
+
       // Get all own properties
       const ownProps = Object.getOwnPropertyNames(obj);
-      
+
       // Get all properties from prototype chain
       let proto = Object.getPrototypeOf(obj);
       let protoProps: string[] = [];
@@ -35,14 +51,16 @@ export default function AuthDebugPage() {
         protoProps = [...protoProps, ...Object.getOwnPropertyNames(proto)];
         proto = Object.getPrototypeOf(proto);
       }
-      
+
       // Combine and filter unique properties
       return [...new Set([...ownProps, ...protoProps])]
-        .filter(prop => 
-          // Filter out common function properties
-          !COMMON_FUNCTION_PROPS.includes(prop) && 
-          // Only include if it's a function or has a value
-          (typeof (obj as Record<string, unknown>)[prop] === 'function' || (obj as Record<string, unknown>)[prop] !== undefined)
+        .filter(
+          prop =>
+            // Filter out common function properties
+            !COMMON_FUNCTION_PROPS.includes(prop) &&
+            // Only include if it's a function or has a value
+            (typeof (obj as Record<string, unknown>)[prop] === 'function' ||
+              (obj as Record<string, unknown>)[prop] !== undefined)
         )
         .sort();
     };
@@ -51,22 +69,24 @@ export default function AuthDebugPage() {
       // Extract methods from all BetterAuth components
       const adminMethods = extractMethods(authClient.admin);
       const apiKeyMethods = extractMethods(authClient.apiKey);
-      const jwtMethods = extractMethods((authClient as Record<string, unknown>).jwt as Record<string, unknown>);
+      const jwtMethods = extractMethods(
+        (authClient as Record<string, unknown>).jwt as Record<string, unknown>
+      );
       const multiSessionMethods = extractMethods(authClient.multiSession);
-      
+
       // Get base client methods, excluding plugins
-      const baseMethods = Object.getOwnPropertyNames(authClient)
-        .filter(key => 
+      const baseMethods = Object.getOwnPropertyNames(authClient).filter(
+        key =>
           !['admin', 'apiKey', 'jwt', 'multiSession', '$store'].includes(key) &&
           typeof authClient[key as keyof typeof authClient] === 'function'
-        );
+      );
 
       setClientStructure({
         admin: adminMethods,
         apiKey: apiKeyMethods,
         jwt: jwtMethods,
         multiSession: multiSessionMethods,
-        base: baseMethods
+        base: baseMethods,
       });
     } catch (error) {
       console.error('Error accessing BetterAuth client structure:', error);
@@ -79,12 +99,15 @@ export default function AuthDebugPage() {
       <p className="text-muted-foreground">
         This page reveals the actual structure of the BetterAuth client plugins
       </p>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <PluginCard title="Admin Plugin" keys={clientStructure.admin} />
         <PluginCard title="API Key Plugin" keys={clientStructure.apiKey} />
         <PluginCard title="JWT Plugin" keys={clientStructure.jwt} />
-        <PluginCard title="MultiSession Plugin" keys={clientStructure.multiSession} />
+        <PluginCard
+          title="MultiSession Plugin"
+          keys={clientStructure.multiSession}
+        />
       </div>
 
       <Card>
@@ -96,19 +119,21 @@ export default function AuthDebugPage() {
           <ScrollArea className="h-[300px] rounded-md border p-4">
             {clientStructure.base.length > 0 ? (
               <ul className="list-disc pl-5 space-y-1">
-                {clientStructure.base.map((key) => (
+                {clientStructure.base.map(key => (
                   <li key={key} className="text-sm">
                     {key}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground italic">No methods available</p>
+              <p className="text-sm text-muted-foreground italic">
+                No methods available
+              </p>
             )}
           </ScrollArea>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Full Session Data</CardTitle>
@@ -123,9 +148,12 @@ export default function AuthDebugPage() {
 }
 
 function SessionDebugger() {
-  const [sessionData, setSessionData] = useState<Record<string, unknown> | null>(null);
+  const [sessionData, setSessionData] = useState<Record<
+    string,
+    unknown
+  > | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchSession = async () => {
       try {
@@ -138,14 +166,14 @@ function SessionDebugger() {
         setLoading(false);
       }
     };
-    
+
     fetchSession();
   }, []);
-  
+
   if (loading) {
     return <p>Loading session data...</p>;
   }
-  
+
   return (
     <ScrollArea className="h-[300px] rounded-md border p-4">
       <pre className="text-xs">{JSON.stringify(sessionData, null, 2)}</pre>
@@ -163,14 +191,16 @@ function PluginCard({ title, keys }: { title: string; keys: string[] }) {
       <CardContent>
         {keys && keys.length > 0 ? (
           <ul className="list-disc pl-5 space-y-1">
-            {keys.map((key) => (
+            {keys.map(key => (
               <li key={key} className="text-sm">
                 {key}
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground italic">No methods available</p>
+          <p className="text-sm text-muted-foreground italic">
+            No methods available
+          </p>
         )}
       </CardContent>
     </Card>

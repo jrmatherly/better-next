@@ -157,7 +157,10 @@ export function FileFilters({
           </DropdownMenuGroup>
 
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onClearFiltersAction} disabled={!fileTypeFilter}>
+          <DropdownMenuItem
+            onClick={onClearFiltersAction}
+            disabled={!fileTypeFilter}
+          >
             <X className="mr-2 h-4 w-4" />
             Clear Filters
           </DropdownMenuItem>

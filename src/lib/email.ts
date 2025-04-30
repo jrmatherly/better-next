@@ -1,9 +1,10 @@
+import { APP_NAME } from '@/lib/settings';
 /* import { env } from '@/env'; */
 /* import Plunk from '@plunk/node'; */
 import type { EmailProps } from '@/types/email';
 
 export const sendEmail = async ({
-  name = 'Better Next',
+  name = APP_NAME,
   from,
   to,
   subject,

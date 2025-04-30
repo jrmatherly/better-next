@@ -1,9 +1,9 @@
 /**
  * Tailwind CSS Configuration Index
- * 
+ *
  * This file consolidates and exports all modular Tailwind configurations
  * to be used in the main tailwind.config.ts file.
- * 
+ *
  * This modularization helps reduce webpack cache serialization warnings
  * by breaking up large string literals into smaller, more manageable files.
  */
@@ -22,7 +22,9 @@ export { themes } from './themes';
  */
 export const createBorderUtilities = (
   svgToDataUri: (svg: string) => string,
-  flattenColorPalette: (colors: Record<string, unknown>) => Record<string, string>,
+  flattenColorPalette: (
+    colors: Record<string, unknown>
+  ) => Record<string, string>,
   theme: (path: string) => Record<string, string>
 ) => {
   // Return the utilities object that was previously inside the plugin
@@ -35,7 +37,7 @@ export const createBorderUtilities = (
         )}"><path d="M0 .5H31.5V32"/></svg>`
       )}")`,
     },
-    
+
     // Add other utility configurations as needed
   };
 };

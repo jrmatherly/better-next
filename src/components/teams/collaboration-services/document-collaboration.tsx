@@ -375,10 +375,14 @@ export function DocumentCollaboration({
                       paddingAngle={2}
                       dataKey="value"
                     >
-                      {documentTypeData.map((entry) => (
+                      {documentTypeData.map(entry => (
                         <Cell
                           key={`cell-${entry.name}`}
-                          fill={COLORS[documentTypeData.indexOf(entry) % COLORS.length]}
+                          fill={
+                            COLORS[
+                              documentTypeData.indexOf(entry) % COLORS.length
+                            ]
+                          }
                         />
                       ))}
                     </Pie>
@@ -396,11 +400,16 @@ export function DocumentCollaboration({
               </div>
 
               <div className="grid grid-cols-2 gap-2 mt-2">
-                {documentTypeData.map((type) => (
+                {documentTypeData.map(type => (
                   <div key={type.name} className="flex items-center gap-2">
                     <div
                       className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: COLORS[documentTypeData.indexOf(type) % COLORS.length] }}
+                      style={{
+                        backgroundColor:
+                          COLORS[
+                            documentTypeData.indexOf(type) % COLORS.length
+                          ],
+                      }}
                     />
                     <span className="text-sm">{type.name}</span>
                   </div>

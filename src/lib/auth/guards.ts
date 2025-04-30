@@ -24,7 +24,8 @@ export async function getServerSession(): Promise<ExtendedSession | null> {
       user: {
         ...session.user,
         // Ensure role property exists, default to user if not present
-        role: (session.user as Record<string, unknown>)?.role as string || 'user',
+        role:
+          ((session.user as Record<string, unknown>)?.role as string) || 'user',
       },
     } as ExtendedSession;
   } catch (error) {

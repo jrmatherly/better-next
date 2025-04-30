@@ -96,7 +96,7 @@ export function DocumentList({
                   <TableCell className="p-2">
                     <FileText className="h-4 w-4 text-muted-foreground" />
                   </TableCell>
-                  
+
                   {/* Document info cell */}
                   <TableCell>
                     <div className="flex flex-col">
@@ -109,7 +109,7 @@ export function DocumentList({
                       <div className="flex gap-1 mt-1 flex-wrap">
                         {document.tags.map(tag => (
                           <Badge
-                            key={tag} 
+                            key={tag}
                             variant="outline"
                             className="text-xs px-1 py-0 h-5"
                           >
@@ -119,54 +119,63 @@ export function DocumentList({
                       </div>
                     </div>
                   </TableCell>
-                  
+
                   {/* Category cell */}
                   <TableCell className="hidden md:table-cell">
                     <Badge variant="secondary">{document.category}</Badge>
                   </TableCell>
-                  
+
                   {/* Author cell */}
                   <TableCell className="hidden lg:table-cell">
                     {/* Simple text for authorId to avoid hydration issues */}
                     <span className="text-sm">{document.authorId}</span>
                   </TableCell>
-                  
+
                   {/* Status cell */}
                   <TableCell className="hidden sm:table-cell">
                     {getStatusBadge(document.status)}
                   </TableCell>
-                  
+
                   {/* Updated date cell */}
                   <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
                     {format(document.updatedAt, 'MMM d, yyyy')}
                   </TableCell>
-                  
+
                   {/* Actions cell */}
                   <TableCell>
                     <div className="flex justify-end">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" type="button" onClick={e => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            type="button"
+                            onClick={e => e.stopPropagation()}
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={e => {
-                            e.stopPropagation();
-                            onViewAction(document);
-                          }}>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.stopPropagation();
+                              onViewAction(document);
+                            }}
+                          >
                             <Eye className="mr-2 h-4 w-4" />
                             View
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={e => {
-                            e.stopPropagation();
-                            onEditAction(document);
-                          }}>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.stopPropagation();
+                              onEditAction(document);
+                            }}
+                          >
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={e => {
                               e.stopPropagation();
                               onDeleteAction(document);
@@ -193,7 +202,11 @@ export function DocumentList({
             {searchQuery || selectedCategory || selectedTag ? (
               <>
                 No documents match the current filters.{' '}
-                <Button variant="link" className="h-auto p-0" onClick={resetFilters}>
+                <Button
+                  variant="link"
+                  className="h-auto p-0"
+                  onClick={resetFilters}
+                >
                   Clear filters
                 </Button>
               </>

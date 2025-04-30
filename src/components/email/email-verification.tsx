@@ -1,4 +1,4 @@
-import { env } from '@/env';
+/* import { env } from '@/env';
 import { APP_NAME } from '@/lib/settings';
 import type { EmailVerificationProps } from '@/types/email';
 import {
@@ -72,3 +72,4 @@ export const EmailVerification = ({ name, url }: EmailVerificationProps) => (
     </Body>
   </Html>
 );
+ */

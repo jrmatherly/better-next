@@ -5,7 +5,7 @@ import React from 'react';
 const Logo = () => {
   return (
     <Link href="/" className="text-2xl font-bold text-primary">
-      Better Next
+      ITSApp
     </Link>
   );
 };

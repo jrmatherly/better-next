@@ -49,6 +49,7 @@ import {
   CpuIcon,
   Edit,
   HardDrive,
+  MemoryStick,
   Network,
   PauseCircle,
   Play,
@@ -57,7 +58,6 @@ import {
   StopCircle,
   Trash2,
   X,
-  MemoryStick
 } from 'lucide-react';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import React, { useState, useEffect } from 'react';
@@ -301,7 +301,7 @@ export function VmDetailsSheet({
                       <p className="text-sm text-muted-foreground">Tags</p>
                       <div className="flex flex-wrap gap-2">
                         {vm.tags.length > 0 ? (
-                          vm.tags.map((tag) => (
+                          vm.tags.map(tag => (
                             <Badge key={tag} variant="outline">
                               {tag}
                             </Badge>
@@ -359,8 +359,8 @@ export function VmDetailsSheet({
                         <CardTitle>VM Settings</CardTitle>
                         <CardDescription>Configure VM settings</CardDescription>
                       </div>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={() => setIsEditing(!isEditing)}
                       >
@@ -384,27 +384,44 @@ export function VmDetailsSheet({
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="vm-name">Name</Label>
-                            <Input 
-                              id="vm-name" 
-                              value={editedVm.name} 
-                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, name: e.target.value})}
+                            <Input
+                              id="vm-name"
+                              value={editedVm.name}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setEditedVm({
+                                  ...editedVm,
+                                  name: e.target.value,
+                                })
+                              }
                             />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="vm-os">Operating System</Label>
-                            <Select 
+                            <Select
                               value={editedVm.os}
-                              onValueChange={(value: string) => setEditedVm({...editedVm, os: value})}
+                              onValueChange={(value: string) =>
+                                setEditedVm({ ...editedVm, os: value })
+                              }
                             >
                               <SelectTrigger id="vm-os">
                                 <SelectValue placeholder="Select OS" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="Ubuntu 24.04 LTS">Ubuntu 24.04 LTS</SelectItem>
-                                <SelectItem value="Windows Server 2025">Windows Server 2025</SelectItem>
-                                <SelectItem value="RedHat Enterprise Linux 9">RHEL 9</SelectItem>
-                                <SelectItem value="Debian 12">Debian 12</SelectItem>
-                                <SelectItem value="macOS Sonoma">macOS Sonoma</SelectItem>
+                                <SelectItem value="Ubuntu 24.04 LTS">
+                                  Ubuntu 24.04 LTS
+                                </SelectItem>
+                                <SelectItem value="Windows Server 2025">
+                                  Windows Server 2025
+                                </SelectItem>
+                                <SelectItem value="RedHat Enterprise Linux 9">
+                                  RHEL 9
+                                </SelectItem>
+                                <SelectItem value="Debian 12">
+                                  Debian 12
+                                </SelectItem>
+                                <SelectItem value="macOS Sonoma">
+                                  macOS Sonoma
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -413,13 +430,18 @@ export function VmDetailsSheet({
                               <CpuIcon className="h-4 w-4" />
                               <Label htmlFor="vm-cpu">CPU (vCPUs)</Label>
                             </div>
-                            <Input 
-                              id="vm-cpu" 
-                              type="number" 
-                              min={1} 
+                            <Input
+                              id="vm-cpu"
+                              type="number"
+                              min={1}
                               max={32}
                               value={editedVm.cpu}
-                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, cpu: Number.parseInt(e.target.value) || 1})}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setEditedVm({
+                                  ...editedVm,
+                                  cpu: Number.parseInt(e.target.value) || 1,
+                                })
+                              }
                             />
                           </div>
                           <div className="space-y-2">
@@ -427,13 +449,18 @@ export function VmDetailsSheet({
                               <MemoryStick className="h-4 w-4" />
                               <Label htmlFor="vm-memory">Memory (GB)</Label>
                             </div>
-                            <Input 
-                              id="vm-memory" 
-                              type="number" 
-                              min={1} 
+                            <Input
+                              id="vm-memory"
+                              type="number"
+                              min={1}
                               max={256}
                               value={editedVm.memory}
-                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, memory: Number.parseInt(e.target.value) || 1})}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setEditedVm({
+                                  ...editedVm,
+                                  memory: Number.parseInt(e.target.value) || 1,
+                                })
+                              }
                             />
                           </div>
                           <div className="space-y-2">
@@ -441,13 +468,19 @@ export function VmDetailsSheet({
                               <HardDrive className="h-4 w-4" />
                               <Label htmlFor="vm-storage">Storage (GB)</Label>
                             </div>
-                            <Input 
-                              id="vm-storage" 
-                              type="number" 
-                              min={10} 
+                            <Input
+                              id="vm-storage"
+                              type="number"
+                              min={10}
                               max={2048}
                               value={editedVm.storage}
-                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, storage: Number.parseInt(e.target.value) || 10})}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                setEditedVm({
+                                  ...editedVm,
+                                  storage:
+                                    Number.parseInt(e.target.value) || 10,
+                                })
+                              }
                             />
                           </div>
                           <div className="space-y-2">
@@ -455,46 +488,62 @@ export function VmDetailsSheet({
                               <Network className="h-4 w-4" />
                               <Label htmlFor="vm-network">Network</Label>
                             </div>
-                            <Select 
+                            <Select
                               value={editedVm.network}
-                              onValueChange={(value: string) => setEditedVm({...editedVm, network: value})}
+                              onValueChange={(value: string) =>
+                                setEditedVm({ ...editedVm, network: value })
+                              }
                             >
                               <SelectTrigger id="vm-network">
                                 <SelectValue placeholder="Select network" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="100 Mbps">100 Mbps</SelectItem>
+                                <SelectItem value="100 Mbps">
+                                  100 Mbps
+                                </SelectItem>
                                 <SelectItem value="1 Gbps">1 Gbps</SelectItem>
                                 <SelectItem value="10 Gbps">10 Gbps</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <Label htmlFor="vm-description">Description</Label>
-                          <Textarea 
-                            id="vm-description" 
+                          <Textarea
+                            id="vm-description"
                             value={editedVm.description}
-                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setEditedVm({...editedVm, description: e.target.value})}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                              setEditedVm({
+                                ...editedVm,
+                                description: e.target.value,
+                              })
+                            }
                           />
                         </div>
-                        
+
                         <div className="space-y-2">
-                          <Label htmlFor="vm-tags">Tags (comma-separated)</Label>
-                          <Input 
-                            id="vm-tags" 
+                          <Label htmlFor="vm-tags">
+                            Tags (comma-separated)
+                          </Label>
+                          <Input
+                            id="vm-tags"
                             value={editedVm.tags.join(', ')}
-                            onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({
-                              ...editedVm, 
-                              tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
-                            })}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                              setEditedVm({
+                                ...editedVm,
+                                tags: e.target.value
+                                  .split(',')
+                                  .map(tag => tag.trim())
+                                  .filter(Boolean),
+                              })
+                            }
                           />
                         </div>
-                        
+
                         <div className="flex justify-end space-x-2 mt-4">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             onClick={() => {
                               setIsEditing(false);
                               setEditedVm(vm); // Reset to original VM
@@ -502,7 +551,7 @@ export function VmDetailsSheet({
                           >
                             Cancel
                           </Button>
-                          <Button 
+                          <Button
                             onClick={() => {
                               onUpdateAction(editedVm);
                               setIsEditing(false);

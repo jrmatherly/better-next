@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { ServiceRequest, RequestStatus } from '@/types/services';
+import type { RequestStatus, ServiceRequest } from '@/types/services';
 import {
   AlertTriangle,
   BarChart,
@@ -175,12 +175,23 @@ export function RequestStats({ requests }: RequestStatsProps) {
 
           <div className="mt-4 space-y-2">
             {statuses.map(status => (
-              <div key={status} className="flex justify-between items-center text-sm">
+              <div
+                key={status}
+                className="flex justify-between items-center text-sm"
+              >
                 <div className="flex items-center">
-                  {status === 'completed' && <CheckCircle className="h-4 w-4 text-green-500 mr-1.5" />}
-                  {status === 'in_progress' && <Clock className="h-4 w-4 text-blue-500 mr-1.5" />}
-                  {status === 'pending_approval' && <Clock className="h-4 w-4 text-amber-500 mr-1.5" />}
-                  {status === 'rejected' && <AlertTriangle className="h-4 w-4 text-destructive mr-1.5" />}
+                  {status === 'completed' && (
+                    <CheckCircle className="h-4 w-4 text-green-500 mr-1.5" />
+                  )}
+                  {status === 'in_progress' && (
+                    <Clock className="h-4 w-4 text-blue-500 mr-1.5" />
+                  )}
+                  {status === 'pending_approval' && (
+                    <Clock className="h-4 w-4 text-amber-500 mr-1.5" />
+                  )}
+                  {status === 'rejected' && (
+                    <AlertTriangle className="h-4 w-4 text-destructive mr-1.5" />
+                  )}
                   <span>{formatStatus(status)}</span>
                 </div>
                 <span>{stats.statusCounts[status]}</span>
@@ -239,7 +250,10 @@ export function RequestStats({ requests }: RequestStatsProps) {
           {statusData.length > 0 && (
             <div className="grid grid-cols-2 gap-2 mt-2">
               {statusData.map((entry, index) => (
-                <div key={entry.name} className="flex items-center gap-2 text-xs">
+                <div
+                  key={entry.name}
+                  className="flex items-center gap-2 text-xs"
+                >
                   <div
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: entry.color }}

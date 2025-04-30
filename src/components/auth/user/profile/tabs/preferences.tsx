@@ -1,14 +1,9 @@
 'use client';
 
 import { useProfileContext } from '@/hooks/use-profile';
-import {
-  Button,
-  Card,
-  CardBody,
-  Switch,
-} from '@heroui/react';
+import { Button, Card, CardBody, Switch } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 export const PreferencesTab = () => {
@@ -110,14 +105,21 @@ export const PreferencesTab = () => {
             <CardBody className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-foreground font-medium">Email Notifications</p>
+                  <p className="text-foreground font-medium">
+                    Email Notifications
+                  </p>
                   <p className="text-foreground/70 text-sm">
                     Receive notifications about account activity via email
                   </p>
                 </div>
                 <Switch
                   isSelected={preferences.emailNotifications}
-                  onChange={() => handleToggle('emailNotifications', !preferences.emailNotifications)}
+                  onChange={() =>
+                    handleToggle(
+                      'emailNotifications',
+                      !preferences.emailNotifications
+                    )
+                  }
                   color="primary"
                   size="lg"
                 />
@@ -129,14 +131,21 @@ export const PreferencesTab = () => {
             <CardBody className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-foreground font-medium">Marketing Emails</p>
+                  <p className="text-foreground font-medium">
+                    Marketing Emails
+                  </p>
                   <p className="text-foreground/70 text-sm">
                     Receive promotional emails and offers
                   </p>
                 </div>
                 <Switch
                   isSelected={preferences.marketingEmails}
-                  onChange={() => handleToggle('marketingEmails', !preferences.marketingEmails)}
+                  onChange={() =>
+                    handleToggle(
+                      'marketingEmails',
+                      !preferences.marketingEmails
+                    )
+                  }
                   color="primary"
                   size="lg"
                 />
@@ -155,7 +164,9 @@ export const PreferencesTab = () => {
                 </div>
                 <Switch
                   isSelected={preferences.securityAlerts}
-                  onChange={() => handleToggle('securityAlerts', !preferences.securityAlerts)}
+                  onChange={() =>
+                    handleToggle('securityAlerts', !preferences.securityAlerts)
+                  }
                   color="primary"
                   size="lg"
                 />
@@ -174,7 +185,9 @@ export const PreferencesTab = () => {
                 </div>
                 <Switch
                   isSelected={preferences.productUpdates}
-                  onChange={() => handleToggle('productUpdates', !preferences.productUpdates)}
+                  onChange={() =>
+                    handleToggle('productUpdates', !preferences.productUpdates)
+                  }
                   color="primary"
                   size="lg"
                 />
@@ -194,14 +207,18 @@ export const PreferencesTab = () => {
             <CardBody className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-foreground font-medium">Two-Factor Authentication</p>
+                  <p className="text-foreground font-medium">
+                    Two-Factor Authentication
+                  </p>
                   <p className="text-foreground/70 text-sm">
                     Add an extra layer of security to your account
                   </p>
                 </div>
                 <Switch
                   isSelected={preferences.twoFactorAuth}
-                  onChange={() => handleToggle('twoFactorAuth', !preferences.twoFactorAuth)}
+                  onChange={() =>
+                    handleToggle('twoFactorAuth', !preferences.twoFactorAuth)
+                  }
                   color="primary"
                   size="lg"
                 />
@@ -220,7 +237,9 @@ export const PreferencesTab = () => {
                 </div>
                 <Switch
                   isSelected={preferences.sessionTimeout}
-                  onChange={() => handleToggle('sessionTimeout', !preferences.sessionTimeout)}
+                  onChange={() =>
+                    handleToggle('sessionTimeout', !preferences.sessionTimeout)
+                  }
                   color="primary"
                   size="lg"
                 />
@@ -239,7 +258,9 @@ export const PreferencesTab = () => {
                 </div>
                 <Switch
                   isSelected={preferences.dataSharing}
-                  onChange={() => handleToggle('dataSharing', !preferences.dataSharing)}
+                  onChange={() =>
+                    handleToggle('dataSharing', !preferences.dataSharing)
+                  }
                   color="primary"
                   size="lg"
                 />

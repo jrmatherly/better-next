@@ -1,7 +1,7 @@
-import { getServerSession } from '@/lib/auth/guards';
-import { authLogger } from '@/lib/logger';
 import { db } from '@/db';
 import { user } from '@/db/schema';
+import { getServerSession } from '@/lib/auth/guards';
+import { authLogger } from '@/lib/logger';
 import { ROLES } from '@/types/roles';
 import type { UserStats } from '@/types/stats';
 import { count, desc, gte } from 'drizzle-orm';
@@ -42,7 +42,7 @@ export async function getUserStats(): Promise<UserStats> {
         .select({ value: count() })
         .from(user)
         .where(gte(user.createdAt, oneWeekAgo));
-      
+
       baseStats.userMetrics.newUsers = newUsersResult[0]?.value ?? 0;
 
       // Get active users in the last 30 days (simplified since we don't track login timestamps)
@@ -54,7 +54,7 @@ export async function getUserStats(): Promise<UserStats> {
         .select({ value: count() })
         .from(user)
         .where(gte(user.updatedAt, thirtyDaysAgo));
-      
+
       baseStats.userMetrics.activeUsers = activeUsersResult[0]?.value ?? 0;
 
       // For admins, get recent user registrations as activity

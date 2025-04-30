@@ -373,10 +373,16 @@ export function WorkloadOverview() {
                     }
                     labelLine={false}
                   >
-                    {cloudProviders.map((entry) => (
+                    {cloudProviders.map(entry => (
                       <Cell
                         key={`cell-${entry.name}`}
-                        fill={COLORS[cloudProviders.findIndex(p => p.name === entry.name) % COLORS.length]}
+                        fill={
+                          COLORS[
+                            cloudProviders.findIndex(
+                              p => p.name === entry.name
+                            ) % COLORS.length
+                          ]
+                        }
                       />
                     ))}
                   </Pie>
@@ -394,12 +400,22 @@ export function WorkloadOverview() {
             </div>
 
             <div className="mt-4 space-y-2">
-              {cloudProviders.map((provider) => (
-                <div key={provider.name} className="flex items-center justify-between">
+              {cloudProviders.map(provider => (
+                <div
+                  key={provider.name}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center">
                     <div
                       className="w-3 h-3 rounded-full mr-2"
-                      style={{ backgroundColor: COLORS[cloudProviders.findIndex(p => p.name === provider.name) % COLORS.length] }}
+                      style={{
+                        backgroundColor:
+                          COLORS[
+                            cloudProviders.findIndex(
+                              p => p.name === provider.name
+                            ) % COLORS.length
+                          ],
+                      }}
                     />
                     <span className="text-sm">{provider.name}</span>
                   </div>

@@ -1,5 +1,5 @@
-import SharedBreadcrumb from '@/components/layout/shared/breadcrumb';
 import { AdminSidebarWrapper } from '@/components/layout/shared/admin-sidebar-wrapper';
+import SharedBreadcrumb from '@/components/layout/shared/breadcrumb';
 import { ModeToggle } from '@/components/theme-toggle';
 import { Separator } from '@/components/ui/separator';
 import {

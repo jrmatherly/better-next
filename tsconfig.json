@@ -15,11 +15,7 @@
     "verbatimModuleSyntax": true,
     "checkJs": true,
     /* Bundled projects */
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "ESNext"
-    ],
+    "lib": ["dom", "dom.iterable", "ESNext"],
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "Bundler",
@@ -33,36 +29,16 @@
     /* Path Aliases */
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/db/*": [
-        "./src/db/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/env": [
-        "./src/env.ts"
-      ],
-      "@/hooks/*": [
-        "./src/hooks/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/providers/*": [
-        "./src/providers/*"
-      ],
-      "@/styles/*": [
-        "./src/styles/*"
-      ],
-      "@/trpc/*": [
-        "./src/trpc/*"
-      ],
-      "@/types/*": [
-        "./src/types/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/db/*": ["./src/db/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/env": ["./src/env.ts"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/providers/*": ["./src/providers/*"],
+      "@/styles/*": ["./src/styles/*"],
+      "@/trpc/*": ["./src/trpc/*"],
+      "@/types/*": ["./src/types/*"]
     }
   },
   "include": [
@@ -81,7 +57,5 @@
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }

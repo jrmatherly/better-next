@@ -1,6 +1,4 @@
-# The Perfect Next.js Starter Kit
-
-This Next.js starter kit includes everything you need to build your awesome product. From authentication to analytics, it's everything you need to launch your project.
+# ITSApp - Frontend
 
 ![Screenshot](src/app/(public)/(home)/_components/hero-dark.jpg)
 
@@ -28,22 +26,21 @@ This Next.js starter kit includes everything you need to build your awesome prod
 
 ## How to Get Started
 
-Start by clicking the "use this template" button on the github repo. We suggest creating a new repository so you can
-track your code changes. After, clone your own repository down to your computer and start working on it.
+Clone your own repository down to your computer and start working on it.
 
 ## Prerequisites
 
-This starter kit does use Docker Compose to run a postgres database, so you will need to have Docker
-installed, or modify the project to point to a hosted database solution.
+This project uses Docker Compose to run a postgres database, so you will need to have Docker installed, or modify the project to point to a hosted database solution.
 
 ## How to Run
 
 ```bash
 cp .env.example .env
-bun i
-docker compose up -d
-bunx prisma db push
-bun run dev
+npm i
+npx @better-auth/cli generate --config src/lib/auth/server.ts
+npm run db:generate
+npm run db:migrate
+npm run dev
 ```
 
 ## Roadmap
@@ -54,32 +51,7 @@ bun run dev
 - [x] Landing Page
 - [x] User Dashboard
 - [x] Update Profile
-- [x] Change Email
-- [x] Change Password
-- [x] Delete Account
 - [x] Analytics
-
-- [ ] Require Email Verification
-- [ ] Reset Password
-- [ ] Email Verification for Delete Account
-- [ ] Email Verification for Change Email
-- [ ] OAuth (Github, Google)
-- [ ] Magic Link
-- [ ] Email OTP
-- [ ] Admin
-- [ ] Admin Dashboard
-- [ ] Upload profile avatar
-
-## Contributing
-
-If you find obvious issues with this starter kit, feel free to submit a pull request or submit and issue.
-
-1. Fork the repository.
-2. Create a feature branch (`git checkout -b feature/YourFeature`).
-3. Commit your changes (`git commit -m 'Add YourFeature'`).
-4. Push to the branch (`git push origin feature/YourFeature`).
-5. Submit a Pull Request.
-
-## License
-
-Licensed under the [MIT license](https://github.com/laduniestu/nextjs-betterauth-starterkit/blob/main/LICENSE), so feel free to tweak, share, and remix as long as you give the proper shout-out!
+- [x] OAuth (Microsoft)
+- [x] Admin
+- [x] Admin Dashboard

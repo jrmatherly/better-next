@@ -374,10 +374,14 @@ export function ProjectManagement({ searchQuery }: ProjectManagementProps) {
                     paddingAngle={2}
                     dataKey="value"
                   >
-                    {projectStatusData.map((entry) => (
+                    {projectStatusData.map(entry => (
                       <Cell
                         key={`cell-${entry.name}`}
-                        fill={COLORS[projectStatusData.indexOf(entry) % COLORS.length]}
+                        fill={
+                          COLORS[
+                            projectStatusData.indexOf(entry) % COLORS.length
+                          ]
+                        }
                       />
                     ))}
                   </Pie>
@@ -395,11 +399,16 @@ export function ProjectManagement({ searchQuery }: ProjectManagementProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-2 mt-2">
-              {projectStatusData.map((status) => (
+              {projectStatusData.map(status => (
                 <div key={status.name} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[projectStatusData.indexOf(status) % COLORS.length] }}
+                    style={{
+                      backgroundColor:
+                        COLORS[
+                          projectStatusData.indexOf(status) % COLORS.length
+                        ],
+                    }}
                   />
                   <div className="flex-1 flex justify-between">
                     <span className="text-sm">{status.name}</span>

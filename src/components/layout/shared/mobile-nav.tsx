@@ -89,11 +89,11 @@ function MobileNav({ menus }: { menus: { name: string; href: string }[] }) {
                 <h3 className="text-xs font-medium text-muted-foreground pt-2">
                   User Settings
                 </h3>
-                
+
                 {/* Only show dashboard link when on the home page */}
                 {isOnHomePage && (
-                  <Link 
-                    href="/dashboard" 
+                  <Link
+                    href="/dashboard"
                     onClick={() => setIsOpen(false)}
                     className="flex items-center text-foreground hover:text-primary"
                   >
@@ -101,9 +101,9 @@ function MobileNav({ menus }: { menus: { name: string; href: string }[] }) {
                     Dashboard
                   </Link>
                 )}
-                
-                <Link 
-                  href="/user/profile" 
+
+                <Link
+                  href="/user/profile"
                   onClick={() => setIsOpen(false)}
                   className="flex items-center text-foreground hover:text-primary"
                 >

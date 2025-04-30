@@ -1,10 +1,10 @@
 'use client';
 
+import { usePasswordUpdate } from '@/hooks/use-profile';
 import { Button, Input } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { useState } from 'react';
 import { z } from 'zod';
-import { usePasswordUpdate } from '@/hooks/use-profile';
 
 /**
  * Password validation schema using Zod
@@ -19,10 +19,13 @@ const passwordSchema = z
       .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
       .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
       .regex(/[0-9]/, 'Password must contain at least one number')
-      .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
+      .regex(
+        /[^a-zA-Z0-9]/,
+        'Password must contain at least one special character'
+      ),
     confirmPassword: z.string().min(1, 'Please confirm your password'),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine(data => data.newPassword === data.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
   });
@@ -56,7 +59,7 @@ export const PasswordTab = () => {
       if (/[A-Z]/.test(value)) strength += 1;
       if (/[0-9]/.test(value)) strength += 1;
       if (/[^a-zA-Z0-9]/.test(value)) strength += 1;
-      
+
       // Scale to 0-4 range
       strength = Math.min(4, Math.floor((strength / 5) * 4));
       setPasswordStrength(strength);
@@ -168,14 +171,13 @@ export const PasswordTab = () => {
           errorMessage={errors.currentPassword}
           variant="bordered"
           classNames={{
-            label: "text-foreground/90 font-medium text-sm mb-1",
-            input: "text-foreground font-medium",
-            inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-            base: "w-full"
+            label: 'text-foreground/90 font-medium text-sm mb-1',
+            input: 'text-foreground font-medium',
+            inputWrapper:
+              'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+            base: 'w-full',
           }}
-          startContent={
-            <Icon icon="lucide:lock" className="text-primary/80" />
-          }
+          startContent={<Icon icon="lucide:lock" className="text-primary/80" />}
           endContent={
             <button
               type="button"
@@ -204,10 +206,11 @@ export const PasswordTab = () => {
             errorMessage={errors.newPassword}
             variant="bordered"
             classNames={{
-              label: "text-foreground/90 font-medium text-sm mb-1",
-              input: "text-foreground font-medium",
-              inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-              base: "w-full"
+              label: 'text-foreground/90 font-medium text-sm mb-1',
+              input: 'text-foreground font-medium',
+              inputWrapper:
+                'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+              base: 'w-full',
             }}
             startContent={
               <Icon icon="lucide:lock" className="text-primary/80" />
@@ -257,14 +260,13 @@ export const PasswordTab = () => {
           errorMessage={errors.confirmPassword}
           variant="bordered"
           classNames={{
-            label: "text-foreground/90 font-medium text-sm mb-1",
-            input: "text-foreground font-medium",
-            inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-            base: "w-full"
+            label: 'text-foreground/90 font-medium text-sm mb-1',
+            input: 'text-foreground font-medium',
+            inputWrapper:
+              'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+            base: 'w-full',
           }}
-          startContent={
-            <Icon icon="lucide:lock" className="text-primary/80" />
-          }
+          startContent={<Icon icon="lucide:lock" className="text-primary/80" />}
           endContent={
             <button
               type="button"

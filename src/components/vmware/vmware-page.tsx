@@ -107,7 +107,7 @@ export function VmwarePage() {
         vm.id === updatedVM.id ? { ...updatedVM, lastModified: new Date() } : vm
       )
     );
-    
+
     // Update the selected VM to show the changes, but don't close the details sheet
     setSelectedVM({ ...updatedVM, lastModified: new Date() });
 

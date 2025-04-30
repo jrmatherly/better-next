@@ -89,7 +89,7 @@ export function withAuthProtection<T>(
       authLogger.info(
         'Unauthenticated access attempt to protected component - redirecting to sign in'
       );
-      
+
       const redirectTo = options.redirectTo || '/login';
       redirect(redirectTo);
     }
@@ -166,7 +166,11 @@ export function withTCCProtection<T>(
   Component: (props: T) => Promise<React.ReactNode> | React.ReactNode,
   options: Omit<ProtectOptions, 'requireAll'> = {}
 ) {
-  return withRoleProtection(Component, [ROLES.ADMIN, ROLES.FIELDTECH, ROLES.TCC], options);
+  return withRoleProtection(
+    Component,
+    [ROLES.ADMIN, ROLES.FIELDTECH, ROLES.TCC],
+    options
+  );
 }
 
 /**

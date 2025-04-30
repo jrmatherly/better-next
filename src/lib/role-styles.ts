@@ -9,14 +9,17 @@ import { ROLES } from '@/types/roles';
  * Badge variant and color styles for different user roles
  * Used for consistent visual representation of roles across the application
  */
-export const roleStyleMap: Record<string, { variant: 'destructive' | 'secondary', className: string }> = {
+export const roleStyleMap: Record<
+  string,
+  { variant: 'destructive' | 'secondary'; className: string }
+> = {
   [ROLES.ADMIN]: { variant: 'destructive', className: '' },
   [ROLES.SECURITY]: { variant: 'secondary', className: 'bg-purple-500' },
   [ROLES.DEVOPS]: { variant: 'secondary', className: 'bg-blue-500' },
   [ROLES.DBA]: { variant: 'secondary', className: 'bg-green-500' },
   [ROLES.TCC]: { variant: 'secondary', className: 'bg-orange-500' },
   [ROLES.FIELDTECH]: { variant: 'secondary', className: 'bg-yellow-500' },
-  'endpoint': { variant: 'secondary', className: 'bg-pink-500' },
+  endpoint: { variant: 'secondary', className: 'bg-pink-500' },
   [ROLES.COLLAB]: { variant: 'secondary', className: 'bg-teal-500' },
   [ROLES.USER]: { variant: 'secondary', className: '' },
 };
@@ -38,7 +41,7 @@ export function getRoleBadgeStyles(role: string | undefined) {
  */
 export function getRoleTextColor(role: string | undefined): string {
   if (!role) return '';
-  
+
   const roleColorMap: Record<string, string> = {
     [ROLES.ADMIN]: 'text-destructive',
     [ROLES.SECURITY]: 'text-purple-500',
@@ -46,9 +49,9 @@ export function getRoleTextColor(role: string | undefined): string {
     [ROLES.DBA]: 'text-green-500',
     [ROLES.TCC]: 'text-orange-500',
     [ROLES.FIELDTECH]: 'text-yellow-500',
-    'endpoint': 'text-pink-500',
+    endpoint: 'text-pink-500',
     [ROLES.COLLAB]: 'text-teal-500',
   };
-  
+
   return roleColorMap[role] || '';
 }

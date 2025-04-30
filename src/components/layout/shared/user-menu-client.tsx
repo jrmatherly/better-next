@@ -26,12 +26,13 @@ interface UserMenuClientProps {
  */
 export default function UserMenuClient({ session }: UserMenuClientProps) {
   const pathname = usePathname();
-  
+
   // Check if user is on the dashboard page or a sub-page
-  const isOnDashboard = pathname.startsWith('/dashboard') || 
-                        pathname.startsWith('/admin') ||
-                        pathname.startsWith('/user');
-  
+  const isOnDashboard =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/user');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

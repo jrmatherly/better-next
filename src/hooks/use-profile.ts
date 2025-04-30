@@ -6,9 +6,9 @@
  */
 import { changeEmail, changePassword, getSession } from '@/lib/auth/client';
 import { ProfileContext } from '@/providers/profile-provider';
-import { useContext, useState, useEffect } from 'react';
-import { toast } from 'sonner';
 import type { Session } from '@/types/auth';
+import { useContext, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 /**
  * Hook for accessing the profile context
@@ -53,11 +53,12 @@ export const usePasswordUpdate = () => {
         newPassword,
         revokeOtherSessions,
       });
-      
+
       toast.success('Password updated successfully');
       return true;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to update password';
+      const message =
+        err instanceof Error ? err.message : 'Failed to update password';
       setError(message);
       toast.error(message);
       return false;
@@ -100,11 +101,14 @@ export const useEmailUpdate = () => {
         newEmail,
         callbackURL,
       });
-      
-      toast.success('Email update initiated. Check your inbox to complete the process.');
+
+      toast.success(
+        'Email update initiated. Check your inbox to complete the process.'
+      );
       return true;
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to update email';
+      const message =
+        err instanceof Error ? err.message : 'Failed to update email';
       setError(message);
       toast.error(message);
       return false;
@@ -135,7 +139,7 @@ export const useProfile = () => {
   useEffect(() => {
     setIsSessionLoading(true);
     getSession()
-      .then((result) => {
+      .then(result => {
         if (result?.data) {
           // Process session data to ensure types match our Session interface
           // This ensures role is string or undefined, never null
@@ -143,8 +147,8 @@ export const useProfile = () => {
             ...result.data,
             user: {
               ...result.data.user,
-              role: result.data.user?.role || undefined
-            }
+              role: result.data.user?.role || undefined,
+            },
           };
           setSessionData(processedData as Session);
         } else {

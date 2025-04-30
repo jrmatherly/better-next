@@ -6,7 +6,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { apiLogger } from '@/lib/logger';
 import { type UserStats } from '@/types/admin';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart, Loader2, RefreshCw, UserCircle, UserPlus } from 'lucide-react';
+import {
+  BarChart,
+  Loader2,
+  RefreshCw,
+  UserCircle,
+  UserPlus,
+} from 'lucide-react';
 import type { FC } from 'react';
 import { toast } from 'sonner';
 
@@ -16,7 +22,13 @@ import { toast } from 'sonner';
  */
 export const UserStatsPanel: FC = () => {
   // Fetch user statistics using React Query
-  const { data: stats, isLoading, isError, refetch, isRefetching } = useQuery<UserStats>({
+  const {
+    data: stats,
+    isLoading,
+    isError,
+    refetch,
+    isRefetching,
+  } = useQuery<UserStats>({
     queryKey: ['admin', 'user-stats'],
     queryFn: async () => {
       try {
@@ -60,9 +72,9 @@ export const UserStatsPanel: FC = () => {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">User Statistics</h3>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handleRefresh}
           disabled={isLoading || isRefetching}
           className="h-8"
@@ -110,7 +122,9 @@ export const UserStatsPanel: FC = () => {
 
         <Card className="col-span-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">New Users Today</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              New Users Today
+            </CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -136,7 +150,9 @@ export const UserStatsPanel: FC = () => {
 
         <Card className="col-span-1">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Growth</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Monthly Growth
+            </CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -158,7 +174,7 @@ export const UserStatsPanel: FC = () => {
           </CardContent>
         </Card>
       </div>
-      
+
       {isError && (
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 text-sm text-red-600 dark:text-red-400 flex items-center">
           <Loader2 className="h-4 w-4 mr-2 animate-spin" />

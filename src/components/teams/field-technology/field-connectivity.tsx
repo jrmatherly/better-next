@@ -322,10 +322,12 @@ export function FieldConnectivity({ searchQuery }: FieldConnectivityProps) {
                     }
                     labelLine={false}
                   >
-                    {connectionTypes.map((entry) => (
+                    {connectionTypes.map(entry => (
                       <Cell
                         key={`cell-${entry.name}`}
-                        fill={COLORS[connectionTypes.indexOf(entry) % COLORS.length]}
+                        fill={
+                          COLORS[connectionTypes.indexOf(entry) % COLORS.length]
+                        }
                       />
                     ))}
                   </Pie>
@@ -343,11 +345,14 @@ export function FieldConnectivity({ searchQuery }: FieldConnectivityProps) {
             </div>
 
             <div className="mt-4 grid grid-cols-2 gap-2">
-              {connectionTypes.map((type) => (
+              {connectionTypes.map(type => (
                 <div key={type.name} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[connectionTypes.indexOf(type) % COLORS.length] }}
+                    style={{
+                      backgroundColor:
+                        COLORS[connectionTypes.indexOf(type) % COLORS.length],
+                    }}
                   />
                   <span className="text-sm">
                     {type.name}: {type.value}%

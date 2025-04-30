@@ -1,8 +1,8 @@
 {
-  "name": "better-next",
+  "name": "itsapp-frontend",
   "version": "0.2.0",
   "private": true,
-  "description": "Better Auth - Next.js Starter Kit",
+  "description": "ITSApp - Frontend",
   "author": "MatherlyNet <jason@matherly.net>",
   "license": "MIT",
   "scripts": {
@@ -76,7 +76,7 @@
     "@remixicon/react": "^4.6.0",
     "@scalar/nextjs-api-reference": "^0.7.13",
     "@sentry/nextjs": "^9",
-    "@t3-oss/env-nextjs": "^0.13.0",
+    "@t3-oss/env-nextjs": "^0.13.2",
     "@tabler/icons-react": "^3.31.0",
     "@tanstack/react-form": "^1.9.0",
     "@tanstack/react-query": "^5.74.11",
@@ -187,7 +187,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jrmatherly/better-next.git"
+    "url": "https://bitbucket.org/teamaarons/itsapp-frontend.git"
   },
   "packageManager": "npm@11.3.0"
 }

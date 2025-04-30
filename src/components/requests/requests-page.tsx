@@ -976,9 +976,9 @@ export function RequestsPage() {
       {selectedRequest && (
         <RequestDetails
           request={selectedRequest}
-          onClose={() => setSelectedRequest(null)}
-          onUpdate={handleUpdateRequest}
-          onDelete={handleDeleteRequest}
+          onCloseAction={() => setSelectedRequest(null)}
+          onUpdateAction={handleUpdateRequest}
+          onDeleteAction={handleDeleteRequest}
         />
       )}
     </div>

@@ -171,7 +171,8 @@ export function DocumentationPage() {
   const filteredDocuments = documents.filter(document => {
     const matchesCategory =
       !selectedCategory || document.category === selectedCategory;
-    const matchesTag = !selectedTag || document.tags.includes(selectedTag || '');
+    const matchesTag =
+      !selectedTag || document.tags.includes(selectedTag || '');
     const matchesSearch =
       !searchQuery ||
       document.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -434,7 +435,7 @@ export function DocumentationPage() {
       {selectedDocument && isEditingDocument && (
         <DocumentForm
           document={selectedDocument}
-          onSubmitAction={(updatedDoc) => {
+          onSubmitAction={updatedDoc => {
             // Convert Partial<Document> to Document by merging with existing document
             const completeDoc: Document = {
               ...selectedDocument,

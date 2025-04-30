@@ -84,7 +84,11 @@ export function MetricCard({
             )}
           >
             {React.cloneElement(icon, {
-              className: cn('h-5 w-5', getStatusClasses(), icon.props.className),
+              className: cn(
+                'h-5 w-5',
+                getStatusClasses(),
+                icon.props.className
+              ),
             })}
           </div>
         </div>

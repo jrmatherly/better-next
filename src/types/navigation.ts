@@ -25,7 +25,7 @@ export interface NavItemType {
    * Optional child navigation items for creating dropdowns
    */
   items?: Omit<NavItemType, 'icon' | 'items'>[];
-  
+
   /**
    * Optional array of roles that are allowed to see this navigation item
    * Used for team navigation items to control visibility based on user role

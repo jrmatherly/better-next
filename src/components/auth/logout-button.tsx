@@ -1,10 +1,10 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { signOut } from '@/lib/auth/client';
 import { authLogger } from '@/lib/logger';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 
 export default function LogoutButton({
   children,
@@ -30,9 +30,9 @@ export default function LogoutButton({
   };
 
   return (
-    <Button 
+    <Button
       onClick={handleSignOut}
-      variant="ghost" 
+      variant="ghost"
       className="w-full justify-start"
     >
       {children}

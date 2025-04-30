@@ -113,7 +113,11 @@ interface HistoricalDataProps {
   timeRange: string;
 }
 
-import type { DateRange, OnSelectDateRangeHandler, HistoricalMetric } from '@/types/monitoring';
+import type {
+  DateRange,
+  HistoricalMetric,
+  OnSelectDateRangeHandler,
+} from '@/types/monitoring';
 
 export function HistoricalData({ timeRange }: HistoricalDataProps) {
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -184,7 +188,7 @@ export function HistoricalData({ timeRange }: HistoricalDataProps) {
     }
   };
 
-  const handleDateRangeSelect: OnSelectDateRangeHandler = (value) => {
+  const handleDateRangeSelect: OnSelectDateRangeHandler = value => {
     setDateRange(value ?? { from: undefined, to: undefined });
   };
 

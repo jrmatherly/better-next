@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   experimental: {
-    optimizeCss: true, // Enable CSS optimization
+    //optimizeCss: true, // Enable CSS optimization
     optimizePackageImports: [
       'framer-motion',
       '@heroui/react',

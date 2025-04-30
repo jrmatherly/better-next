@@ -60,7 +60,10 @@ interface VmProvisionFormProps {
   onCancelAction: () => void;
 }
 
-export function VmProvisionForm({ onSubmitAction, onCancelAction }: VmProvisionFormProps) {
+export function VmProvisionForm({
+  onSubmitAction,
+  onCancelAction,
+}: VmProvisionFormProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
   // Default values for the form
@@ -230,9 +233,7 @@ export function VmProvisionForm({ onSubmitAction, onCancelAction }: VmProvisionF
               >
                 <Server className="h-6 w-6 mb-2 text-amber-500" />
                 <p className="text-sm font-medium">Database</p>
-                <p className="text-xs text-muted-foreground">
-                  4 CPU, 16GB RAM
-                </p>
+                <p className="text-xs text-muted-foreground">4 CPU, 16GB RAM</p>
               </button>
             </div>
 
@@ -522,11 +523,11 @@ export function VmProvisionForm({ onSubmitAction, onCancelAction }: VmProvisionF
                     <Input
                       placeholder="e.g., web, production, linux (comma-separated)"
                       value={field.value.join(', ')}
-                      onChange={(e) => {
+                      onChange={e => {
                         const inputValue = e.target.value;
                         const tagsArray = inputValue
                           .split(',')
-                          .map((tag) => tag.trim())
+                          .map(tag => tag.trim())
                           .filter(Boolean);
                         field.onChange(tagsArray);
                       }}
@@ -537,7 +538,7 @@ export function VmProvisionForm({ onSubmitAction, onCancelAction }: VmProvisionF
                   </FormDescription>
                   {field.value.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {field.value.map((tag) => (
+                      {field.value.map(tag => (
                         <Badge key={tag} variant="secondary">
                           {tag}
                         </Badge>

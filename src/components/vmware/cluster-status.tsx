@@ -290,7 +290,7 @@ export function ClusterStatus({ detailed = false }: ClusterStatusProps) {
                       paddingAngle={2}
                       dataKey="value"
                     >
-                      {resourceData.map((entry) => (
+                      {resourceData.map(entry => (
                         <Cell key={`cpu-${entry.name}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -303,7 +303,7 @@ export function ClusterStatus({ detailed = false }: ClusterStatusProps) {
                       paddingAngle={2}
                       dataKey="value"
                     >
-                      {memoryData.map((entry) => (
+                      {memoryData.map(entry => (
                         <Cell key={`memory-${entry.name}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -316,8 +316,11 @@ export function ClusterStatus({ detailed = false }: ClusterStatusProps) {
                       paddingAngle={2}
                       dataKey="value"
                     >
-                      {storageData.map((entry) => (
-                        <Cell key={`storage-${entry.name}`} fill={entry.color} />
+                      {storageData.map(entry => (
+                        <Cell
+                          key={`storage-${entry.name}`}
+                          fill={entry.color}
+                        />
                       ))}
                     </Pie>
                     <Tooltip

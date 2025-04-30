@@ -1,14 +1,14 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from 'recharts';
 
 // Mock data - in a real app, this would come from an API
@@ -36,44 +36,39 @@ export function ResourceUsageWidget() {
               margin={{ top: 5, right: 0, left: 0, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis 
-                dataKey="name" 
-                fontSize={10} 
+              <XAxis
+                dataKey="name"
+                fontSize={10}
                 tickLine={false}
                 axisLine={false}
               />
-              <YAxis 
-                fontSize={10} 
-                tickLine={false}
-                axisLine={false}
-                unit="%" 
-              />
+              <YAxis fontSize={10} tickLine={false} axisLine={false} unit="%" />
               <Tooltip />
-              <Area 
-                type="monotone" 
-                dataKey="cpu" 
+              <Area
+                type="monotone"
+                dataKey="cpu"
                 name="CPU"
                 stackId="1"
-                stroke="hsl(var(--chart-1))" 
-                fill="hsl(var(--chart-1))" 
+                stroke="hsl(var(--chart-1))"
+                fill="hsl(var(--chart-1))"
                 fillOpacity={0.6}
               />
-              <Area 
-                type="monotone" 
-                dataKey="memory" 
+              <Area
+                type="monotone"
+                dataKey="memory"
                 name="Memory"
                 stackId="2"
-                stroke="hsl(var(--chart-2))" 
-                fill="hsl(var(--chart-2))" 
+                stroke="hsl(var(--chart-2))"
+                fill="hsl(var(--chart-2))"
                 fillOpacity={0.6}
               />
-              <Area 
-                type="monotone" 
-                dataKey="storage" 
+              <Area
+                type="monotone"
+                dataKey="storage"
                 name="Storage"
                 stackId="3"
-                stroke="hsl(var(--chart-3))" 
-                fill="hsl(var(--chart-3))" 
+                stroke="hsl(var(--chart-3))"
+                fill="hsl(var(--chart-3))"
                 fillOpacity={0.6}
               />
             </AreaChart>

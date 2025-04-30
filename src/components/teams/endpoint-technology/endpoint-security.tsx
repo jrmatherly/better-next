@@ -476,7 +476,12 @@ export function EndpointSecurity({ searchQuery }: EndpointSecurityProps) {
                     {vulnerabilityTypesData.map(entry => (
                       <Cell
                         key={`cell-${entry.name}`}
-                        fill={COLORS[vulnerabilityTypesData.indexOf(entry) % COLORS.length]}
+                        fill={
+                          COLORS[
+                            vulnerabilityTypesData.indexOf(entry) %
+                              COLORS.length
+                          ]
+                        }
                       />
                     ))}
                   </Pie>
@@ -498,7 +503,12 @@ export function EndpointSecurity({ searchQuery }: EndpointSecurityProps) {
                 <div key={entry.name} className="flex items-center gap-2">
                   <div
                     className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: COLORS[vulnerabilityTypesData.indexOf(entry) % COLORS.length] }}
+                    style={{
+                      backgroundColor:
+                        COLORS[
+                          vulnerabilityTypesData.indexOf(entry) % COLORS.length
+                        ],
+                    }}
                   />
                   <span className="text-sm truncate">{entry.name}</span>
                 </div>

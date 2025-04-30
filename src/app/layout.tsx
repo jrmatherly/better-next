@@ -3,7 +3,7 @@ import { ImpersonationBanner } from '@/components/auth/admin/impersonation-banne
 import { Toaster } from '@/components/ui/sonner';
 import { getServerSession } from '@/lib/auth/guards';
 import { createMetadata } from '@/lib/metadata';
-import { APP_NAME } from '@/lib/settings';
+import { APP_DESCRIPTION, APP_NAME } from '@/lib/settings';
 import { Wrapper, WrapperWithQuery } from '@/providers/query-provider';
 import { ThemeProvider } from '@/providers/theme-provider';
 import Analytics from '@/script/analytics';
@@ -15,7 +15,8 @@ export const metadata = createMetadata({
     template: `%s | ${APP_NAME || 'Better Next'}`,
     default: APP_NAME || 'Better Next',
   },
-  description: 'The easiest way to get started with your next project',
+  description:
+    APP_DESCRIPTION || 'The easiest way to get started with your next project',
 });
 
 export default async function RootLayout({

@@ -17,7 +17,7 @@ export default function AuthLayout({
         {/* Optional overlay for better text contrast */}
         <div className="absolute inset-0 bg-black/30" />
       </div>
-      
+
       {/* Brand logo in top right */}
       <div className="absolute right-10 top-10 z-10">
         <div className="flex items-center">
@@ -25,11 +25,9 @@ export default function AuthLayout({
           <p className="font-medium text-white">{APP_NAME}</p>
         </div>
       </div>
-      
+
       {/* Centered content */}
-      <div className="relative z-10 w-full max-w-md">
-        {children}
-      </div>
+      <div className="relative z-10 w-full max-w-md">{children}</div>
     </div>
   );
 }

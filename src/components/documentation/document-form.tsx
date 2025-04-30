@@ -191,7 +191,7 @@ export function DocumentForm({
   return (
     <Dialog
       open={true}
-      onOpenChange={(open) => {
+      onOpenChange={open => {
         if (!open) onCancelAction();
       }}
     >

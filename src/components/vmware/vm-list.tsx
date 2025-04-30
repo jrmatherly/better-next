@@ -49,7 +49,11 @@ interface VmListProps {
 type SortField = 'name' | 'status' | 'type' | 'cpu' | 'memory' | 'createdAt';
 type SortDirection = 'asc' | 'desc';
 
-export function VmList({ vms, onVmSelectAction, onPowerOperationAction }: VmListProps) {
+export function VmList({
+  vms,
+  onVmSelectAction,
+  onPowerOperationAction,
+}: VmListProps) {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 

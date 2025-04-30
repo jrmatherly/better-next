@@ -483,8 +483,15 @@ export function PerformanceMetrics({ timeRange }: PerformanceMetricsProps) {
                   }
                   labelLine={false}
                 >
-                  {resourceUtilizationData.map((entry) => (
-                    <Cell key={entry.name} fill={COLORS[resourceUtilizationData.indexOf(entry) % COLORS.length]} />
+                  {resourceUtilizationData.map(entry => (
+                    <Cell
+                      key={entry.name}
+                      fill={
+                        COLORS[
+                          resourceUtilizationData.indexOf(entry) % COLORS.length
+                        ]
+                      }
+                    />
                   ))}
                 </Pie>
                 <Tooltip

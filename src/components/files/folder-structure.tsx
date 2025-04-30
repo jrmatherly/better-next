@@ -159,9 +159,7 @@ export function FolderStructure({
                   </span>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => onNavigateAction(folder.id)}
-                  >
+                  <DropdownMenuItem onClick={() => onNavigateAction(folder.id)}>
                     <FolderOpen className="mr-2 h-4 w-4" />
                     Open
                   </DropdownMenuItem>

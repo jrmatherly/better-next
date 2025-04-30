@@ -1,7 +1,7 @@
 'use client';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/providers/auth-provider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export function Wrapper(props: { children: React.ReactNode }) {
   return (
@@ -16,9 +16,7 @@ const queryClient = new QueryClient();
 export function WrapperWithQuery(props: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        {props.children}
-      </AuthProvider>
+      <AuthProvider>{props.children}</AuthProvider>
     </QueryClientProvider>
   );
 }

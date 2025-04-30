@@ -1,4 +1,5 @@
 import Logo from '@/components/logo';
+import { APP_NAME } from '@/lib/settings';
 import { FaInstagram, FaSquareGithub, FaXTwitter } from 'react-icons/fa6';
 
 const socialIcons = [
@@ -60,11 +61,11 @@ export default function Footer() {
     <footer>
       <div className="relative mx-auto mt-10 max-w-6xl px-2 md:px-5">
         <div className="grid grid-cols-2 justify-between gap-12 py-8 sm:grid-rows-[auto_auto] md:grid-cols-4 md:grid-rows-[auto_auto] md:py-12 lg:grid-cols-[repeat(4,minmax(0,140px))_1fr] lg:grid-rows-1 xl:gap-20">
-          {footerData.map((block) => (
+          {footerData.map(block => (
             <div key={block.title} className="space-y-2">
               <h3 className="text-sm font-bold">{block.title}</h3>
               <ul className="space-y-2 text-sm">
-                {block.links.map((link) => (
+                {block.links.map(link => (
                   <li key={link.name}>
                     <a
                       className="text-secondary-foreground transition hover:text-primary"
@@ -84,7 +85,7 @@ export default function Footer() {
             </div>
             <div className="text-sm">
               <p className="mb-3 text-secondary-foreground">
-                &copy; Better Next
+                &copy; {APP_NAME}
                 <span> · </span>
                 <a
                   className="text-primary transition hover:text-primary/80"
@@ -94,7 +95,7 @@ export default function Footer() {
                 </a>
               </p>
               <ul className="inline-flex gap-4">
-                {socialIcons.map((social) => (
+                {socialIcons.map(social => (
                   <li key={social.ariaLabel}>
                     <a
                       className="flex items-center justify-center text-primary transition hover:text-primary/80"

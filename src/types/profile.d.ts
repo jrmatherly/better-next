@@ -33,11 +33,11 @@ export interface Preferences extends z.infer<typeof preferencesSchema> {}
  */
 export const profileSchema = z.object({
   /** User's first name */
-  firstName: z.string().min(1, "First name is required"),
+  firstName: z.string().min(1, 'First name is required'),
   /** User's last name */
-  lastName: z.string().min(1, "Last name is required"),
+  lastName: z.string().min(1, 'Last name is required'),
   /** User's email address */
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().email('Please enter a valid email address'),
   /** User's phone number (optional) */
   phone: z.string().optional(),
   /** User's job title (optional) */
@@ -51,7 +51,7 @@ export const profileSchema = z.object({
   /** When the user joined the platform */
   memberSince: z.string(),
   /** User's preferences and settings */
-  preferences: z.custom<Preferences>((val) => true).default({}),
+  preferences: z.custom<Preferences>(val => true).default({}),
   /** User's connected social accounts */
   socialLinks: z.record(z.string()).optional(),
   /** User's role in the system */

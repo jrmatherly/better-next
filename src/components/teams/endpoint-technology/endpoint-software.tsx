@@ -608,7 +608,12 @@ export function EndpointSoftware({ searchQuery }: EndpointSoftwareProps) {
                       {softwareByCategoryData.map(entry => (
                         <Cell
                           key={`cell-${entry.name}`}
-                          fill={COLORS[softwareByCategoryData.indexOf(entry) % COLORS.length]}
+                          fill={
+                            COLORS[
+                              softwareByCategoryData.indexOf(entry) %
+                                COLORS.length
+                            ]
+                          }
                         />
                       ))}
                     </Pie>
@@ -634,7 +639,11 @@ export function EndpointSoftware({ searchQuery }: EndpointSoftwareProps) {
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{
-                          backgroundColor: COLORS[softwareByCategoryData.indexOf(category) % COLORS.length],
+                          backgroundColor:
+                            COLORS[
+                              softwareByCategoryData.indexOf(category) %
+                                COLORS.length
+                            ],
                         }}
                       />
                       <span>{category.name}</span>

@@ -342,7 +342,7 @@ export function FileDetails({
                   </h3>
                   <div className="flex flex-wrap gap-1">
                     {file.tags.length > 0 ? (
-                      file.tags.map((tag) => (
+                      file.tags.map(tag => (
                         <Badge key={tag} variant="outline" className="gap-1">
                           <Tag className="h-3 w-3" />
                           {tag}
@@ -371,7 +371,7 @@ export function FileDetails({
                   <h3 className="text-sm font-medium mb-2">Comments</h3>
 
                   <div className="space-y-4">
-                    {(file.comments ?? []).map((comment) => (
+                    {(file.comments ?? []).map(comment => (
                       <div
                         key={comment.id}
                         className="flex gap-3 bg-muted/50 p-3 rounded-md"
@@ -392,10 +392,7 @@ export function FileDetails({
                               {comment.userName}
                             </p>
                             <span className="text-xs text-muted-foreground">
-                              {format(
-                                comment.timestamp,
-                                'MMM d, yyyy h:mm a'
-                              )}
+                              {format(comment.timestamp, 'MMM d, yyyy h:mm a')}
                             </span>
                           </div>
                           <p className="text-sm mt-1">{comment.content}</p>
@@ -445,17 +442,18 @@ export function FileDetails({
                             </p>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {file.owner?.name ?? 'Unknown user'} uploaded version{' '}
-                            {
-                              Array.isArray(file.versions) && file.versions.length > 0
-                                ? file.versions[file.versions.length - 1]?.versionNumber ?? ''
-                                : ''
-                            }
+                            {file.owner?.name ?? 'Unknown user'} uploaded
+                            version{' '}
+                            {Array.isArray(file.versions) &&
+                            file.versions.length > 0
+                              ? (file.versions[file.versions.length - 1]
+                                  ?.versionNumber ?? '')
+                              : ''}
                           </p>
                         </div>
                       </div>
 
-                      {(file.comments ?? []).map((comment) => (
+                      {(file.comments ?? []).map(comment => (
                         <div key={comment.id} className="relative pl-9">
                           <div className="absolute left-[1px] top-1 w-7 h-7 rounded-full bg-background flex items-center justify-center border">
                             <MessageSquare className="h-3.5 w-3.5 text-blue-500" />
@@ -488,7 +486,8 @@ export function FileDetails({
                             </p>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            {file.owner?.name ?? 'Unknown user'} created this file
+                            {file.owner?.name ?? 'Unknown user'} created this
+                            file
                           </p>
                         </div>
                       </div>

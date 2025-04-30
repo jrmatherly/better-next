@@ -204,19 +204,13 @@ export function AlertsPanel({ limit }: AlertsPanelProps) {
     }
     if (acknowledged) {
       return (
-        <Badge
-          variant="outline"
-          className="border-blue-500 text-blue-500"
-        >
+        <Badge variant="outline" className="border-blue-500 text-blue-500">
           Acknowledged
         </Badge>
       );
     }
     return (
-      <Badge
-        variant="outline"
-        className="border-destructive text-destructive"
-      >
+      <Badge variant="outline" className="border-destructive text-destructive">
         Unacknowledged
       </Badge>
     );
@@ -261,10 +255,7 @@ export function AlertsPanel({ limit }: AlertsPanelProps) {
         {!limit && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-              >
+              <Button variant="outline" size="sm">
                 <Filter className="mr-2 h-4 w-4" />
                 Filter
                 {(severityFilter || statusFilter) && (
@@ -365,25 +356,16 @@ export function AlertsPanel({ limit }: AlertsPanelProps) {
               <Badge className="bg-orange-500 rounded-sm">{warningCount}</Badge>
               <Badge className="bg-blue-500 rounded-sm">{infoCount}</Badge>
             </div>
-            <button
-              type="button"
-              className="p-0 h-auto text-xs text-primary"
-            >
+            <button type="button" className="p-0 h-auto text-xs text-primary">
               View All Alerts
             </button>
           </div>
         ) : (
           <Tabs defaultValue="active">
             <TabsList className="w-full grid grid-cols-3 mb-4">
-              <TabsTrigger value="active">
-                Active
-              </TabsTrigger>
-              <TabsTrigger value="all">
-                All Alerts
-              </TabsTrigger>
-              <TabsTrigger value="history">
-                History
-              </TabsTrigger>
+              <TabsTrigger value="active">Active</TabsTrigger>
+              <TabsTrigger value="all">All Alerts</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>
           </Tabs>
         )}
@@ -466,11 +448,7 @@ export function AlertsPanel({ limit }: AlertsPanelProps) {
                     : 'All systems are operating normally'}
                 </p>
                 {(severityFilter || statusFilter) && (
-                  <button
-                    type="button"
-                    className="mt-4"
-                    onClick={resetFilters}
-                  >
+                  <button type="button" className="mt-4" onClick={resetFilters}>
                     Reset Filters
                   </button>
                 )}

@@ -16,12 +16,12 @@ export function parseRoles(tokenRoles: unknown): Role[] {
   if (!Array.isArray(tokenRoles)) {
     return [ROLES.USER]; // Default to basic user role
   }
-  
+
   // Filter for valid string roles that match our ROLES enum
   const validRoles = tokenRoles
     .filter((role): role is string => typeof role === 'string')
     .filter(isValidRole);
-  
+
   // Return the valid roles, or default to USER role if none found
   return validRoles.length > 0 ? validRoles : [ROLES.USER];
 }
@@ -36,8 +36,13 @@ export function hasRole(roles: Role[] | undefined, role: Role): boolean {
 /**
  * Check if a user has any of the specified roles
  */
-export function hasAnyRole(roles: Role[] | undefined, allowedRoles: Role[]): boolean {
-  return Array.isArray(roles) && roles.some(role => allowedRoles.includes(role));
+export function hasAnyRole(
+  roles: Role[] | undefined,
+  allowedRoles: Role[]
+): boolean {
+  return (
+    Array.isArray(roles) && roles.some(role => allowedRoles.includes(role))
+  );
 }
 
 /**
@@ -48,7 +53,7 @@ export function getHighestRole(roles: Role[] | undefined): Role {
   if (!Array.isArray(roles) || roles.length === 0) {
     return ROLES.USER;
   }
-  
+
   // Role priority (highest to lowest)
   const rolePriority: Role[] = [
     ROLES.ADMIN,
@@ -58,16 +63,16 @@ export function getHighestRole(roles: Role[] | undefined): Role {
     ROLES.COLLAB,
     ROLES.TCC,
     ROLES.FIELDTECH,
-    ROLES.USER
+    ROLES.USER,
   ];
-  
+
   // Find the first role from our priority list that exists in the user's roles
   for (const priorityRole of rolePriority) {
     if (roles.includes(priorityRole)) {
       return priorityRole;
     }
   }
-  
+
   return ROLES.USER;
 }
 

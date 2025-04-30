@@ -3,7 +3,7 @@
 import { useProfileContext } from '@/hooks/use-profile';
 import { Button, Divider, Input } from '@heroui/react';
 import { Icon } from '@iconify/react';
-import { useState, useEffect, Fragment } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const socialPlatforms = [
@@ -103,10 +103,11 @@ export const SocialMediaTab = () => {
                   onValueChange={value => handleChange(platform.id, value)}
                   variant="bordered"
                   classNames={{
-                    label: "text-foreground/90 font-medium text-sm mb-1",
-                    input: "text-foreground font-medium",
-                    inputWrapper: "bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80",
-                    base: "w-full"
+                    label: 'text-foreground/90 font-medium text-sm mb-1',
+                    input: 'text-foreground font-medium',
+                    inputWrapper:
+                      'bg-content2 border-content3 shadow-sm hover:bg-content2/80 focus:bg-content2/80',
+                    base: 'w-full',
                   }}
                   startContent={
                     platform.id === 'twitter' ? (

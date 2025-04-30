@@ -74,7 +74,9 @@ export default async function AuthDebugServerPage() {
               <div className="flex items-center gap-2">
                 <Badge
                   variant={getRoleBadgeStyles(session.user.role).variant}
-                  className={cn(getRoleBadgeStyles(session.user.role).className)}
+                  className={cn(
+                    getRoleBadgeStyles(session.user.role).className
+                  )}
                 >
                   {session.user.role}
                 </Badge>
@@ -86,9 +88,7 @@ export default async function AuthDebugServerPage() {
                 <h3 className="font-medium text-sm text-muted-foreground">
                   Impersonation Status
                 </h3>
-                <Badge
-                  className="bg-amber-100 text-amber-800 border-amber-300"
-                >
+                <Badge className="bg-amber-100 text-amber-800 border-amber-300">
                   Impersonating Role
                 </Badge>
                 {session.user.originalRole && (
