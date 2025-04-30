@@ -3,17 +3,17 @@ import { ROLES } from '@/types/roles';
 import type { BetterAuthOptions, User } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, apiKey, jwt, multiSession, openAPI } from 'better-auth/plugins';
-import { createClient } from 'redis';
+/* import { createClient } from 'redis'; */
 import * as schema from '../../db/schema';
 
-interface SecondaryStorage {
+/* interface SecondaryStorage {
   get: (key: string) => Promise<string | null>;
   set: (key: string, value: string, ttl?: number) => Promise<void>;
   delete: (key: string) => Promise<void>;
 }
 
 const redis = createClient();
-await redis.connect();
+await redis.connect(); */
 
 const APP_NAME =
   process.env.NODE_ENV === 'development'
@@ -43,7 +43,7 @@ export const authConfig = {
     provider: 'pg',
     schema: schema,
   }),
-  secondaryStorage: {
+  /* secondaryStorage: {
     get: async key => {
       const value = await redis.get(key);
       return value ? value : null;
@@ -57,7 +57,7 @@ export const authConfig = {
     delete: async key => {
       await redis.del(key);
     },
-  },
+  }, */
   socialProviders: {
     microsoft: {
       clientId: MICROSOFT_CLIENT_ID || '',
