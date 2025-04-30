@@ -189,7 +189,12 @@ export function DocumentForm({
   };
 
   return (
-    <Dialog open modal>
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) onCancelAction();
+      }}
+    >
       <DialogContent className="sm:max-w-3xl h-[90vh]">
         <DialogHeader>
           <DialogTitle>

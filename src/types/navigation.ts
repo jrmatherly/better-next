@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
+import type { Role } from './roles';
 
 /**
  * Type definition for navigation items used in sidebars
@@ -21,10 +22,13 @@ export interface NavItemType {
   icon: LucideIcon;
 
   /**
-   * Optional child items for dropdown navigation
+   * Optional child navigation items for creating dropdowns
    */
-  items?: Array<{
-    title: string;
-    url: string;
-  }>;
+  items?: Omit<NavItemType, 'icon' | 'items'>[];
+  
+  /**
+   * Optional array of roles that are allowed to see this navigation item
+   * Used for team navigation items to control visibility based on user role
+   */
+  allowedRoles?: Role[];
 }

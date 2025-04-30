@@ -8,17 +8,27 @@ const publicRoutes = ['/login', '/sign-up'];
 
 // Define protected route patterns
 //const authRoutes = ['/login', '/sign-up'];
-const protectedRoutes = ['/user'];
+const protectedRoutes = [
+  '/user',
+  '/vmware',
+  '/documentation',
+  '/files',
+  '/insights',
+  '/resources',
+  '/api',
+];
 //const protectedRoutesPrefix = "/user";
 
 // Define role-protected routes
-const adminRoutes = ['/admin'];
+const adminRoutes = ['/admin', '/admin/dashboard', '/api/admin'];
 const securityRoutes = ['/security'];
 const devopsRoutes = ['/devops'];
 const dbaRoutes = ['/dba'];
-const collabRoutes = ['/collab'];
+const collabRoutes = ['/collaboration-services'];
 const tccRoutes = ['/tcc'];
-const fieldtechRoutes = ['/fieldtech'];
+const fieldtechRoutes = ['/field-technology'];
+const endpointRoutes = ['/endpoint-technology'];
+const workloadRoutes = ['/workload-hosting'];
 //const apiImpersonationRoutes = ['/api/impersonation'];
 
 // Plugin-specific routes that require protection
@@ -56,6 +66,8 @@ export async function middleware(request: NextRequest) {
     ...dbaRoutes,
     ...fieldtechRoutes,
     ...collabRoutes,
+    ...endpointRoutes,
+    ...workloadRoutes,
     ...tccRoutes,
     ...apiKeyRoutes,
     ...jwtToolsRoutes,

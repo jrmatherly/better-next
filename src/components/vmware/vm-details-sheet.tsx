@@ -19,6 +19,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import {
   Sheet,
@@ -29,8 +38,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { VmPerformance } from '@/components/vmware/vm-performance';
-import { logger } from '@/lib/logger';
 import type { VM } from '@/types/vmware';
 import { format } from 'date-fns';
 import {
@@ -40,7 +49,6 @@ import {
   CpuIcon,
   Edit,
   HardDrive,
-  MemoryStick as Memory,
   Network,
   PauseCircle,
   Play,
@@ -48,9 +56,12 @@ import {
   RotateCcw,
   StopCircle,
   Trash2,
+  X,
+  MemoryStick
 } from 'lucide-react';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import type { ChangeEvent } from 'react';
 
 interface VmDetailsSheetProps {
   vm: VM;
@@ -72,6 +83,13 @@ export function VmDetailsSheet({
 }: VmDetailsSheetProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedVm, setEditedVm] = useState<VM>(vm);
+
+  // Reset editedVm when vm changes (e.g., different VM selected)
+  useEffect(() => {
+    setEditedVm(vm);
+  }, [vm]);
 
   // Get status badge based on VM status
   const getStatusBadge = (status: string) => {
@@ -131,12 +149,14 @@ export function VmDetailsSheet({
               </Button>
               <SheetTitle className="text-xl">{vm.name}</SheetTitle>
             </div>
-            <SheetDescription className="flex flex-wrap items-center gap-2">
-              <span className="font-mono">{vm.id}</span>
-              <span>•</span>
-              {getStatusBadge(vm.status)}
-              <span>•</span>
-              <span className="capitalize">{vm.type}</span>
+            <SheetDescription asChild>
+              <span className="flex flex-wrap items-center gap-2">
+                <span className="font-mono">{vm.id}</span>
+                <span>•</span>
+                {getStatusBadge(vm.status)}
+                <span>•</span>
+                <span className="capitalize">{vm.type}</span>
+              </span>
             </SheetDescription>
           </SheetHeader>
 
@@ -235,7 +255,7 @@ export function VmDetailsSheet({
                         </span>
                       </div>
                       <div className="flex flex-col items-center p-2 rounded-md border">
-                        <Memory className="h-5 w-5 text-muted-foreground mb-1" />
+                        <MemoryStick className="h-5 w-5 text-muted-foreground mb-1" />
                         <span className="text-sm font-medium">
                           {vm.memory} GB
                         </span>
@@ -334,79 +354,220 @@ export function VmDetailsSheet({
               <TabsContent value="settings" className="space-y-4">
                 <Card>
                   <CardHeader className="pb-2">
-                    <CardTitle>VM Settings</CardTitle>
-                    <CardDescription>Configure VM settings</CardDescription>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle>VM Settings</CardTitle>
+                        <CardDescription>Configure VM settings</CardDescription>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setIsEditing(!isEditing)}
+                      >
+                        {isEditing ? (
+                          <>
+                            <X className="mr-2 h-4 w-4" />
+                            Cancel
+                          </>
+                        ) : (
+                          <>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">
-                            VM Hardware Version
-                          </p>
-                          <p className="text-sm font-medium">
-                            VMware Virtual Machine Version 19
-                          </p>
+                    {isEditing ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="vm-name">Name</Label>
+                            <Input 
+                              id="vm-name" 
+                              value={editedVm.name} 
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, name: e.target.value})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="vm-os">Operating System</Label>
+                            <Select 
+                              value={editedVm.os}
+                              onValueChange={(value: string) => setEditedVm({...editedVm, os: value})}
+                            >
+                              <SelectTrigger id="vm-os">
+                                <SelectValue placeholder="Select OS" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Ubuntu 24.04 LTS">Ubuntu 24.04 LTS</SelectItem>
+                                <SelectItem value="Windows Server 2025">Windows Server 2025</SelectItem>
+                                <SelectItem value="RedHat Enterprise Linux 9">RHEL 9</SelectItem>
+                                <SelectItem value="Debian 12">Debian 12</SelectItem>
+                                <SelectItem value="macOS Sonoma">macOS Sonoma</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <CpuIcon className="h-4 w-4" />
+                              <Label htmlFor="vm-cpu">CPU (vCPUs)</Label>
+                            </div>
+                            <Input 
+                              id="vm-cpu" 
+                              type="number" 
+                              min={1} 
+                              max={32}
+                              value={editedVm.cpu}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, cpu: Number.parseInt(e.target.value) || 1})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <MemoryStick className="h-4 w-4" />
+                              <Label htmlFor="vm-memory">Memory (GB)</Label>
+                            </div>
+                            <Input 
+                              id="vm-memory" 
+                              type="number" 
+                              min={1} 
+                              max={256}
+                              value={editedVm.memory}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, memory: Number.parseInt(e.target.value) || 1})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <HardDrive className="h-4 w-4" />
+                              <Label htmlFor="vm-storage">Storage (GB)</Label>
+                            </div>
+                            <Input 
+                              id="vm-storage" 
+                              type="number" 
+                              min={10} 
+                              max={2048}
+                              value={editedVm.storage}
+                              onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({...editedVm, storage: Number.parseInt(e.target.value) || 10})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Network className="h-4 w-4" />
+                              <Label htmlFor="vm-network">Network</Label>
+                            </div>
+                            <Select 
+                              value={editedVm.network}
+                              onValueChange={(value: string) => setEditedVm({...editedVm, network: value})}
+                            >
+                              <SelectTrigger id="vm-network">
+                                <SelectValue placeholder="Select network" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="100 Mbps">100 Mbps</SelectItem>
+                                <SelectItem value="1 Gbps">1 Gbps</SelectItem>
+                                <SelectItem value="10 Gbps">10 Gbps</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-sm text-muted-foreground">
-                            Boot Delay
-                          </p>
-                          <p className="text-sm font-medium">0 ms</p>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          VM Options
-                        </p>
+                        
                         <div className="space-y-2">
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">VMware Tools</span>
-                            <Badge
-                              variant="outline"
-                              className={
-                                vm.status === 'running'
-                                  ? 'bg-green-500/10 text-green-500 border-green-500'
-                                  : 'text-muted-foreground'
-                              }
-                            >
-                              {vm.status === 'running'
-                                ? 'Running'
-                                : 'Not Available'}
-                            </Badge>
+                          <Label htmlFor="vm-description">Description</Label>
+                          <Textarea 
+                            id="vm-description" 
+                            value={editedVm.description}
+                            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setEditedVm({...editedVm, description: e.target.value})}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="vm-tags">Tags (comma-separated)</Label>
+                          <Input 
+                            id="vm-tags" 
+                            value={editedVm.tags.join(', ')}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedVm({
+                              ...editedVm, 
+                              tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
+                            })}
+                          />
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2 mt-4">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => {
+                              setIsEditing(false);
+                              setEditedVm(vm); // Reset to original VM
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={() => {
+                              onUpdateAction(editedVm);
+                              setIsEditing(false);
+                            }}
+                          >
+                            Save Changes
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                              VM Hardware Version
+                            </p>
+                            <p className="text-sm font-medium">
+                              VMware Virtual Machine Version 19
+                            </p>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">
-                              Hardware Virtualization
-                            </span>
-                            <Badge
-                              variant="outline"
-                              className="bg-green-500/10 text-green-500 border-green-500"
-                            >
-                              Enabled
-                            </Badge>
+                          <div className="space-y-1">
+                            <p className="text-sm text-muted-foreground">
+                              Boot Delay
+                            </p>
+                            <p className="text-sm font-medium">0 ms</p>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Memory Hotplug</span>
-                            <Badge variant="outline">Disabled</Badge>
+                        </div>
+
+                        <Separator />
+
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            VM Options
+                          </p>
+                          <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm">VMware Tools</span>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  vm.status === 'running'
+                                    ? 'bg-green-500/10 text-green-500 border-green-500'
+                                    : 'text-muted-foreground'
+                                }
+                              >
+                                {vm.status === 'running'
+                                  ? 'Running'
+                                  : 'Not Available'}
+                              </Badge>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm">
+                                Hardware Virtualization
+                              </span>
+                              <Badge
+                                variant="outline"
+                                className="bg-green-500/10 text-green-500 border-green-500"
+                              >
+                                Enabled
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      <Separator />
-
-                      <div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Notes
-                        </p>
-                        <p className="text-sm">
-                          {vm.notes || 'No notes available for this VM.'}
-                        </p>
-                      </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -420,16 +581,6 @@ export function VmDetailsSheet({
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete VM
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                // In a real app, this would open a configuration form
-                logger.info('Edit VM configuration');
-              }}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Configuration
             </Button>
           </SheetFooter>
         </SheetContent>

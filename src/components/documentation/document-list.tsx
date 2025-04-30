@@ -18,9 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
 import type { DocumentListProps } from '@/types/documentation';
-
+import { format } from 'date-fns';
 import {
   BookmarkIcon,
   CheckCircle,
@@ -88,88 +87,98 @@ export function DocumentList({
             </TableHeader>
             <TableBody>
               {documents.map(document => (
-                <TableRow key={document.id} className="hover:bg-muted/50">
-                  <TableCell colSpan={7}>
-                    <button
-                      type="button"
-                      className="w-full h-full text-left px-2 py-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary rounded-md"
-                      onClick={() => onViewAction(document)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          onViewAction(document);
-                        }
-                      }}
-                    >
-                      <div className="flex items-start">
-                        <div className="flex gap-2 items-start">
-                          <div className="pt-0.5">
-                            <FileText className="h-4 w-4 text-blue-500" />
-                          </div>
-                          <div>
-                            <div className="font-medium">{document.title}</div>
-                            <div className="text-xs text-muted-foreground hidden sm:block">
-                              {document.description.length > 60
-                                ? `${document.description.substring(0, 60)}...`
-                                : document.description}
-                            </div>
-                            <div className="flex gap-1 mt-1 flex-wrap">
-                              {document.tags.map(tag => (
-                                <Badge
-                                  key={tag}
-                                  variant="outline"
-                                  className="text-xs px-1 py-0 h-5"
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex justify-end ml-auto">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              asChild
-                              onClick={e => e.stopPropagation()}
-                            >
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  onViewAction(document);
-                                }}
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  onEditAction(document);
-                                }}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={e => {
-                                  e.stopPropagation();
-                                  onDeleteAction(document);
-                                }}
-                                className="text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                <TableRow
+                  key={document.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => onViewAction(document)}
+                >
+                  {/* Icon cell */}
+                  <TableCell className="p-2">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  </TableCell>
+                  
+                  {/* Document info cell */}
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <div className="font-medium">{document.title}</div>
+                      <div className="text-xs text-muted-foreground hidden sm:block">
+                        {document.description.length > 60
+                          ? `${document.description.substring(0, 60)}...`
+                          : document.description}
                       </div>
-                    </button>
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {document.tags.map(tag => (
+                          <Badge
+                            key={tag} 
+                            variant="outline"
+                            className="text-xs px-1 py-0 h-5"
+                          >
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </TableCell>
+                  
+                  {/* Category cell */}
+                  <TableCell className="hidden md:table-cell">
+                    <Badge variant="secondary">{document.category}</Badge>
+                  </TableCell>
+                  
+                  {/* Author cell */}
+                  <TableCell className="hidden lg:table-cell">
+                    {/* Simple text for authorId to avoid hydration issues */}
+                    <span className="text-sm">{document.authorId}</span>
+                  </TableCell>
+                  
+                  {/* Status cell */}
+                  <TableCell className="hidden sm:table-cell">
+                    {getStatusBadge(document.status)}
+                  </TableCell>
+                  
+                  {/* Updated date cell */}
+                  <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
+                    {format(document.updatedAt, 'MMM d, yyyy')}
+                  </TableCell>
+                  
+                  {/* Actions cell */}
+                  <TableCell>
+                    <div className="flex justify-end">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" type="button" onClick={e => e.stopPropagation()}>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={e => {
+                            e.stopPropagation();
+                            onViewAction(document);
+                          }}>
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={e => {
+                            e.stopPropagation();
+                            onEditAction(document);
+                          }}>
+                            <Pencil className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={e => {
+                              e.stopPropagation();
+                              onDeleteAction(document);
+                            }}
+                            className="text-destructive"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -184,11 +193,7 @@ export function DocumentList({
             {searchQuery || selectedCategory || selectedTag ? (
               <>
                 No documents match the current filters.{' '}
-                <Button
-                  variant="link"
-                  className="h-auto p-0"
-                  onClick={resetFilters}
-                >
+                <Button variant="link" className="h-auto p-0" onClick={resetFilters}>
                   Clear filters
                 </Button>
               </>

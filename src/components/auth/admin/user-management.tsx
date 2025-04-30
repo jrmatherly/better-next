@@ -153,7 +153,7 @@ export const UserManagement: FC = () => {
       await authClient.admin.impersonateUser({ userId: userToImpersonate });
 
       toast.success('Impersonated user');
-      router.push('/user/profile');
+      router.push('/dashboard');
     } catch (error) {
       toast.error(getErrorMessage(error) || 'Failed to impersonate user');
     } finally {
@@ -195,7 +195,7 @@ export const UserManagement: FC = () => {
       // First remove the user from the database
       // This ensures the database operation completes while we still have admin privileges
       await authClient.admin.removeUser({ userId: userToDelete });
-      
+
       // Then revoke all sessions for the user to ensure immediate loss of access
       // This is crucial when using Redis for session storage
       await authClient.admin.revokeUserSessions({ userId: userToDelete });

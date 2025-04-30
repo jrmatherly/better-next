@@ -1,31 +1,20 @@
-import LogoutButton from '@/components/auth/logout-button';
 import MobileNav from '@/components/layout/shared/mobile-nav';
+import UserDropdown from '@/components/layout/shared/user-dropdown';
 import Logo from '@/components/logo';
 import { ModeToggle } from '@/components/theme-toggle';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { auth } from '@/lib/auth/server';
-import {
-  /* CogIcon,
-  HomeIcon, LockIcon, */
-  LogOut,
-  UserIcon,
-} from 'lucide-react';
+import type { BetterAuthSession } from '@/types/auth';
 import { headers } from 'next/headers';
 import Link from 'next/link';
 // biome-ignore lint/correctness/noUnusedImports: not used directly
 import * as React from 'react';
 
+/**
+ * Server component for the site header
+ * Includes mobile navigation and user dropdown menu
+ */
 export default async function Header() {
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -73,87 +62,7 @@ export default async function Header() {
                 <Link href="/login">Login</Link>
               </Button>
             ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Avatar className="h-10 w-10 cursor-pointer rounded-full">
-                    <AvatarImage
-                      src={session.user.image ?? ''}
-                      alt={session.user.name}
-                    />
-                    <AvatarFallback className="rounded-full">
-                      {session.user.name.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                  side="bottom"
-                  align="end"
-                  sideOffset={4}
-                >
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                      <Avatar className="h-8 w-8 rounded-lg">
-                        <AvatarImage
-                          src={session.user.image ?? ''}
-                          alt={session.user.name}
-                        />
-                        <AvatarFallback className="rounded-lg">
-                          {session.user.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {session.user.name}
-                        </span>
-                        <span className="truncate text-xs">
-                          {session.user.email}
-                          <span className="truncate text-xs">
-                            {session.user.role}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <Link href="/user/profile">
-                      <DropdownMenuItem>
-                        <UserIcon />
-                        Profile
-                      </DropdownMenuItem>
-                    </Link>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  {/* <DropdownMenuGroup>
-                    <Link href="/user/settings">
-                      <DropdownMenuItem>
-                        <CogIcon />
-                        Settings
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/user/settings/personal-details">
-                      <DropdownMenuItem>
-                        <LockIcon />
-                        Security
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/user/settings/password-and-security">
-                      <DropdownMenuItem>
-                        <LockIcon />
-                        Change Password
-                      </DropdownMenuItem>
-                    </Link>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator /> */}
-                  <LogoutButton>
-                    <DropdownMenuItem>
-                      <LogOut />
-                      Log out
-                    </DropdownMenuItem>
-                  </LogoutButton>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <UserDropdown session={session as BetterAuthSession} />
             )}
           </li>
         </ul>

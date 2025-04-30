@@ -101,12 +101,15 @@ export function VmwarePage() {
 
   // Handle updating VM
   const handleUpdateVM = (updatedVM: VM) => {
+    // Update the VM in the list
     setVMs(
       vms.map(vm =>
         vm.id === updatedVM.id ? { ...updatedVM, lastModified: new Date() } : vm
       )
     );
-    setSelectedVM(null);
+    
+    // Update the selected VM to show the changes, but don't close the details sheet
+    setSelectedVM({ ...updatedVM, lastModified: new Date() });
 
     toast({
       title: 'VM updated',

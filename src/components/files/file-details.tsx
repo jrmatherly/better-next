@@ -185,8 +185,8 @@ export function FileDetails({
                 <SheetTitle className="text-xl truncate">
                   {file.name}
                 </SheetTitle>
-                <SheetDescription>
-                  <div className="flex items-center gap-2">
+                <SheetDescription asChild>
+                  <span className="flex items-center gap-2">
                     <span>{formatBytes(file.size)}</span>
                     <span>•</span>
                     <span className="capitalize">{file.type}</span>
@@ -202,7 +202,7 @@ export function FileDetails({
                         </Badge>
                       </>
                     )}
-                  </div>
+                  </span>
                 </SheetDescription>
               </div>
               <Button

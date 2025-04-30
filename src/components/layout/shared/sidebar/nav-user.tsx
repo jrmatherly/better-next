@@ -1,6 +1,7 @@
 'use client';
 
-import { ChevronsUpDown, LogOut } from 'lucide-react';
+import { ChevronsUpDown, LogOut, User, Key } from 'lucide-react';
+import Link from 'next/link';
 
 import LogoutButton from '@/components/auth/logout-button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -97,6 +98,26 @@ export function NavUser({ session }: NavUserProps) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="bg-border/50" />
+            
+            {/* User Settings Menu Items */}
+            <DropdownMenuLabel className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+              User Settings
+            </DropdownMenuLabel>
+            
+            <Link href="/user/profile">
+              <DropdownMenuItem className="text-foreground hover:text-foreground focus:text-foreground hover:bg-accent focus:bg-accent">
+                <User className="mr-2 size-4 text-muted-foreground" />
+                Profile
+              </DropdownMenuItem>
+            </Link>
+            
+            <Link href="/user/settings/api-keys">
+              <DropdownMenuItem className="text-foreground hover:text-foreground focus:text-foreground hover:bg-accent focus:bg-accent">
+                <Key className="mr-2 size-4 text-muted-foreground" />
+                API Keys
+              </DropdownMenuItem>
+            </Link>
+            
             <DropdownMenuSeparator className="bg-border/50" />
             <LogoutButton>
               <DropdownMenuItem className="text-foreground hover:text-foreground focus:text-foreground hover:bg-accent focus:bg-accent">
